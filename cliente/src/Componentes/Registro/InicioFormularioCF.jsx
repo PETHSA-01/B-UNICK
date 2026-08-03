@@ -3,12 +3,13 @@ import '../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import { Dialogo } from '../elementos_pequeños/Dialogo'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
 import { useState } from 'react'
+import { OjosFormulario } from './CaracteristicasFisicasComponentes/OjosFormulario'
 
 const TOTAL_BARRAS = 6
 
 export const InicioFormularioCF = ({ datosUsuario, onClose }) => {
   console.log('Datos del usuario recibidos en InicioFormularioCF:', datosUsuario)
-  const [visible, setVisible] = useState('registro')
+  const [visible, setVisible] = useState('inicioformulario')
 
   const close = () => {
     setVisible('')
@@ -21,8 +22,18 @@ export const InicioFormularioCF = ({ datosUsuario, onClose }) => {
       close()
     }
   }
+  const ojosform = () => {
+    setVisible('ojos')
+    console.log('Cambiando a formulario de ojos.')
+  }
+
   if (visible === '') return null
 
+  if (visible === 'ojos') {
+    return <OjosFormulario datosUsuario={datosUsuario} onClose={close} />
+  }
+  if(visible === 'inicioformulario'){
+    
   return (
         <> 
         <div className="fondo" onClick={handleBackdropClick}>
@@ -76,7 +87,7 @@ export const InicioFormularioCF = ({ datosUsuario, onClose }) => {
                     <span style={{fontWeight: 'bold'}}>Este proceso es importante para finalizar con el registro de tu cuenta</span>
                   </p>
                   <br />
-                  <button className="btn-submit">Continuar</button>
+                  <button className="btn-submit" onClick={ojosform}>Continuar</button>
                 </div>
               </div>
             </div>
@@ -88,4 +99,6 @@ export const InicioFormularioCF = ({ datosUsuario, onClose }) => {
   
         </>
     )
+  }
+  
 }
