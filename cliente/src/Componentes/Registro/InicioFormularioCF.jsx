@@ -22,6 +22,7 @@ export const InicioFormularioCF = ({ datosUsuario, onClose }) => {
       close()
     }
   }
+  
   const ojosform = () => {
     setVisible('ojos')
     console.log('Cambiando a formulario de ojos.')
@@ -29,76 +30,82 @@ export const InicioFormularioCF = ({ datosUsuario, onClose }) => {
 
   if (visible === '') return null
 
-  if (visible === 'ojos') {
-    return <OjosFormulario datosUsuario={datosUsuario} onClose={close} />
-  }
+if (visible === 'ojos') {
+  return (
+  <OjosFormulario
+    datosUsuario={datosUsuario}
+    onClose={() => setVisible('inicioformulario')}
+  />
+)  
+
+}
   if(visible === 'inicioformulario'){
     
-  return (
-        <> 
-        <div className="fondo" onClick={handleBackdropClick}>
-          <div className="contenedor"  onClick={(e) => e.stopPropagation()}> {/* El onclick detiene que el resto del contenedor se cierre al ser presionado */}
-            <button className="close-btn" onClick={() => close()}>✕</button>
+    return (
+          <> 
+          <div className="fondo" onClick={handleBackdropClick}>
+            <div className="contenedor"  onClick={(e) => e.stopPropagation()}> {/* El onclick detiene que el resto del contenedor se cierre al ser presionado */}
+              <button className="close-btn" onClick={() => close()}>✕</button>
+              
             
-          
-    
-            {/*<!-- Dialogo -->*/}
-            <div className="dialogo-wrapper">
-              <div className="BarrasProgreso">
-                <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                  <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                </svg>
-                <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                  <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                </svg>
-                <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                  <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                </svg>
-                <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                  <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                </svg>
-                <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                  <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                </svg>
-                <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                  <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                </svg>
+      
+              {/*<!-- Dialogo -->*/}
+              <div className="dialogo-wrapper">
+                <div className="BarrasProgreso">
+                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
+                  </svg>
+                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
+                  </svg>
+                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
+                  </svg>
+                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
+                  </svg>
+                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
+                  </svg>
+                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
+                  </svg>
 
+                </div>
+                <Dialogo label="Veamos qué es lo que te hace tan bonita >w<"/>
               </div>
-              <Dialogo label="Veamos qué es lo que te hace tan bonita >w<"/>
-            </div>
-    
-            {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}
-            <div className="cf-scroll-area">
-              <div className="dialogoformulario">
-                <div className='input-wrapper'>  
-                  <h3>¡Es hora de tomar un espejo!</h3><br />
-                  <p>A continuación tenemos un formulario para obtener tus características físicas. Esto es necesario 
-                    ya que esta información será utilizada en el sitio para darte una mejor experiencia. 
-                    Entre algunas funciones que utilizan tus características fisicas se encuentran las siguientes:</p>
-                    <ul style={{listStyleType: 'disc', paddingLeft: '20px'}}>
+      
+              {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}
+              <div className="cf-scroll-area">
+                <div className="dialogoformulario">
+                  <div className='input-wrapper'>  
+                    <h3>¡Es hora de tomar un espejo!</h3><br />
+                    <p>A continuación tenemos un formulario para obtener tus características físicas. Esto es necesario 
+                      ya que esta información será utilizada en el sitio para darte una mejor experiencia. 
+                      Entre algunas funciones que utilizan tus características fisicas se encuentran las siguientes:</p>
+                      <ul style={{listStyleType: 'disc', paddingLeft: '20px'}}>
+                        <br />
+                        <li><p>Mostrarte contenido relacionado con tus características</p></li>
+                        <li><p>Simplificar pasos para la publicación de videos/tutoriales</p></li>
+                        <li><p>Simplificar busquedas relacionadas a tus características físicas.</p></li>
+                      </ul>
                       <br />
-                      <li><p>Mostrarte contenido relacionado con tus características</p></li>
-                      <li><p>Simplificar pasos para la publicación de videos/tutoriales</p></li>
-                      <li><p>Simplificar busquedas relacionadas a tus características físicas.</p></li>
-                    </ul>
+                      <p>
+                      <span style={{fontWeight: 'bold'}}>Este proceso es importante para finalizar con el registro de tu cuenta</span>
+                    </p>
                     <br />
-                    <p>
-                    <span style={{fontWeight: 'bold'}}>Este proceso es importante para finalizar con el registro de tu cuenta</span>
-                  </p>
-                  <br />
-                  <button className="btn-submit" onClick={ojosform}>Continuar</button>
+                    <button className="btn-submit" onClick={ojosform}>Continuar</button>
+                  </div>
                 </div>
               </div>
-            </div>
-            </div>
-  
-        </div>
-  
-      {/*<!-- Componente reutilizable de notificaciones -->*/}
-  
-        </>
-    )
+              </div>
+    
+          </div>
+    
+        {/*<!-- Componente reutilizable de notificaciones -->*/}
+    
+          </>
+      )
   }
   
-}
+  }
