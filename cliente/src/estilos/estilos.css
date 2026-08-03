@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+
+/* En estilos.css */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+    body {
+      font-family: var(--font);
+      background-color: var(--color-fondo2);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+:root {
+    --color-fondo:      #f5f0f8;
+    --color-iconos:     #F0D4E8;
+    --color-fondo2:     #d8cce8;
+    --color-fondo3:     #c9b8de;
+    --color-acento:     #f4b8d4;
+    --color-acento2:    #e89abf;
+    --color-texto:      #7a5fa0;
+    --color-link:       #b07fd4;
+    --color-elementos:  #a98ec4;
+    --color-elementos2: #9b82b8;
+    --color-sombra:     rgba(120,90,160,0.12);
+    --radius-card:      20px;
+    --font:             'Sora', sans-serif;
+    --color-h1: #533C5E;
+    --color-h2: #7F5C90;
+    --color-h3: #9370A4;
+    --color-p: #493553;
+}
+
+h1{
+    font-size: 28px;
+    color: var(--color-h1);
+    font-weight: 400; 
+}
+h2{
+    font-size: 22px;
+    color: var(--color-h2);
+    font-weight: 400; 
+}
+h3{
+    font-size: 18px;
+    color: var(--color-h3);
+    font-weight: 400; 
+}
+p{
+    font-size: 14px;
+    color: var(--color-p);
+    font-weight: 400; 
+}
+

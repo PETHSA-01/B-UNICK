@@ -1,0 +1,297 @@
+@import '../estilos.css';
+
+    .dialogoContenedor {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: center;
+      width: 90%;
+      height: auto;
+      margin-top: 42px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .dialogo-globo {
+      background-color: var(--color-fondo3);
+      border-radius: 16px 16px 4px 16px;
+      padding: 14px 22px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--color-texto);
+      flex: 1;
+      margin-bottom: 12px;
+    }
+
+    .dialogo-avatar {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-fondo3) 0%, var(--color-fondo) 100%);
+      border: 3px solid var(--color-fondo);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 10px;
+      box-shadow: 0 2px 10px var(--color-sombra);
+      overflow: hidden;
+    }
+
+    .dialogo-avatar svg {
+      width: 44px;
+      height: 44px;
+    }
+    
+    /* ── NOTIFICACIÓN ── */
+    .notificaciones-container {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 16px;
+      width: 420px;
+      z-index: 999;
+    }
+
+    .notificacion {
+      width: 100%;
+      background-color: var(--color-iconos);
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    }
+
+    .notif-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .notif-app {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-texto);
+    }
+
+    .notif-app-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-fondo3), var(--color-fondo2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .notif-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notif-dots, .notif-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-elementos2);
+      font-size: 18px;
+      line-height: 1;
+      padding: 0 2px;
+    }
+
+    .notif-body {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .notif-body-without-gif {
+      justify-content: flex-start;
+    }
+
+    .notif-body-with-gif {
+      justify-content: center;
+    }
+
+    .notif-emoji {
+        width: 186px;
+        height: 86px;
+        font-size: 24px;
+        line-height: 1;
+        align-self: center;
+    }
+
+    .notif-texto {
+      flex: 1;
+      min-width: 0;
+      font-size: 13px;
+      color: var(--color-texto);
+      line-height: 1.5;
+    }
+    .notif-titulo { font-weight: 700; margin-bottom: 2px; }
+
+    /* ══════════════════════════════
+   MÓVIL
+══════════════════════════════ */
+@media (max-width: 480px) {
+  .fondo {
+    width: 100vw;
+    height: 100vh;   /* fallback */
+    height: 100dvh;  /* se ajusta dinámicamente al toolbar */
+    background-color: var(--color-fondo2);
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .contenedor {
+    width: 100vw;
+    min-width: unset;
+    max-height: 68dvh;
+    border-radius: 24px 24px 0 0;
+    padding-block: 10vh;
+    justify-content: flex-start;
+    position: relative;
+  }
+
+  /* El dialogo sale fuera del card, encima */
+  .dialogoContenedor {
+    position: absolute;
+    top: 60px;
+    left: 2vw;
+    width: 85vw;
+    margin: 0;
+    justify-content: center;
+  }
+
+  .dialogo-globo {
+    font-size: 16px;
+    padding: 12px 18px;
+  }
+
+  .dialogo-avatar {
+    width: 54px;
+    height: 54px;
+  }
+
+  .dialogoformulario {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 0;
+    padding: 10px 32px 0;
+  }
+
+  .contenedor > .dialogo {
+    position: absolute;
+    top: -90px;
+    left: 2vw;
+    width: 98vw;
+    margin: 0;
+    justify-content: center;
+  }
+
+  
+  
+
+  .textoinput { height: 50px; font-size: 15px; }
+  .btn-submit { height: 48px; }
+
+  /* Notif pegada arriba en móvil: el contenedor controla posición y tamaño */
+  .notificaciones-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: unset;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    z-index: 999;
+    padding: 0 12px;
+    align-items: stretch;
+  }
+
+  .notificacion {
+    width: 100%;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    margin: 0;
+  }
+
+  .notif-emoji{
+    display: none;
+  }
+  .close-btn{
+    display: flex;
+    top: 8px;
+    left: 8px;
+    right: auto;
+    background-color: var(--color-fondo2);
+    box-shadow: 0 2px 8px var(--color-fondo3);
+    z-index: 100;
+    position: fixed;
+  }
+}
+
+
+/* INVOCAR REGISTRO E INICIO DE SESIÓN */
+    .contenedor-botones-r-is {
+      background-color: var(--color-fondo);
+      width: fit-content;
+      height: fit-content;
+      position: relative;
+      gap: 10px;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+
+    .boton-r-is {
+      position: relative;
+      top: 0;
+      left: 0;
+      width: 100px;
+      height: fit-content;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 20px;
+      background-color: var(--color-fondo);
+      border: 2px solid var(--color-p);
+      border-radius: 8px;
+    }
+     .boton-registro {
+      background-color: var(--color-fondo3);
+      color: var(--color-fondo);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .pantallas-r-is{ 
+      position: absolute; 
+      top:0; 
+      left:0; 
+      width:100vw; 
+      height:100vh; 
+      display:'flex'; 
+      align-items:'center'; 
+      justify-content:'center'; 
+      z-index:1000 
+    }
+
+    

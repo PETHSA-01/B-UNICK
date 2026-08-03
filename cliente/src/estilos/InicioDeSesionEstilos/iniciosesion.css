@@ -1,0 +1,336 @@
+    
+    @import "../estilos.css";
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+
+    /* ── FONDO ── */
+    .fondo {
+      background-color: rgba(0,0,0,0.25);
+      width: 100vw;
+      min-height: fit-content;   /* fallback */
+      max-height: 110vh;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── CARD ── */
+    .contenedor {
+      background-color: var(--color-fondo);
+      border-radius: var(--radius-card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      width: 30vw;
+      min-width: 400px;
+      padding-bottom: 36px;
+      position: relative;
+    }
+
+        /* ── ÁREA CON SCROLL INTERNO PARA EL CONTENIDO ── */
+  .cf-scroll-area {
+    width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+    .contenedor-formulario-cf {
+      height: auto;
+      min-height: unset;
+      max-height: none;
+      overflow: visible;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--color-elementos2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn:hover { background: rgba(0,0,0,0.03); }
+
+    /* ── DIALOGO ── */
+    .dialogo-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 90%;
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+
+
+    /* ── BARRA DE PROGRESO  ── */
+    .BarrasProgreso {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      width: 82%;
+      margin-bottom: 20px;
+    }
+
+    .barra-progreso-item {
+      flex: 1;           /* cada barra toma espacio proporcional disponible */
+      min-width: 0;       /* evita que flexbox las desborde */
+      height: 8px;
+      max-width: 60px;    /* opcional: evita que se vean gigantes en pantallas muy anchas */
+      border: none;
+      box-shadow: 0 0 4px 0.5px var(--color-sombra);
+      border-radius: 4px;
+    }
+
+    /* ── FORM ── */
+    .dialogoformulario {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      gap: 0;
+      padding: 10px 32px 0;
+    }
+
+    .textoinput {
+      background-color: var(--color-fondo);
+      width: 100%;
+      height: 54px;
+      padding: 0 16px;
+      margin-bottom: 18px;
+      border: 1.5px solid var(--color-fondo3);
+      border-radius: 6px;
+      font-family: var(--font);
+      font-size: 16px;
+      color: var(--color-texto);
+      box-shadow: 0 2px 6px var(--color-sombra);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .textoinput:focus { border-color: var(--color-elementos); }
+
+    .textoinput::placeholder {
+      color: var(--color-elementos2);
+      opacity: 0.7;
+    }
+
+    /* password wrapper */
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 6px;
+    }
+
+    .input-wrapper .textoinput {
+      margin-bottom: 0;
+      padding-right: 44px;
+    }
+
+    .ojo-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-elementos2);
+      display: flex;
+      align-items: center;
+    }
+
+    .link-olvide {
+      align-self: flex-end;
+      font-size: 13px;
+      color: var(--color-texto);
+      opacity: 0.75;
+      margin-bottom: 20px;
+      margin-top: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .link-olvide:hover { opacity: 1; }
+
+    .btn-submit {
+      width: 100%;
+      height: 52px;
+      background-color: var(--color-acento);
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-submit:hover { background-color: var(--color-acento2); }
+
+    .texto-registro {
+      font-size: 13px;
+      color: var(--color-texto);
+      opacity: 0.8;
+    }
+
+    .texto-registro a {
+      color: var(--color-link);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .texto-registro a:hover { text-decoration: underline; }
+    .contenedorencabezado{
+      display: flex;
+      flex-direction: column;
+      margin-block: 20px;
+    }
+
+
+    /* ══════════════════════════════
+       MÓVIL
+    ══════════════════════════════ */
+   /* ══════════════════════════════
+   MÓVIL
+══════════════════════════════ */
+@media (max-width: 480px) {
+ html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: var(--color-fondo);
+  }
+
+  .fondo {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background-color: var(--color-fondo2);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── UN SOLO BLOQUE .contenedor, sin duplicados ── */
+  .contenedor {
+    width: 100vw;
+    min-width: unset;
+    height: 100%;           /* ← antes era 100dvh, ahora respeta el padding del padre */
+    max-height: 100%;
+    overflow: visible;
+    border-radius: 24px 24px 0 0;
+    justify-content: flex-start;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 88px 20px calc(32px + env(safe-area-inset-bottom));
+  }
+
+  .cf-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  .contenedor-formulario-cf {
+    overflow: visible;
+    padding-top: 0;
+    width: 100%;
+  }
+
+  .dialogo-wrapper {
+    position: absolute;
+    top: -200px;
+    left: 25px;
+    right: 25px;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    z-index: 3;
+  }
+
+
+.BarrasProgreso {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      width: 90%;
+      margin-bottom: 20px;
+    }
+
+  .cf-contenido {
+    padding: 0; /* ya heredamos el padding lateral desde .contenedor */
+  }
+
+  .dialogoformulario {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 0;
+    padding: 10px 0 0;
+  }
+
+  .textoinput { height: 50px; font-size: 15px; }
+  .btn-submit { height: 48px; }
+
+  /* Notif pegada arriba en móvil */
+  .notificaciones-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: unset;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    z-index: 999;
+    padding: 0 12px;
+    align-items: stretch;
+  }
+
+  .notificacion {
+    width: 100%;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    margin: 0;
+  }
+
+  .notif-emoji {
+    display: none;
+  }
+
+  .close-btn {
+    display: flex;
+    top: 8px;
+    left: 8px;
+    right: auto;
+    background-color: var(--color-fondo2);
+    box-shadow: 0 2px 8px var(--color-fondo3);
+    z-index: 100;
+    position: fixed;
+  }
+}
