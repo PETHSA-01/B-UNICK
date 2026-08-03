@@ -7,12 +7,13 @@
     .fondo {
       background-color: rgba(0,0,0,0.25);
       width: 100vw;
-      min-height: fit-content;   /* fallback */
-      max-height: 110vh;
-      height: 100vh;
+      min-height: 100vh;   /* fallback */
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
+      position: fixed;
+      inset: 0;
     }
 
     /* ── CARD ── */
@@ -23,8 +24,11 @@
       flex-direction: column;
       align-items: center;
       gap: 0;
-      width: 30vw;
-      min-width: 400px;
+      width: min(90vw, 560px);
+      max-width: 560px;
+      min-width: 320px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
       padding-bottom: 36px;
       position: relative;
     }
