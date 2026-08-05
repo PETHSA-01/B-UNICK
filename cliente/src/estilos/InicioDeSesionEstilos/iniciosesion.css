@@ -235,7 +235,6 @@
     .imagenesform{
       height: auto;
       max-width: 101px;
-      max-height: 25px;
       object-fit: contain;
     }
 

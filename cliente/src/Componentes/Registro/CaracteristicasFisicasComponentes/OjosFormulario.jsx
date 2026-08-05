@@ -4,6 +4,7 @@ import { Dialogo } from '../../elementos_pequeños/Dialogo'
 import { Notificaciones } from '../../elementos_pequeños/Notificaciones'
 import { useState } from 'react'
 import { NarizFormulario } from './NarizFormulario'
+import { useRef } from 'react'
 const imagenesOjos = import.meta.glob('../../../Características Fisicas/Ojos/*.{png,jpg,jpeg,svg}', { eager: true });
 
 
@@ -12,7 +13,7 @@ const TOTAL_BARRAS = 6
 export const OjosFormulario = ({ datosUsuario, onClose }) => {
   console.log('Datos del usuario recibidos en OjosFormulario:', datosUsuario)
   const [visible, setVisible] = useState('ojos')
-
+  const notificationsRef = useRef(null)
 
   const ojos = Object.fromEntries(
     Object.entries(imagenesOjos).map(([path, module]) => {
@@ -21,11 +22,20 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
   );
 
   const narizform = () => {
+    if(datosUsuario.ojos === undefined){
+      notificationsRef.current?.addNotification({
+        title: 'Becky te ha mandado un mensaje',
+        message: 'Cariño, por favor selecciona una opción antes de continuar.',
+        type: 'error',
+        showGif: false
+      })
+    }
     setVisible('nariz')
     console.log('Cambiando a formulario de nariz.')
   }
   const close = () => {
     setVisible('')
+    datosUsuario.ojos = undefined; 
     console.log('Cerrando modal de formulario.')
     if (onClose) onClose()
   }
@@ -49,8 +59,11 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
           <> 
           <div className="fondo" onClick={handleBackdropClick}>
             <div className="contenedor"  onClick={(e) => e.stopPropagation()}> {/* El onclick detiene que el resto del contenedor se cierre al ser presionado */}
-              <button className="close-btn" onClick={() => close()}>✕</button>
-              
+              <button className="close-btn" onClick={() => close()} aria-label="Volver">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
             
       
               {/*<!-- Dialogo -->*/}
@@ -227,6 +240,10 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
               </div>
     
           </div>
+          
+    {/*<!-- Componente reutilizable de notificaciones -->*/}
+    <Notificaciones ref={notificationsRef} />
+
           </>
       )
   }
