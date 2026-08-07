@@ -30,12 +30,13 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
         showGif: false
       })
     }
-    setVisible('nariz')
-    console.log('Cambiando a formulario de nariz.')
+    else{
+      setVisible('nariz')
+      console.log('Cambiando a formulario de nariz.')
+    }
   }
   const close = () => {
     setVisible('')
-    datosUsuario.ojos = undefined; 
     console.log('Cerrando modal de formulario.')
     if (onClose) onClose()
   }
@@ -51,6 +52,7 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
   if (visible === 'nariz') {
     return <NarizFormulario datosUsuario={datosUsuario} onClose = {() => {
       setVisible('ojos')
+      datosUsuario.ojos = undefined;
     } }/>
   }
 

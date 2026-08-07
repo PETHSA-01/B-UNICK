@@ -14,8 +14,6 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
   console.log('Datos del usuario recibidos en NarizFormulario:', datosUsuario)
   const [visible, setVisible] = useState('nariz')
   const notificationsRef = useRef(null)
-
-
   const nariz = Object.fromEntries(
     Object.entries(imagenesNariz).map(([path, module]) => {
       return [path.split('/').pop().split('.')[0], module.default];
@@ -31,11 +29,14 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
         showGif: false
       })
     }
-    setVisible('cara')
-    console.log('Cambiando a formulario de nariz.')
+    else{
+      setVisible('cara')
+      console.log('Cambiando a formulario de cara.')
+    }
   }
+
+
   const close = () => {
-    datosUsuario.nariz = undefined; // Resetear la selección de nariz al cerrar
     setVisible('')
     console.log('Cerrando modal de formulario.')
     if (onClose) onClose()
@@ -48,8 +49,13 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
     }
   }
   if (visible === '') return null
+
+  
   if(visible === 'cara'){
-    return <CaraFormulario datosUsuario={datosUsuario} onClose={close} />
+    return <CaraFormulario datosUsuario={datosUsuario} onClose= {() => {
+      setVisible('nariz')
+      datosUsuario.nariz = undefined;
+    }} />
   }
 
   if(visible === 'nariz'){
@@ -100,7 +106,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="almendrados" 
+                        value="Aguilena" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -116,7 +122,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="almendrados_delgados" 
+                        value="Alta" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -131,7 +137,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="redondos_almendrados" 
+                        value="Ancha" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -146,7 +152,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="redondos" 
+                        value="Bulbosa" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -161,7 +167,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="redondos_asiaticos" 
+                        value="Celestial" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -176,7 +182,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="asiaticos" 
+                        value="Chata" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -191,7 +197,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="caidos" 
+                        value="Corta" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -206,7 +212,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="caidos_encapuchados" 
+                        value="De Gancho" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -237,7 +243,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="encapuchados" 
+                        value="Plana" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -253,7 +259,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="encapuchados" 
+                        value="Protuberante" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -268,7 +274,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                       <input 
                         type="radio" 
                         name="nariz" 
-                        value="encapuchados" 
+                        value="Romana" 
                         onChange={(e) => datosUsuario.nariz = e.target.value} 
                       /> {/* <-- El input se cierra aquí mismo */}
                       
@@ -282,8 +288,8 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                   <button type="button" className="btn-submit" onClick={caraform} >Continuar</button>
                   
               </div>
-              </div>
             <Notificaciones ref={notificationsRef} />
+              </div>
           </div>
           </>
       )
