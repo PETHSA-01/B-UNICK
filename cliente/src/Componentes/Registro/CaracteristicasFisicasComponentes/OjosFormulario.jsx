@@ -8,7 +8,8 @@ import { useRef } from 'react'
 const imagenesOjos = import.meta.glob('../../../Características Fisicas/Ojos/*.{png,jpg,jpeg,svg}', { eager: true });
 
 
-const TOTAL_BARRAS = 6
+const TOTAL_BARRAS = 7
+const BARRAS_COMPLETADAS = 1
 
 export const OjosFormulario = ({ datosUsuario, onClose }) => {
   console.log('Datos del usuario recibidos en OjosFormulario:', datosUsuario)
@@ -20,6 +21,35 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
       return [path.split('/').pop().split('.')[0], module.default];
     })
   );
+
+  const opciones = [
+    {valor : 'almendrados', imagen: ojos.almendrados, texto: 'Almendrados'},
+    {valor : 'almendrados_delgados', imagen: ojos.almendrados_delgados, texto: 'Almendrados Delgados'},
+    {valor : 'redondos_almendrados', imagen: ojos.redondos_almendrados, texto: 'Redondos Almendrados'},
+    {valor : 'redondos', imagen: ojos.redondos, texto: 'Redondos'},
+    {valor : 'redondos_asiaticos', imagen: ojos.redondos_asiaticos, texto: 'Redondos Asiáticos'},
+    {valor : 'asiaticos', imagen: ojos.asiaticos, texto: 'Asiáticos'},
+    {valor : 'caidos', imagen: ojos.caidos, texto: 'Caídos'},
+    {valor : 'caidos_encapuchados', imagen: ojos.caidos_encapuchados, texto: 'Caídos Encapuchados'},
+    {valor : 'encapuchados', imagen: ojos.encapuchados, texto: 'Encapuchados'}
+  ]
+
+  const inputs = ({valor, imagen, texto}) =>(
+                  <div className='input-container'>  
+                    <label className="radio-label">
+                      <input 
+                        type="radio" 
+                        name="ojos" 
+                        value={valor} 
+                        onChange={(e) => datosUsuario.ojos = e.target.value} 
+                      /> {/* <-- El input se cierra aquí mismo */}
+                      
+                      {/* La imagen ahora está fuera del input, pero dentro del label */}
+                      <img src={imagen} alt={"Ojos "+texto} className='imagenesform' />
+                      <p className='texto_input'>{texto}</p>
+                    </label>
+                  </div>
+  )
 
   const narizform = () => {
     if(datosUsuario.ojos === undefined){
@@ -56,6 +86,16 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
     } }/>
   }
 
+  const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
+    const fill = index < BARRAS_COMPLETADAS ? 'var(--color-fondo3)' : 'var(--color-fondo)'
+    return (
+      <svg key={index} className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+        <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill={fill} />
+      </svg>
+    )
+  })
+
+
   if(visible === 'ojos'){
     return (
           <> 
@@ -70,27 +110,7 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
       
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
-                <div className="BarrasProgreso">
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo3)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-
-                </div>
+                <div className="BarrasProgreso">{barrasProgreso}</div>
                 <Dialogo label="Que bonitos ojos tienes debajo de esas cejas ',:3"/>
                   
               </div>
@@ -98,141 +118,7 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
               {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}
               <div className="cf-scroll-area" style={{  padding: '0 32px' }}>
                 <div className="contenedorinput">
-                <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="ojos" 
-                        value="almendrados" 
-                        onChange={(e) => datosUsuario.ojos = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={ojos.almendrados} alt="Ojo almendrados" className='imagenesform' />
-                      <p className='texto_input'>Almendrados</p>
-                    </label>
-                  </div>
-                  
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="ojos" 
-                        value="almendrados_delgados" 
-                        onChange={(e) => datosUsuario.ojos = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={ojos.almendrados_delgados} alt="Ojo almendrados delgados" className='imagenesform' />
-                      <p className='texto_input'>Almendrados Delgados</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="ojos" 
-                        value="redondos_almendrados" 
-                        onChange={(e) => datosUsuario.ojos = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={ojos.redondos_almendrados} alt="Ojo redondos almendrados" className='imagenesform' />
-                      <p className='texto_input'>Redondos Almendrados</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="ojos" 
-                        value="redondos" 
-                        onChange={(e) => datosUsuario.ojos = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={ojos.redondos} alt="Ojo redondos" className='imagenesform' />
-                      <p className='texto_input'>Redondos</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="ojos" 
-                        value="redondos_asiaticos" 
-                        onChange={(e) => datosUsuario.ojos = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={ojos.redondos_asiaticos} alt="Ojo redondos asiáticos" className='imagenesform' />
-                      <p className='texto_input'>Redondos Asiáticos</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="ojos" 
-                        value="asiaticos" 
-                        onChange={(e) => datosUsuario.ojos = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={ojos.asiaticos} alt="Ojo asiáticos" className='imagenesform' />
-                      <p className='texto_input'>Asiáticos</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="ojos" 
-                        value="caidos" 
-                        onChange={(e) => datosUsuario.ojos = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={ojos.caidos} alt="Ojo caídos" className='imagenesform' />
-                      <p className='texto_input'>Caidos</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="ojos" 
-                        value="caidos_encapuchados" 
-                        onChange={(e) => datosUsuario.ojos = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={ojos.caidos_encapuchados} alt="Ojo caídos encapuchados" className='imagenesform' />
-                      <p className='texto_input'>Caidos Encapuchados</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="ojos" 
-                        value="encapuchados" 
-                        onChange={(e) => datosUsuario.ojos = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={ojos.encapuchados} alt="Ojo encapuchados" className='imagenesform' />
-                      <p className='texto_input'>Encapuchados</p>
-                    </label>
-                  </div>
+                  {opciones.map(inputs)}
                 
                 </div>
                 

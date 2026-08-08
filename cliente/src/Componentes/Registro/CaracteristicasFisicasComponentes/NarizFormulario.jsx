@@ -8,7 +8,8 @@ import { CaraFormulario } from './CaraFormulario'
 const imagenesNariz = import.meta.glob('../../../Características Fisicas/Nariz/*.{png,jpg,jpeg,svg}', { eager: true });
 
 
-const TOTAL_BARRAS = 6
+const TOTAL_BARRAS = 7
+const BARRAS_COMPLETADAS = 2
 
 export const NarizFormulario = ({ datosUsuario, onClose }) => {
   console.log('Datos del usuario recibidos en NarizFormulario:', datosUsuario)
@@ -19,6 +20,36 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
       return [path.split('/').pop().split('.')[0], module.default];
     })
   );
+
+  const opciones = [
+    { value: 'Aguilena', imagen: nariz.Nariz_Aguilena, texto: 'Nariz Aguileña' },
+    { value: 'Alta', imagen: nariz.Nariz_Alta, texto: 'Nariz Alta' },
+    { value: 'Ancha', imagen: nariz.Nariz_Ancha, texto: 'Nariz Ancha' },
+    { value: 'Bulbosa', imagen: nariz.Nariz_Bulbosa, texto: 'Bulbosa' },
+    { value: 'Celestial', imagen: nariz.Nariz_Celestial, texto: 'Nariz Celestial' },
+    { value: 'Chata', imagen: nariz.Nariz_Chata, texto: 'Nariz Chata' },
+    { value: 'Corta', imagen: nariz.Nariz_Corta, texto: 'Nariz Corta' },
+    { value: 'De Gancho', imagen: nariz.Nariz_Gancho, texto: 'Nariz de Gancho' },
+    { value: 'Griega', imagen: nariz.Nariz_Griega, texto: 'Nariz Griega' },
+    { value: 'Plana', imagen: nariz.Nariz_Plana, texto: 'Nariz Plana' },
+    { value: 'Protuberante', imagen: nariz.Nariz_Protuberante, texto: 'Nariz Protuberante' },
+    { value: 'Romana', imagen: nariz.Nariz_Romana, texto: 'Nariz Romana' }
+  ]
+
+  const renderInput = ({ value, imagen, texto }) => (
+    <div className='input-container' key={value}>  
+      <label className="radio-label">
+        <input
+          type="radio"
+          name="nariz"
+          value={value}
+          onChange={(e) => datosUsuario.nariz = e.target.value}
+        />
+        <img src={imagen} alt={texto} className='imagenesform' />
+        <p className='texto_input'>{texto}</p>
+      </label>
+    </div>
+  )
 
   const caraform = () => {
     if(datosUsuario.nariz === undefined){
@@ -58,6 +89,15 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
     }} />
   }
 
+  const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
+    const fill = index < BARRAS_COMPLETADAS ? 'var(--color-fondo3)' : 'var(--color-fondo)'
+    return (
+      <svg key={index} className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+        <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill={fill} />
+      </svg>
+    )
+  })
+
   if(visible === 'nariz'){
     return (
           <> 
@@ -72,27 +112,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
       
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
-                <div className="BarrasProgreso">
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo3)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo3)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-
-                </div>
+                <div className="BarrasProgreso">{barrasProgreso}</div>
                 <Dialogo label="Una nariz así solo puede producir un sonido de flauta."/>
                   
               </div>
@@ -101,188 +121,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
               {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}
               <div className="cf-scroll-area" style={{  padding: '0 32px' }}>
                 <div className="contenedorinput">
-                <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Aguilena" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Aguilena} alt="Nariz Aguileña" className='imagenesform' />
-                      <p className='texto_input'>Nariz Aguileña</p>
-                    </label>
-                  </div>
-                  
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Alta" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Alta} alt="Nariz Alta" className='imagenesform' />
-                      <p className='texto_input'>Nariz Alta</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Ancha" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Ancha} alt="Nariz Ancha" className='imagenesform' />
-                      <p className='texto_input'>Nariz Ancha</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Bulbosa" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Bulbosa} alt="Nariz bulosa" className='imagenesform' />
-                      <p className='texto_input'>Bulbosa</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Celestial" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Celestial} alt="Nariz Celestial" className='imagenesform' />
-                      <p className='texto_input'>Nariz Celestial</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Chata" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Chata} alt="Nariz Chata" className='imagenesform' />
-                      <p className='texto_input'>Nariz Chata</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Corta" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Corta} alt="Nariz Corta" className='imagenesform' />
-                      <p className='texto_input'>Nariz Corta</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="De Gancho" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Gancho} alt="Nariz de Gancho" className='imagenesform' />
-                      <p className='texto_input'>Nariz de Gancho</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="encapuchados" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Griega} alt="Nariz Griega" className='imagenesform' />
-                      <p className='texto_input'>Nariz Griega</p>
-                    </label>
-                  </div>
-                
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Plana" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Plana} alt="Nariz Plana" className='imagenesform' />
-                      <p className='texto_input'>Nariz Plana</p>
-                    </label>
-                  </div>
-
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Protuberante" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Protuberante} alt="Nariz Protuberante" className='imagenesform' />
-                      <p className='texto_input'>Nariz Protuberante</p>
-                    </label>
-                  </div>
-                
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="nariz" 
-                        value="Romana" 
-                        onChange={(e) => datosUsuario.nariz = e.target.value} 
-                      /> {/* <-- El input se cierra aquí mismo */}
-                      
-                      {/* La imagen ahora está fuera del input, pero dentro del label */}
-                      <img src={nariz.Nariz_Romana} alt="Nariz Romana" className='imagenesform' />
-                      <p className='texto_input'>Nariz Romana</p>
-                    </label>
-                  </div>
+                  {opciones.map(renderInput)}
                 </div>
                 
                   <button type="button" className="btn-submit" onClick={caraform} >Continuar</button>

@@ -8,7 +8,8 @@ import { ColoresFormulario } from './ColoresFormulario.jsx'
 const imagenesCara = import.meta.glob('../../../Características Fisicas/Cara/*.{png,jpg,jpeg,svg}', { eager: true });
 
 
-const TOTAL_BARRAS = 6
+const TOTAL_BARRAS = 7
+const BARRAS_COMPLETADAS = 3
 
 export const CaraFormulario = ({ datosUsuario, onClose }) => {
   console.log('Datos del usuario recibidos en CaraFormulario:', datosUsuario)
@@ -20,6 +21,32 @@ export const CaraFormulario = ({ datosUsuario, onClose }) => {
     Object.entries(imagenesCara).map(([path, module]) => {
       return [path.split('/').pop().split('.')[0], module.default];
     })
+  )
+
+  const opciones = [
+    { value: 'Redondo', imagen: cara.Cara_Redondo, texto: 'Cara Redondo' },
+    { value: 'Ovalado', imagen: cara.Cara_Ovalado, texto: 'Cara Ovalado' },
+    { value: 'Diamante', imagen: cara.Cara_Diamante, texto: 'Cara Diamante' },
+    { value: 'Cuadrado', imagen: cara.Cara_Cuadrado, texto: 'Cara Cuadrado' },
+    { value: 'Triangular V', imagen: cara.Cara_Triangular_V, texto: 'Cara Triangular V' },
+    { value: 'Triangular A', imagen: cara.Cara_Triangular_A, texto: 'Cara Triangular A' },
+    { value: 'Rectangular', imagen: cara.Cara_Rectangular, texto: 'Cara Rectangular' },
+    { value: 'Alargado', imagen: cara.Cara_Alargado, texto: 'Cara Alargado' },
+    { value: 'Corazon', imagen: cara.Cara_Corazon, texto: 'Cara Corazon' }
+  ]
+
+  const renderInput = ({ value, imagen, texto }) => (
+    <div className='input-container' key={value}>  
+      <label className="radio-label">
+        <input
+          type="radio"
+          name="cara"
+          value={value}
+          onChange={(e) => { datosUsuario.cara = e.target.value }}
+        />
+        <img src={imagen} alt={texto} className='imagenesform' />
+      </label>
+    </div>
   )
 
   const coloresform = () => {
@@ -57,6 +84,15 @@ export const CaraFormulario = ({ datosUsuario, onClose }) => {
   }} />
   }
 
+  const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
+    const fill = index < BARRAS_COMPLETADAS ? 'var(--color-fondo3)' : 'var(--color-fondo)'
+    return (
+      <svg key={index} className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+        <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill={fill} />
+      </svg>
+    )
+  })
+
   if(visible === 'cara'){
     return (
           <> 
@@ -71,27 +107,7 @@ export const CaraFormulario = ({ datosUsuario, onClose }) => {
       
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
-                <div className="BarrasProgreso">
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo3)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo3)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-
-                </div>
+                <div className="BarrasProgreso">{barrasProgreso}</div>
                 <Dialogo label="Yo no te pido la luuuuna, tan solo quiero amaaarte... ¿Oh, todavía no terminas?"/>
                   
               </div>
@@ -100,113 +116,7 @@ export const CaraFormulario = ({ datosUsuario, onClose }) => {
               {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}
               <div className="cf-scroll-area" style={{  padding: '0 32px' }}>
                 <div className="contenedorinput">
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="cara" 
-                        value="Redondo" 
-                        onChange={(e) => { datosUsuario.cara = e.target.value }} 
-                      />
-                      <img src={cara.Cara_Redondo} alt="Cara Redondo" className='imagenesform' />
-                         </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="cara" 
-                        value="Ovalado" 
-                        onChange={(e) => { datosUsuario.cara = e.target.value }} 
-                      />
-                      <img src={cara.Cara_Ovalado} alt="Cara Ovalado" className='imagenesform' />
-                        </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="cara" 
-                        value="Diamante" 
-                        onChange={(e) => { datosUsuario.cara = e.target.value }} 
-                      />
-                      <img src={cara.Cara_Diamante} alt="Cara Diamante" className='imagenesform' />
-                         </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="cara" 
-                        value="Cuadrado" 
-                        onChange={(e) => { datosUsuario.cara = e.target.value }} 
-                      />
-                      <img src={cara.Cara_Cuadrado} alt="Cara Cuadrado" className='imagenesform' />
-                        </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="cara" 
-                        value="Triangular V" 
-                        onChange={(e) => { datosUsuario.cara = e.target.value }} 
-                      />
-                      <img src={cara.Cara_Triangular_V} alt="Cara Triangular V" className='imagenesform' />
-                      </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="cara" 
-                        value="Triangular A" 
-                        onChange={(e) => { datosUsuario.cara = e.target.value }} 
-                      />
-                      <img src={cara.Cara_Triangular_A} alt="Cara Triangular A" className='imagenesform' />
-                       </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="cara" 
-                        value="Rectangular" 
-                        onChange={(e) => { datosUsuario.cara = e.target.value }} 
-                      />
-                      <img src={cara.Cara_Rectangular} alt="Cara Rectangular" className='imagenesform' />
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="cara" 
-                        value="Alargado" 
-                        onChange={(e) => { datosUsuario.cara = e.target.value }} 
-                      />
-                      <img src={cara.Cara_Alargado} alt="Cara Alargado" className='imagenesform' />
-                       </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="cara" 
-                        value="Corazon" 
-                        onChange={(e) => { datosUsuario.cara = e.target.value }} 
-                      />
-                      <img src={cara.Cara_Corazon} alt="Cara Corazon" className='imagenesform' />
-                       </label>
-                  </div>
+                  {opciones.map(renderInput)}
                 </div>
                 
                   <button type="button" className="btn-submit" onClick={coloresform} >Continuar</button>

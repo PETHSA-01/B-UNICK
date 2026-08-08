@@ -5,7 +5,9 @@ import { Notificaciones } from '../elementos_pequeños/Notificaciones'
 import { useState } from 'react'
 import { OjosFormulario } from './CaracteristicasFisicasComponentes/OjosFormulario'
 
-const TOTAL_BARRAS = 6
+const TOTAL_BARRAS = 7
+const BARRAS_COMPLETADAS = 0
+
 
 export const InicioFormularioCF = ({ datosUsuario, onClose }) => {
   console.log('Datos del usuario recibidos en InicioFormularioCF:', datosUsuario)
@@ -16,6 +18,14 @@ export const InicioFormularioCF = ({ datosUsuario, onClose }) => {
     console.log('Cerrando modal de formulario.')
     if (onClose) onClose()
   }
+  const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
+    const fill = index < BARRAS_COMPLETADAS ? 'var(--color-fondo3)' : 'var(--color-fondo)'
+    return (
+      <svg key={index} className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+        <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill={fill} />
+      </svg>
+    )
+  })
 
   const handleBackdropClick = () => {
     if (window.innerWidth > 480) {
@@ -55,27 +65,7 @@ if (visible === 'ojos') {
       
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
-                <div className="BarrasProgreso">
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-
-                </div>
+                <div className="BarrasProgreso">{barrasProgreso}</div>
                 <Dialogo label="Veamos qué es lo que te hace tan bonita >w<"/>
               </div>
       

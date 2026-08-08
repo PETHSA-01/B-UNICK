@@ -4,10 +4,11 @@ import { Dialogo } from '../../elementos_pequeños/Dialogo'
 import { Notificaciones } from '../../elementos_pequeños/Notificaciones'
 import { useState } from 'react'
 import { useRef } from 'react'
-const imagenesCara = import.meta.glob('../../../Características Fisicas/ColorPiel/*.{png,jpg,jpeg,svg}', { eager: true });
+const imagenesCara = import.meta.glob('../../../Características Fisicas/Boca/*.{png,jpg,jpeg,svg}', { eager: true });
 
 
-const TOTAL_BARRAS = 6
+const TOTAL_BARRAS = 7
+const BARRAS_COMPLETADAS = 5
 
 export const BocaFormulario = ({ datosUsuario, onClose }) => {
   console.log('Datos del usuario recibidos en BocaFormulario:', datosUsuario)
@@ -21,8 +22,34 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
     })
   )
 
+  const opciones = [
+    { value: 'Asimetricos', imagen: boca.Asimetricos},
+    { value: 'Caidos', imagen: boca.Caidos },
+    { value: 'Finos', imagen: boca.Finos},
+    { value: 'InferiorFino', imagen: boca.InferiorFino},
+    { value: 'MuyGruesos', imagen: boca.MuyGruesos},
+    { value: 'Ovales', imagen: boca.Ovales },
+    { value: 'Pequenos', imagen: boca.Pequenos },
+    { value: 'Puntiagudos', imagen: boca.Puntiagudos },
+    { value: 'SuperiorFino', imagen: boca.SuperiorFino}
+  ]
+
+  const renderInput = ({ value, imagen, texto }) => (
+    <div className='input-container' key={value}>  
+      <label className="radio-label">
+        <input
+          type="radio"
+          name="boca"
+          value={value}
+          onChange={(e) => { datosUsuario.boca = e.target.value }}
+        />
+        <img src={imagen} alt={texto} className='imagenesform' />
+          </label>
+    </div>
+  )
+
   const labiosform = () => {
-    if(datosUsuario.colores === undefined){
+    if(datosUsuario.boca === undefined){
       notificationsRef.current?.addNotification({
         title: 'Becky te ha mandado un mensaje',
         message: 'Cariño, por favor selecciona una opción antes de continuar.',
@@ -56,7 +83,16 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
     }} />*/
   }
 
-  if(visible === 'colores'){
+  const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
+    const fill = index < BARRAS_COMPLETADAS ? 'var(--color-fondo3)' : 'var(--color-fondo)'
+    return (
+      <svg key={index} className="barra-progreso-item" height="8" viewBox="0 0 60 8">
+        <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill={fill} />
+      </svg>
+    )
+  })
+
+  if(visible === 'boca'){
     return (
           <> 
           <div className="fondo" onClick={handleBackdropClick}>
@@ -70,116 +106,19 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
       
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
-                <div className="BarrasProgreso">
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo3)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo3)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-                  <svg className="barra-progreso-item" height="8" viewBox="0 0 60 8">
-                    <rect x="0" y="0" width="60" height="8" rx="4" ry="4" fill="var(--color-fondo)" />
-                  </svg>
-
-                </div>
+                <div className="BarrasProgreso">{barrasProgreso}</div>
                 <Dialogo label="¿Simetria facial?... Aquí no, gracias"/>
                   
               </div>
+
+
               <p className='instruccionesformulario'>Selecciona la opcion que se parezca más a tu forma de cara para continuar</p>
 
               {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}
               <div className="cf-scroll-area" style={{  padding: '0 32px' }}>
                 <div className="contenedorinput">
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="colores" 
-                        value="Blanca" 
-                        onChange={(e) => { datosUsuario.colores = e.target.value }} 
-                      />
-                      <img src={colores.Blanca} alt="Piel Blanca" className='imagenesform' />
-                        <p className='texto_input'>Piel Blanca</p>
-                    </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="colores" 
-                        value="Blanco Palido" 
-                        onChange={(e) => { datosUsuario.colores = e.target.value }} 
-                      />
-                      <img src={colores.BlancoPalido} alt="Piel Blanca Pálida" className='imagenesform' />
-                        <p className='texto_input'>Piel Blanca Pálida</p>
-                
-                        </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="colores" 
-                        value="Cafe" 
-                        onChange={(e) => { datosUsuario.colores = e.target.value }} 
-                      />
-                      <img src={colores.Cafe} alt="Piel Cafè" className='imagenesform' />
-                        <p className='texto_input'>Piel Cafè</p>
-                      </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="colores" 
-                        value="Medio Cafe" 
-                        onChange={(e) => { datosUsuario.colores = e.target.value }} 
-                      />
-                      <img src={colores.MedioCafe} alt="Piel Medio Cafè" className='imagenesform' />
-                        <p className='texto_input'>Piel Medio Cafè</p>
-                      </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="colores" 
-                        value="Oliva" 
-                        onChange={(e) => { datosUsuario.colores = e.target.value }} 
-                      />
-                      <img src={colores.Oliva} alt="Piel Oliva" className='imagenesform' />
-                        <p className='texto_input'>Piel Oliva</p>
-                      </label>
-                  </div>
-
-                  <div className='input-container'>  
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="colores" 
-                        value="Oscura" 
-                        onChange={(e) => { datosUsuario.colores = e.target.value }} 
-                      />
-                      <img src={colores.Oscura} alt="Piel Oscura" className='imagenesform' />
-                        <p className='texto_input'>Piel Oscura</p>
-                      </label>
-                  </div>
-
-                   
-                    </div>
+                  {opciones.map(renderInput)}
+                </div>
                 
                   <button type="button" className="btn-submit" onClick={labiosform} >Continuar</button>
                   
