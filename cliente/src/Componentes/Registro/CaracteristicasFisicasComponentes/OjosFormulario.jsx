@@ -111,7 +111,7 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
                 <div className="BarrasProgreso">{barrasProgreso}</div>
-                <Dialogo label="Que bonitos ojos tienes debajo de esas cejas ',:3"/>
+                <Dialogo label="Que bonitos ojos tienes debajo de esas cejas"/>
                   
               </div>
               <p className='instruccionesformulario'>Selecciona la opcion que se parezca más a tu forma de ojos para continuar</p>

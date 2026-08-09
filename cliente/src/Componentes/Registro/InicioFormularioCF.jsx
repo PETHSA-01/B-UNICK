@@ -66,7 +66,7 @@ if (visible === 'ojos') {
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
                 <div className="BarrasProgreso">{barrasProgreso}</div>
-                <Dialogo label="Veamos qué es lo que te hace tan bonita >w<"/>
+                <Dialogo label="Veamos qué es lo que te hace tan bonita"/>
               </div>
       
               {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}

@@ -1,22 +1,22 @@
 import React from 'react'
 import '../../../estilos/InicioDeSesionEstilos/iniciosesion.css'
-import { Dialogo } from '../../elementos_pequeños/Dialogo'
-import { Notificaciones } from '../../elementos_pequeños/Notificaciones'
+import { Dialogo } from '../../elementos_pequeños/Dialogo.jsx'
+import { Notificaciones } from '../../elementos_pequeños/Notificaciones.jsx'
 import { useState } from 'react'
 import { useRef } from 'react'
-import { TiposPielFormulario } from './TiposPielFormulario.jsx'
-const imagenesCara = import.meta.glob('../../../Características Fisicas/Boca/*.{png,jpg,jpeg,svg}', { eager: true });
+import { ColoresFormulario } from './ColoresFormulario.jsx'
+const imagenesCara = import.meta.glob('../../../Características Fisicas/TiposPiel/*.{png,jpg,jpeg,svg}', { eager: true });
 
 
 const TOTAL_BARRAS = 7
-const BARRAS_COMPLETADAS = 5
+const BARRAS_COMPLETADAS = 6
 
-export const BocaFormulario = ({ datosUsuario, onClose }) => {
-  console.log('Datos del usuario recibidos en BocaFormulario:', datosUsuario)
-  const [visible, setVisible] = useState('boca')
+export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
+  console.log('Datos del usuario recibidos en TiposDePielFormulario:', datosUsuario)
+  const [visible, setVisible] = useState('tipospiel')
   const notificationsRef = useRef(null)
-  
-  const boca = Object.fromEntries(
+ 
+  const cara = Object.fromEntries(
 
     Object.entries(imagenesCara).map(([path, module]) => {
       return [path.split('/').pop().split('.')[0], module.default];
@@ -24,15 +24,10 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
   )
 
   const opciones = [
-    { value: 'Asimetricos', imagen: boca.Asimetricos},
-    { value: 'Caidos', imagen: boca.Caidos },
-    { value: 'Finos', imagen: boca.Finos},
-    { value: 'InferiorFino', imagen: boca.InferiorFino},
-    { value: 'MuyGruesos', imagen: boca.MuyGruesos},
-    { value: 'Ovales', imagen: boca.Ovales },
-    { value: 'Pequenos', imagen: boca.Pequenos },
-    { value: 'Puntiagudos', imagen: boca.Puntiagudos },
-    { value: 'SuperiorFino', imagen: boca.SuperiorFino}
+    { value: 'Seca', imagen: cara.Cara_Redondo, texto: '' },
+    { value: 'Normal', imagen: cara.Cara_Ovalado, texto: '' },
+    { value: 'Mixta', imagen: cara.Cara_Diamante, texto: '' },
+    { value: 'Grasa', imagen: cara.Cara_Corazon, texto: '' }
   ]
 
   const renderInput = ({ value, imagen, texto }) => (
@@ -40,17 +35,17 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
       <label className="radio-label">
         <input
           type="radio"
-          name="boca"
+          name="tipopiel"
           value={value}
-          onChange={(e) => { datosUsuario.boca = e.target.value }}
+          onChange={(e) => { datosUsuario.tipospiel = e.target.value }}
         />
         <img src={imagen} alt={texto} className='imagenesform' />
-          </label>
+      </label>
     </div>
   )
 
-  const labiosform = () => {
-    if(datosUsuario.boca === undefined){
+  const coloresform = () => {
+    if(datosUsuario.cara === undefined){
       notificationsRef.current?.addNotification({
         title: 'Becky te ha mandado un mensaje',
         message: 'Cariño, por favor selecciona una opción antes de continuar.',
@@ -59,8 +54,8 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
       })
     }
     else{
-        setVisible('tipopiel')
-        console.log('Cambiando a formulario de tipos de piel.')
+        setVisible('colores')
+        console.log('Cambiando a formulario de colores.')
     }
   }
   const close = () => {
@@ -77,11 +72,11 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
   }
   if (visible === '') return null
 
-  if (visible === 'tipopiel') {
-   return <TiposPielFormulario datosUsuario={datosUsuario} onClose={() => {
-        setVisible('boca')
-        datosUsuario.colores = undefined;
-    }} />
+  if (visible === 'colores') {
+   return <ColoresFormulario datosUsuario={datosUsuario} onClose={() => {
+    setVisible('cara')
+      datosUsuario.cara = undefined;
+  }} />
   }
 
   const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
@@ -93,7 +88,7 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
     )
   })
 
-  if(visible === 'boca'){
+  if(visible === 'tipospiel'){
     return (
           <> 
           <div className="fondo" onClick={handleBackdropClick}>
@@ -108,12 +103,10 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
                 <div className="BarrasProgreso">{barrasProgreso}</div>
-                <Dialogo label="Ya casi acabamos, te lo prometo"/>
+                <Dialogo label="Yo no te pido la luuuuna, tan solo quiero amaaarte... ¿Oh, todavía no terminas?"/>
                   
               </div>
-
-
-              <p className='instruccionesformulario'>Selecciona la opcion que se parezca más a tu forma de labios para continuar</p>
+              <p className='instruccionesformulario'>Selecciona la opcion que se parezca más a tu tipo de piel para continuar</p>
 
               {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}
               <div className="cf-scroll-area" style={{  padding: '0 32px' }}>
@@ -121,7 +114,7 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
                   {opciones.map(renderInput)}
                 </div>
                 
-                  <button type="button" className="btn-submit" onClick={labiosform} >Continuar</button>
+                  <button type="button" className="btn-submit" onClick={coloresform} >Continuar</button>
                   
               </div>
               <Notificaciones ref={notificationsRef} />

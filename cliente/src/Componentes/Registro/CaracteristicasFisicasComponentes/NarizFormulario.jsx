@@ -113,7 +113,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
                 <div className="BarrasProgreso">{barrasProgreso}</div>
-                <Dialogo label="Una nariz así solo puede producir un sonido de flauta."/>
+                <Dialogo label="Intenta ver más allá de tu nariz para encontrar la respuesta"/>
                   
               </div>
               <p className='instruccionesformulario'>Selecciona la opcion que se parezca más a tu forma de nariz para continuar <small><br></br>Es recomendable que en caso de no estar seguro de qué opción elegir, consulte más información en internet</small></p>

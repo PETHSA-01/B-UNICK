@@ -108,7 +108,7 @@ export const CaraFormulario = ({ datosUsuario, onClose }) => {
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
                 <div className="BarrasProgreso">{barrasProgreso}</div>
-                <Dialogo label="Yo no te pido la luuuuna, tan solo quiero amaaarte... ¿Oh, todavía no terminas?"/>
+                <Dialogo label="En esta casa no se habla de la simetría"/>
                   
               </div>
               <p className='instruccionesformulario'>Selecciona la opcion que se parezca más a tu forma de cara para continuar</p>

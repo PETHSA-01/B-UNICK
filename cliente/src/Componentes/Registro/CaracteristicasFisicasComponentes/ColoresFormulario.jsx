@@ -106,10 +106,10 @@ export const ColoresFormulario = ({ datosUsuario, onClose }) => {
               {/*<!-- Dialogo -->*/}
               <div className="dialogo-wrapper">
                 <div className="BarrasProgreso">{barrasProgreso}</div>
-                <Dialogo label="¿Simetria facial?... Aquí no, gracias"/>
+                <Dialogo label="¿Alguna vez te haz preguntado como te verías si tu piel fuera de color fucsia?"/>
                   
               </div>
-              <p className='instruccionesformulario'>Selecciona la opcion que se parezca más a tu forma de cara para continuar</p>
+              <p className='instruccionesformulario'>Selecciona la opcion que se parezca más a tu color de piel para continuar</p>
 
               {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}
               <div className="cf-scroll-area" style={{  padding: '0 32px' }}>

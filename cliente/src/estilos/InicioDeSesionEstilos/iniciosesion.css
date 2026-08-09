@@ -250,7 +250,6 @@
       color: var(--color-texto);
       text-align: left;
       width: min(80%, 400px);
-      margin-top: 10px;
       margin-bottom: 20px;
     }
     /* ══════════════════════════════
