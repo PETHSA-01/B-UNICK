@@ -86,6 +86,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
     return <CaraFormulario datosUsuario={datosUsuario} onClose= {() => {
       setVisible('nariz')
       datosUsuario.nariz = undefined;
+      datosUsuario.cara = undefined;
     }} />
   }
 

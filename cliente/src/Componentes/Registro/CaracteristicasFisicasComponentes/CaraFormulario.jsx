@@ -81,6 +81,7 @@ export const CaraFormulario = ({ datosUsuario, onClose }) => {
    return <ColoresFormulario datosUsuario={datosUsuario} onClose={() => {
     setVisible('cara')
       datosUsuario.cara = undefined;
+      datosUsuario.colores = undefined;
   }} />
   }
 

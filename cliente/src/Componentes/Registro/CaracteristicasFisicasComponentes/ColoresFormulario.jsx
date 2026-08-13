@@ -79,6 +79,7 @@ export const ColoresFormulario = ({ datosUsuario, onClose }) => {
     return <BocaFormulario datosUsuario={datosUsuario} onClose={() => {
         setVisible('colores')
         datosUsuario.colores = undefined;
+        datosUsuario.boca = undefined;
     }} />
   }
 

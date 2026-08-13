@@ -83,6 +83,7 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
     return <NarizFormulario datosUsuario={datosUsuario} onClose = {() => {
       setVisible('ojos')
       datosUsuario.ojos = undefined;
+      datosUsuario.nariz = undefined;
     } }/>
   }
 

@@ -4,7 +4,7 @@ import { Dialogo } from '../../elementos_pequeños/Dialogo.jsx'
 import { Notificaciones } from '../../elementos_pequeños/Notificaciones.jsx'
 import { useState } from 'react'
 import { useRef } from 'react'
-import { ColoresFormulario } from './ColoresFormulario.jsx'
+import { EdadFormulario } from './EdadFormulario.jsx'
 const imagenesCara = import.meta.glob('../../../Características Fisicas/TiposPiel/*.{png,jpg,jpeg,svg}', { eager: true });
 
 
@@ -24,10 +24,10 @@ export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
   )
 
   const opciones = [
-    { value: 'Seca', imagen: cara.Cara_Redondo, texto: '' },
-    { value: 'Normal', imagen: cara.Cara_Ovalado, texto: '' },
-    { value: 'Mixta', imagen: cara.Cara_Diamante, texto: '' },
-    { value: 'Grasa', imagen: cara.Cara_Corazon, texto: '' }
+    { value: 'Seca', imagen: cara.PielSeca, texto: '' },
+    { value: 'Normal', imagen: cara.PielNormal, texto: '' },
+    { value: 'Mixta', imagen: cara.PielMixta, texto: '' },
+    { value: 'Grasa', imagen: cara.PielGrasa, texto: '' }
   ]
 
   const renderInput = ({ value, imagen, texto }) => (
@@ -44,7 +44,7 @@ export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
     </div>
   )
 
-  const coloresform = () => {
+  const edadform = () => {
     if(datosUsuario.cara === undefined){
       notificationsRef.current?.addNotification({
         title: 'Becky te ha mandado un mensaje',
@@ -54,7 +54,7 @@ export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
       })
     }
     else{
-        setVisible('colores')
+        setVisible('edad')
         console.log('Cambiando a formulario de colores.')
     }
   }
@@ -72,10 +72,11 @@ export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
   }
   if (visible === '') return null
 
-  if (visible === 'colores') {
-   return <ColoresFormulario datosUsuario={datosUsuario} onClose={() => {
-    setVisible('cara')
-      datosUsuario.cara = undefined;
+  if (visible === 'edad') {
+   return <EdadFormulario datosUsuario={datosUsuario} onClose={() => {
+    setVisible('tipospiel')
+      datosUsuario.edad = undefined;
+      datosUsuario.tipospiel = undefined;
   }} />
   }
 
@@ -114,7 +115,7 @@ export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
                   {opciones.map(renderInput)}
                 </div>
                 
-                  <button type="button" className="btn-submit" onClick={coloresform} >Continuar</button>
+                  <button type="button" className="btn-submit" onClick={edadform} >Continuar</button>
                   
               </div>
               <Notificaciones ref={notificationsRef} />
