@@ -6,6 +6,21 @@ import bcrypt from 'bcryptjs'
 import {createContext} from 'react'
 import { InicioFormularioCF } from './InicioFormularioCF'
 import { InicioSesion } from '../InicioDeSesion/InicioSesion'
+import axios from 'axios'
+
+const validarPassword = (password) => {
+  const errores = [];
+  if (password.length < 8) {
+    errores.push('mínimo 8 caracteres');
+  }
+  if (!/[0-9]/.test(password)) {
+    errores.push('al menos un número');
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errores.push('al menos un carácter especial');
+  }
+  return errores;
+}
 
 export const Registro = ({ onClose }) => {
   const [email, setEmail] = useState('')
@@ -40,8 +55,15 @@ export const Registro = ({ onClose }) => {
     }
   }, [datosUsuario])
 
+  async function hashPassword(password) {
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, salt);
+    return hash;
+  }
+  
+
  // const [visiblepasword, setvisiblepassr]
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email.trim() || !password.trim()) {
       notificationsRef.current?.addNotification({
@@ -59,15 +81,48 @@ export const Registro = ({ onClose }) => {
             showGif: false
         })
     }
-    else { //logica formulario
-        const DatosDelUsuario = {
-            email: email,
-            password: password,
-            username: username
+    else {
+      const erroresPassword = validarPassword(password);
+      if (erroresPassword.length > 0) {
+        notificationsRef.current?.addNotification({
+          title: 'Becky te ha mandado un mensaje',
+          message: `Cariño, la contraseña debe tener: ${erroresPassword.join(', ')}.`,
+          type: 'error',
+          showGif: false
+        })
+        return;
+      }
+
+      try {
+        const response = await axios.post('http://localhost:3000/validacionregistro', { email });
+        
+        if (response.data.success) {
+          const DatosDelUsuario = {
+              email: email,
+              password: password,
+              username: username
+          }
+          setDatosUsuario(DatosDelUsuario)
+          console.log(datosUsuario)
+          setVisible('InicioFormularioCF')
         }
-        setDatosUsuario(DatosDelUsuario)
-        console.log(datosUsuario)
-        setVisible('InicioFormularioCF')
+      } catch (error) {
+        if (error.response && error.response.data.error) {
+          notificationsRef.current?.addNotification({
+            title: 'Becky te ha mandado un mensaje',
+            message: error.response.data.error,
+            type: 'error',
+            showGif: false
+          })
+        } else {
+          notificationsRef.current?.addNotification({
+            title: 'Becky te ha mandado un mensaje',
+            message: 'Error de conexión con el servidor',
+            type: 'error',
+            showGif: false
+          })
+        }
+      }
     }
   }
 
