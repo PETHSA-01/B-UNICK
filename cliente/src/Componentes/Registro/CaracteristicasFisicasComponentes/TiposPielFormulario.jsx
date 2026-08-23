@@ -1,9 +1,7 @@
 import React from 'react'
 import '../../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import { Dialogo } from '../../elementos_pequeños/Dialogo.jsx'
-import { Notificaciones } from '../../elementos_pequeños/Notificaciones.jsx'
 import { useState } from 'react'
-import { useRef } from 'react'
 import { EdadFormulario } from './EdadFormulario.jsx'
 const imagenesCara = import.meta.glob('../../../Características Fisicas/TiposPiel/*.{png,jpg,jpeg,svg}', { eager: true });
 
@@ -11,11 +9,8 @@ const imagenesCara = import.meta.glob('../../../Características Fisicas/TiposPi
 const TOTAL_BARRAS = 7
 const BARRAS_COMPLETADAS = 6
 
-export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
-  console.log('Datos del usuario recibidos en TiposDePielFormulario:', datosUsuario)
-  const [visible, setVisible] = useState('tipospiel')
-  const notificationsRef = useRef(null)
- 
+export const TiposPielFormulario = ({ datosUsuario, onClose, notificationsRef, closeAll }) => {
+  const [visible, setVisible] = useState("tipospiel");
   const cara = Object.fromEntries(
 
     Object.entries(imagenesCara).map(([path, module]) => {
@@ -45,7 +40,7 @@ export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
   )
 
   const edadform = () => {
-    if(datosUsuario.cara === undefined){
+    if(datosUsuario.tipospiel === undefined){
       notificationsRef.current?.addNotification({
         title: 'Becky te ha mandado un mensaje',
         message: 'Cariño, por favor selecciona una opción antes de continuar.',
@@ -77,7 +72,7 @@ export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
     setVisible('tipospiel')
       datosUsuario.edad = undefined;
       datosUsuario.tipospiel = undefined;
-  }} />
+  }} notificationsRef={notificationsRef} closeAll={closeAll} />
   }
 
   const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
@@ -115,10 +110,9 @@ export const TiposPielFormulario = ({ datosUsuario, onClose }) => {
                   {opciones.map(renderInput)}
                 </div>
                 
-                  <button type="button" className="btn-submit" onClick={edadform} >Continuar</button>
-                  
+<button type="button" className="btn-submit" onClick={edadform} >Continuar</button>
+                   
               </div>
-              <Notificaciones ref={notificationsRef} />
               </div>
           </div>
           </>

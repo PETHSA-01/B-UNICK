@@ -19,19 +19,30 @@ app.use(cors())
 let pool;
 
 (async () => {
-    pool = ConnectDB.pool;
+    try {
+        pool = ConnectDB.pool;
+        console.log('Pool initialized:', !!pool);
 
-    // pass the pool to the routes
-    app.use((req, res, next) => {
-        req.pool = pool;
-        next();
-    });
+        // Test database connection
+        const conn = await pool.getConnection();
+        console.log('Database connected successfully');
+        conn.release();
 
-    // use the router
-    app.use("/", router);
+        // pass the pool to the routes
+        app.use((req, res, next) => {
+            req.pool = pool;
+            next();
+        });
 
-    // start the server
-    app.listen(port, () => {
-        console.log(`Example app listening on port http://localhost:${port}`);
-    });
+        // use the router
+        app.use("/", router);
+
+        // start the server
+        app.listen(port, () => {
+            console.log(`Example app listening on port http://localhost:${port}`);
+        });
+    } catch (error) {
+        console.error('Startup error:', error);
+        process.exit(1);
+    }
 })();

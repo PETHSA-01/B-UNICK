@@ -1,9 +1,7 @@
 import React from 'react'
 import '../../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import { Dialogo } from '../../elementos_pequeños/Dialogo'
-import { Notificaciones } from '../../elementos_pequeños/Notificaciones'
 import { useState } from 'react'
-import { useRef } from 'react'
 import { TiposPielFormulario } from './TiposPielFormulario.jsx'
 const imagenesCara = import.meta.glob('../../../Características Fisicas/Boca/*.{png,jpg,jpeg,svg}', { eager: true });
 
@@ -11,11 +9,8 @@ const imagenesCara = import.meta.glob('../../../Características Fisicas/Boca/*.
 const TOTAL_BARRAS = 7
 const BARRAS_COMPLETADAS = 5
 
-export const BocaFormulario = ({ datosUsuario, onClose }) => {
-  console.log('Datos del usuario recibidos en BocaFormulario:', datosUsuario)
-  const [visible, setVisible] = useState('boca')
-  const notificationsRef = useRef(null)
-  
+export const BocaFormulario = ({ datosUsuario, onClose, notificationsRef, closeAll }) => {
+ const [visible, setVisible] = useState("labios"); 
   const boca = Object.fromEntries(
 
     Object.entries(imagenesCara).map(([path, module]) => {
@@ -40,9 +35,9 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
       <label className="radio-label">
         <input
           type="radio"
-          name="boca"
+          name="labios"
           value={value}
-          onChange={(e) => { datosUsuario.boca = e.target.value }}
+          onChange={(e) => { datosUsuario.labios = e.target.value }}
         />
         <img src={imagen} alt={texto} className='imagenesform' />
           </label>
@@ -50,7 +45,7 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
   )
 
   const labiosform = () => {
-    if(datosUsuario.boca === undefined){
+    if(datosUsuario.labios === undefined){
       notificationsRef.current?.addNotification({
         title: 'Becky te ha mandado un mensaje',
         message: 'Cariño, por favor selecciona una opción antes de continuar.',
@@ -79,10 +74,10 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
 
   if (visible === 'tipopiel') {
    return <TiposPielFormulario datosUsuario={datosUsuario} onClose={() => {
-        setVisible('boca')
-        datosUsuario.tipopiel = undefined;
-        datosUsuario.boca = undefined;
-    }} />
+        setVisible('labios')
+        datosUsuario.tipospiel = undefined;
+        datosUsuario.labios = undefined;
+    }} notificationsRef={notificationsRef} closeAll={closeAll} />
   }
 
   const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
@@ -94,7 +89,7 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
     )
   })
 
-  if(visible === 'boca'){
+  if(visible === 'labios') {
     return (
           <> 
           <div className="fondo" onClick={handleBackdropClick}>
@@ -122,10 +117,9 @@ export const BocaFormulario = ({ datosUsuario, onClose }) => {
                   {opciones.map(renderInput)}
                 </div>
                 
-                  <button type="button" className="btn-submit" onClick={labiosform} >Continuar</button>
-                  
+<button type="button" className="btn-submit" onClick={labiosform} >Continuar</button>
+                   
               </div>
-              <Notificaciones ref={notificationsRef} />
               </div>
           </div>
           </>

@@ -1,9 +1,7 @@
 import React from 'react'
 import '../../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import { Dialogo } from '../../elementos_pequeños/Dialogo'
-import { Notificaciones } from '../../elementos_pequeños/Notificaciones'
 import { useState } from 'react'
-import { useRef } from 'react'
 import { ColoresFormulario } from './ColoresFormulario.jsx'
 const imagenesCara = import.meta.glob('../../../Características Fisicas/Cara/*.{png,jpg,jpeg,svg}', { eager: true });
 
@@ -11,11 +9,8 @@ const imagenesCara = import.meta.glob('../../../Características Fisicas/Cara/*.
 const TOTAL_BARRAS = 7
 const BARRAS_COMPLETADAS = 3
 
-export const CaraFormulario = ({ datosUsuario, onClose }) => {
-  console.log('Datos del usuario recibidos en CaraFormulario:', datosUsuario)
-  const [visible, setVisible] = useState('cara')
-  const notificationsRef = useRef(null)
- 
+export const CaraFormulario = ({ datosUsuario, onClose, notificationsRef, closeAll }) => {
+  const [visible, setVisible] = useState("cara"); 
   const cara = Object.fromEntries(
 
     Object.entries(imagenesCara).map(([path, module]) => {
@@ -82,7 +77,7 @@ export const CaraFormulario = ({ datosUsuario, onClose }) => {
     setVisible('cara')
       datosUsuario.cara = undefined;
       datosUsuario.colores = undefined;
-  }} />
+  }} notificationsRef={notificationsRef} closeAll={closeAll} />
   }
 
   const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
@@ -120,10 +115,9 @@ export const CaraFormulario = ({ datosUsuario, onClose }) => {
                   {opciones.map(renderInput)}
                 </div>
                 
-                  <button type="button" className="btn-submit" onClick={coloresform} >Continuar</button>
-                  
+<button type="button" className="btn-submit" onClick={coloresform} >Continuar</button>
+                   
               </div>
-              <Notificaciones ref={notificationsRef} />
               </div>
           </div>
           </>

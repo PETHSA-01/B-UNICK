@@ -2,10 +2,10 @@ import React, { useState, useRef, useEffect } from 'react'
 import "../../estilos/InicioDeSesionEstilos/iniciosesion.css"
 import { Dialogo } from '../elementos_pequeños/Dialogo'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
-import bcrypt from 'bcryptjs'
 import {createContext} from 'react'
 import { InicioFormularioCF } from './InicioFormularioCF'
 import { InicioSesion } from '../InicioDeSesion/InicioSesion'
+import { CuentaConfirmada } from './CuentaConfirmada'
 import axios from 'axios'
 
 const validarPassword = (password) => {
@@ -16,11 +16,19 @@ const validarPassword = (password) => {
   if (!/[0-9]/.test(password)) {
     errores.push('al menos un número');
   }
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+  if (!/[!@#$%^&*(),.?:{}_-|<>]/.test(password)) {
     errores.push('al menos un carácter especial');
   }
   return errores;
 }
+const validarUsuario = (nombre) => {
+  const errores = [];
+  if(/;"'/.test(nombre)){
+    errores.push('no puede tener esos caracteres');
+  }
+  return errores;
+} 
+
 
 export const Registro = ({ onClose }) => {
   const [email, setEmail] = useState('')
@@ -28,11 +36,18 @@ export const Registro = ({ onClose }) => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [username, setUsername] = useState('')
   const [visible, setVisible] = useState('registro')
+  const [showConfirmada, setShowConfirmada] = useState(false)
   const notificationsRef = useRef(null)
   const cookieNotificationAdded = useRef(false)
   const [mostrarcontra, setmostrarcontra] = useState(false)
   const [mostrarconfirm, setmostrarconfirm] = useState(false)
   const [datosUsuario, setDatosUsuario] = useState(null)
+
+  const closeAll = () => {
+    setVisible('')
+    setShowConfirmada(true)
+    if (onClose) onClose()
+  }
 
   useEffect(() => {
     if(!cookieNotificationAdded.current){
@@ -55,12 +70,6 @@ export const Registro = ({ onClose }) => {
     }
   }, [datosUsuario])
 
-  async function hashPassword(password) {
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(password, salt);
-    return hash;
-  }
-  
 
  // const [visiblepasword, setvisiblepassr]
   const handleSubmit = async (e) => {
@@ -92,20 +101,41 @@ export const Registro = ({ onClose }) => {
         })
         return;
       }
+      const erroresNombre = validarUsuario(username);
+      if(erroresNombre.length>0){
+        notificationsRef.current?.addNotification({
+          title: 'Becky te ha mandado un mensaje',
+          message: `Cariño, el nombre de usuario ${erroresNombre.join(', ')}`,
+          type: 'error',
+          showGif: false
+        })
+        return;
+
+      }
 
       try {
-        const response = await axios.post('http://localhost:3000/validacionregistro', { email });
+        const response = await axios.post('http://localhost:3000/validacionregistro', { email, username }, {
+          validateStatus: (status) => status < 400
+        });
         
         if (response.data.success) {
           const DatosDelUsuario = {
               email: email,
               password: password,
               username: username
-          }
+            }
           setDatosUsuario(DatosDelUsuario)
           console.log(datosUsuario)
           setVisible('InicioFormularioCF')
-        }
+        } else {
+          // Handle 409 error manually
+          notificationsRef.current?.addNotification({
+            title: 'Becky te ha mandado un mensaje',
+            message: response.data.error,
+            type: 'error',
+            showGif: false
+          });
+}
       } catch (error) {
         if (error.response && error.response.data.error) {
           notificationsRef.current?.addNotification({
@@ -125,6 +155,14 @@ export const Registro = ({ onClose }) => {
       }
     }
   }
+
+  // Helper to pass notificationsRef to children
+  const getChildProps = (extra = {}) => ({
+    datosUsuario,
+    onClose,
+    notificationsRef,
+    ...extra
+  })
 
   const togglePass = () => {
     setmostrarcontra((prev) => !prev)
@@ -158,6 +196,8 @@ export const Registro = ({ onClose }) => {
         onClose={() => {
           setVisible('registro') 
         }}
+        notificationsRef={notificationsRef}
+        closeAll={closeAll}
       />
     )
   }
@@ -173,6 +213,9 @@ return (
 )
 }
 
+if (showConfirmada) {
+  return <CuentaConfirmada onClose={closeAll} />
+}
 
   return (
       <> 

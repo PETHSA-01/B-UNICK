@@ -1,36 +1,170 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
 router.get('/', (req, res) => {
     res.send('Hello World!');
 })
 
-const validacion = require('./validacionregistro');
-
 router.post('/validacionregistro', async (req, res) => {
-    const { email } = req.body;
+    const { email, username } = req.body;
     const pool = req.pool;
 
     if (!email) {
-        return res.status(400).json({ error: 'El correo es requerido' });
+        return res.status(400).json({ error: 'El correo es requerido', field: 'email' });
+    }
+    if (!username) {
+        return res.status(400).json({ error: 'El nombre de usuario es requerido', field: 'username' });
     }
 
     try {
-    const [rows] = await pool.execute('SELECT * FROM usuarios WHERE correo = ?', [email]);
-        
-        if (rows.length > 0) {
-            return res.status(409).json({ error: 'El correo ya se encuentra registrado' });
+        // Check email
+        const [emailRows] = await pool.execute('SELECT id FROM usuarios WHERE correo = ?', [email]);
+        if (emailRows.length > 0) {
+            return res.status(409).json({ error: 'El correo ya se encuentra registrado', field: 'email' });
         }
 
-        res.json({ success: true, message: 'Correo disponible para registro' });
+        // Check username
+        const [usernameRows] = await pool.execute('SELECT id FROM usuarios WHERE nombre_usuario = ?', [username]);
+        if (usernameRows.length > 0) {
+            return res.status(409).json({ error: 'El nombre de usuario ya está en uso', field: 'username' });
+        }
+
+        res.json({ success: true, message: 'Correo y usuario disponibles para registro' });
     } catch (error) {
-        console.error('Error validando registro:', error.message, error.code, error.sqlMessage);
+        console.error('Error validando registro:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-router.post('/registro', async (req, res) => {
-    validacion(req, res)
-})
+router.post('/preregistro', async (req, res) => {
+    const {
+        email,
+        password,
+        username,
+        ojos,
+        nariz, 
+        labios,
+        cara,
+        colorPiel,
+        tipoPiel,
+        edad
+    } = req.body;
+    const pool = req.pool;
+
+    if (!email || !password || !username) {
+        return res.status(400).json({ error: 'Correo, contraseña y nombre de usuario son requeridos' });
+    }
+
+    if (!ojos || !nariz || !labios || !cara || !colorPiel || !tipoPiel || !edad) {
+        return res.status(400).json({ error: 'Todas las características físicas y la edad son requeridas' });
+    }
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [existingUser] = await connection.execute('SELECT id FROM usuarios WHERE correo = ?', [email]);  
+        if (existingUser.length > 0) {
+            await connection.rollback();
+            return res.status(409).json({ error: 'El correo ya se encuentra registrado' });
+        }
+
+        const [existingUsername] = await connection.execute('SELECT id FROM usuarios WHERE nombre_usuario = ?', [username]);
+        if (existingUsername.length > 0) {
+            await connection.rollback();
+            return res.status(409).json({ error: 'El nombre de usuario ya está en uso' });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const [caracteristicascheck] = await connection.execute( 'SELECT id FROM caracteristicas_fisicas where forma_ojos = ? and tipo_nariz = ? and tipo_labios = ? and tipo_rostro = ? and color_piel = ? and tipo_piel = ?',
+            [ojos, nariz, labios, cara, colorPiel, tipoPiel]
+        ); //TERMINAR
+        let caracteristicasId;
+        if(caracteristicascheck.length === 0){
+            const [caracteristicasResult] = await connection.execute(
+                `INSERT INTO caracteristicas_fisicas (forma_ojos, tipo_nariz, tipo_labios, tipo_rostro, color_piel, tipo_piel)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+                [ojos, nariz, labios, cara, colorPiel, tipoPiel]
+            );
+            caracteristicasId = caracteristicasResult.insertId;
+        } else {
+            caracteristicasId = caracteristicascheck[0].id;
+        }
+
+        const [usuarioResult] = await connection.execute(
+            `INSERT INTO usuarios (correo, contrasena_hash, nombre_usuario, caracteristicas_id, edad, correo_verificado)
+             VALUES (?, ?, ?, ?, ?, 0)`,
+            [email, passwordHash, username, caracteristicasId, edad]
+        );
+        const usuarioId = usuarioResult.insertId;
+
+        const jwtSecret = process.env.JWT_SECRET || 'bunyk_secret_key_change_in_production';
+        const token = jwt.sign(
+            { userId: usuarioId, email: email, tipo: 'verificacion_correo' },
+            jwtSecret,
+            { expiresIn: '24h' }
+        );
+
+        const fechaExpiracion = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        await connection.execute(
+            `INSERT INTO tokens (usuario_id, token, tipo, fecha_expiracion) VALUES (?, ?, 'verificacion_correo', ?)`,
+            [usuarioId, token, fechaExpiracion]
+        );
+
+        await connection.commit();
+
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: process.env.SMTP_PORT || 587,
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER || 'a22300935@ceti.mx',
+                pass: process.env.SMTP_PASS
+            }
+        });
+
+        const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verificar-correo?token=${token}`;
+
+        await transporter.sendMail({
+            from: '"B-unick" ',
+            to: email,
+            subject: 'Verifica tu correo electrónico - B-unick',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2>¡Bienvenido a B-unick, ${username}!</h2>
+                    <p>Gracias por registrarte. Para completar tu registro, por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:</p>
+                    <p style="text-align: center; margin: 30px 0;">
+                        <a href="${verificationUrl}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                            Verificar mi correo
+                        </a>
+                    </p>
+                    <p>O copia y pega este enlace en tu navegador:</p>
+                    <p style="word-break: break-all; color: #666;">${verificationUrl}</p>
+                    <p>Este enlace expira en 24 horas.</p>
+                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+                    <p style="color: #999; font-size: 12px;">Si no creaste esta cuenta, puedes ignorar este correo.</p>
+                </div>
+            `
+        });
+
+        res.json({ 
+            success: true, 
+            message: 'Registro completado. Se ha enviado un correo de verificación.',
+            usuarioId
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error en preregistro:', error.message, error.code, error.sqlMessage);
+        res.status(500).json({ error: 'Error interno del servidor al registrar' });
+    } finally {
+        connection.release();
+    }
+});
 
 module.exports = router

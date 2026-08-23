@@ -1,21 +1,16 @@
 import React from 'react'
 import '../../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import { Dialogo } from '../../elementos_pequeños/Dialogo'
-import { Notificaciones } from '../../elementos_pequeños/Notificaciones'
 import { useState } from 'react'
 import { NarizFormulario } from './NarizFormulario'
-import { useRef } from 'react'
 const imagenesOjos = import.meta.glob('../../../Características Fisicas/Ojos/*.{png,jpg,jpeg,svg}', { eager: true });
 
 
 const TOTAL_BARRAS = 7
 const BARRAS_COMPLETADAS = 1
 
-export const OjosFormulario = ({ datosUsuario, onClose }) => {
-  console.log('Datos del usuario recibidos en OjosFormulario:', datosUsuario)
-  const [visible, setVisible] = useState('ojos')
-  const notificationsRef = useRef(null)
-
+export const OjosFormulario = ({ datosUsuario, onClose, notificationsRef, closeAll }) => {
+  const [visible, setVisible] = useState("ojos");
   const ojos = Object.fromEntries(
     Object.entries(imagenesOjos).map(([path, module]) => {
       return [path.split('/').pop().split('.')[0], module.default];
@@ -84,7 +79,7 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
       setVisible('ojos')
       datosUsuario.ojos = undefined;
       datosUsuario.nariz = undefined;
-    } }/>
+    }} notificationsRef={notificationsRef} closeAll={closeAll} />
   }
 
   const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
@@ -118,22 +113,21 @@ export const OjosFormulario = ({ datosUsuario, onClose }) => {
               <p className='instruccionesformulario'>Selecciona la opcion que se parezca más a tu forma de ojos para continuar</p>
               {/*<!-- Formulario, ahora envuelto para scroll interno -->*/}
               <div className="cf-scroll-area" style={{  padding: '0 32px' }}>
-                <div className="contenedorinput">
-                  {opciones.map(inputs)}
-                
+<div className="contenedorinput">
+                  {opciones.map((opcion, index) => (
+                    <div key={opcion.valor}>{inputs(opcion)}</div>
+                  ))}
+                 
                 </div>
                 
-                  <button type="button" className="btn-submit" onClick={narizform} >Continuar</button>
-                  
+<button type="button" className="btn-submit" onClick={narizform} >Continuar</button>
+                   
               </div>
               </div>
-    
+     
           </div>
           
-    {/*<!-- Componente reutilizable de notificaciones -->*/}
-    <Notificaciones ref={notificationsRef} />
-
-          </>
+        </>
       )
   }
 }

@@ -9,7 +9,7 @@ const TOTAL_BARRAS = 7
 const BARRAS_COMPLETADAS = 0
 
 
-export const InicioFormularioCF = ({ datosUsuario, onClose }) => {
+export const InicioFormularioCF = ({ datosUsuario, onClose, notificationsRef, closeAll }) => {
   console.log('Datos del usuario recibidos en InicioFormularioCF:', datosUsuario)
   const [visible, setVisible] = useState('inicioformulario')
 
@@ -45,6 +45,8 @@ if (visible === 'ojos') {
   <OjosFormulario
     datosUsuario={datosUsuario}
     onClose={() => setVisible('inicioformulario')}
+    notificationsRef={notificationsRef}
+    closeAll={closeAll}
   />
 )  
 

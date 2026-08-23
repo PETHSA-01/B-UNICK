@@ -1,9 +1,7 @@
 import React from 'react'
 import '../../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import { Dialogo } from '../../elementos_pequeños/Dialogo'
-import { Notificaciones } from '../../elementos_pequeños/Notificaciones'
 import { useState } from 'react'
-import { useRef } from 'react'
 import { CaraFormulario } from './CaraFormulario'
 const imagenesNariz = import.meta.glob('../../../Características Fisicas/Nariz/*.{png,jpg,jpeg,svg}', { eager: true });
 
@@ -11,10 +9,8 @@ const imagenesNariz = import.meta.glob('../../../Características Fisicas/Nariz/
 const TOTAL_BARRAS = 7
 const BARRAS_COMPLETADAS = 2
 
-export const NarizFormulario = ({ datosUsuario, onClose }) => {
-  console.log('Datos del usuario recibidos en NarizFormulario:', datosUsuario)
-  const [visible, setVisible] = useState('nariz')
-  const notificationsRef = useRef(null)
+export const NarizFormulario = ({ datosUsuario, onClose, notificationsRef, closeAll }) => {
+  const [visible, setVisible] = useState("nariz");
   const nariz = Object.fromEntries(
     Object.entries(imagenesNariz).map(([path, module]) => {
       return [path.split('/').pop().split('.')[0], module.default];
@@ -87,7 +83,7 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
       setVisible('nariz')
       datosUsuario.nariz = undefined;
       datosUsuario.cara = undefined;
-    }} />
+    }} notificationsRef={notificationsRef} closeAll={closeAll} />
   }
 
   const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
@@ -125,10 +121,9 @@ export const NarizFormulario = ({ datosUsuario, onClose }) => {
                   {opciones.map(renderInput)}
                 </div>
                 
-                  <button type="button" className="btn-submit" onClick={caraform} >Continuar</button>
-                  
+<button type="button" className="btn-submit" onClick={caraform} >Continuar</button>
+                   
               </div>
-            <Notificaciones ref={notificationsRef} />
               </div>
           </div>
           </>

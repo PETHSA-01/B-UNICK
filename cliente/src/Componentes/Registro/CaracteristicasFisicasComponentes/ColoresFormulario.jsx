@@ -1,9 +1,7 @@
 import React from 'react'
 import '../../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import { Dialogo } from '../../elementos_pequeños/Dialogo'
-import { Notificaciones } from '../../elementos_pequeños/Notificaciones'
 import { useState } from 'react'
-import { useRef } from 'react'
 import { BocaFormulario } from './BocaFormulario.jsx'
 const imagenesCara = import.meta.glob('../../../Características Fisicas/ColorPiel/*.{png,jpg,jpeg,svg}', { eager: true });
 
@@ -11,11 +9,8 @@ const imagenesCara = import.meta.glob('../../../Características Fisicas/ColorPi
 const TOTAL_BARRAS = 7
 const BARRAS_COMPLETADAS = 4
 
-export const ColoresFormulario = ({ datosUsuario, onClose }) => {
-  console.log('Datos del usuario recibidos en ColoresFormulario:', datosUsuario)
-  const [visible, setVisible] = useState('colores')
-  const notificationsRef = useRef(null)
-  
+export const ColoresFormulario = ({ datosUsuario, onClose, notificationsRef, closeAll }) => {
+ const [visible, setVisible] = useState('colores'); 
   const colores = Object.fromEntries(
 
     Object.entries(imagenesCara).map(([path, module]) => {
@@ -79,8 +74,8 @@ export const ColoresFormulario = ({ datosUsuario, onClose }) => {
     return <BocaFormulario datosUsuario={datosUsuario} onClose={() => {
         setVisible('colores')
         datosUsuario.colores = undefined;
-        datosUsuario.boca = undefined;
-    }} />
+        datosUsuario.labios = undefined;
+    }} notificationsRef={notificationsRef} closeAll={closeAll} />
   }
 
   const barrasProgreso = Array.from({ length: TOTAL_BARRAS }, (_, index) => {
@@ -118,10 +113,9 @@ export const ColoresFormulario = ({ datosUsuario, onClose }) => {
                   {opciones.map(renderInput)}
                 </div>
                 
-                  <button type="button" className="btn-submit" onClick={labiosform} >Continuar</button>
-                  
+<button type="button" className="btn-submit" onClick={labiosform} >Continuar</button>
+                   
               </div>
-              <Notificaciones ref={notificationsRef} />
               </div>
           </div>
           </>
