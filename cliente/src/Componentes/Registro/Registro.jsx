@@ -6,6 +6,7 @@ import {createContext} from 'react'
 import { InicioFormularioCF } from './InicioFormularioCF'
 import { InicioSesion } from '../InicioDeSesion/InicioSesion'
 import { CuentaConfirmada } from './CuentaConfirmada'
+import { PreregistroConfirmado } from './PreregistroConfirmado'
 import axios from 'axios'
 
 const validarPassword = (password) => {
@@ -36,16 +37,29 @@ export const Registro = ({ onClose }) => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [username, setUsername] = useState('')
   const [visible, setVisible] = useState('registro')
+  // Estado para mostrar CuentaConfirmada (verificación por email)
   const [showConfirmada, setShowConfirmada] = useState(false)
+  // Estado para mostrar PreregistroConfirmado (éxito de preregistro)
+  const [showPreregistroConfirmado, setShowPreregistroConfirmado] = useState(false)
   const notificationsRef = useRef(null)
   const cookieNotificationAdded = useRef(false)
   const [mostrarcontra, setmostrarcontra] = useState(false)
   const [mostrarconfirm, setmostrarconfirm] = useState(false)
   const [datosUsuario, setDatosUsuario] = useState(null)
 
-  const closeAll = () => {
+  /**
+   * Cierra toda la cadena de formularios de registro
+   * @param {string} origen - 'preregistro' para flujo de preregistro, cualquier otro para flujo email
+   */
+  const closeAll = (origen = 'default') => {
     setVisible('')
-    setShowConfirmada(true)
+    if (origen === 'preregistro') {
+      // Flujo preregistro: muestra PreregistroConfirmado
+      setShowPreregistroConfirmado(true)
+    } else {
+      // Flujo email verification: muestra CuentaConfirmada
+      setShowConfirmada(true)
+    }
     if (onClose) onClose()
   }
 
@@ -211,6 +225,12 @@ return (
     }}
   />
 )
+}
+
+// Renderizar PreregistroConfirmado (éxito de preregistro)
+// Este componente NO debe ser cerrado por closeAll, se renderiza a nivel de Registro
+if (showPreregistroConfirmado) {
+  return <PreregistroConfirmado closeAll={closeAll} />
 }
 
 if (showConfirmada) {

@@ -120,10 +120,10 @@ router.post('/preregistro', async (req, res) => {
 
         const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: process.env.SMTP_PORT || 587,
+            port: process.env.SMTP_PORT,
             secure: false,
             auth: {
-                user: process.env.SMTP_USER || 'a22300935@ceti.mx',
+                user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS
             }
         });
@@ -164,6 +164,79 @@ router.post('/preregistro', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor al registrar' });
     } finally {
         connection.release();
+    }
+});
+
+// GET /verificar-correo - Verifica el token JWT enviado por email y marca el usuario como verificado
+// Recibe el token como query parameter (?token=xxx)
+// Proceso: 1) Valida JWT 2) Verifica token en BD (existe, no expirado, no usado) 3) Actualiza usuario.correo_verificado = 1 4) Marca token como usado 5) Redirige al frontend
+router.get('/verificar-correo', async (req, res) => {
+    // Obtener token de la query string de la URL
+    const { token } = req.query;
+    // Pool de conexiones a la base de datos
+    const pool = req.pool;
+    // Clave secreta para verificar la firma del JWT (desde .env o valor por defecto)
+    const jwtSecret = process.env.JWT_SECRET || 'bunyk_secret_key_change_in_production';
+    // URL base del frontend para redirección (desde .env o valor por defecto)
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    // Validación: token es requerido en la URL
+    if (!token) {
+        // Redirigir al frontend con error de token faltante
+        return res.redirect(`${frontendUrl}/verificar-correo?error=token_missing`);
+    }
+
+    try {
+        // 1) Verificar y decodificar el JWT (valida firma y expiración automáticamente)
+        const decoded = jwt.verify(token, jwtSecret);
+        
+        // Validar que el token sea del tipo correcto (verificación de correo)
+        if (decoded.tipo !== 'verificacion_correo') {
+            return res.redirect(`${frontendUrl}/verificar-correo?error=invalid_token_type`);
+        }
+
+        // Extraer datos del payload del token
+        const { userId, email } = decoded;
+
+        // 2) Consultar en BD: token existe, pertenece al usuario, es de verificación, no usado, no expirado
+        const [tokenRows] = await pool.execute(
+            `SELECT * FROM tokens WHERE token = ? AND usuario_id = ? AND tipo = 'verificacion_correo' AND usado = 0 AND fecha_expiracion > NOW()`,
+            [token, userId]
+        );
+
+        // Si no existe token válido en BD, redirigir con error
+        if (tokenRows.length === 0) {
+            return res.redirect(`${frontendUrl}/verificar-correo?error=token_invalid_or_expired`);
+        }
+
+        // 3) Actualizar usuario: marcar correo como verificado (correo_verificado = 1)
+        await pool.execute(
+            `UPDATE usuarios SET correo_verificado = 1 WHERE id = ?`,
+            [userId]
+        );
+
+        // 4) Marcar token como usado (usado = 1) para que no se pueda reutilizar
+        await pool.execute(
+            `UPDATE tokens SET usado = 1 WHERE token = ?`,
+            [token]
+        );
+
+        // 5) Redirigir al frontend con éxito
+        res.redirect(`${frontendUrl}/verificar-correo?success=true`);
+
+    } catch (error) {
+        // Manejo específico de errores de JWT
+        if (error.name === 'TokenExpiredError') {
+            // Token expirado (jwt.verify lanza este error si exp < now)
+            return res.redirect(`${frontendUrl}/verificar-correo?error=token_expired`);
+        }
+        if (error.name === 'JsonWebTokenError') {
+            // Token inválido (firma incorrecta, malformado, etc.)
+            return res.redirect(`${frontendUrl}/verificar-correo?error=token_invalid`);
+        }
+        // Error inesperado del servidor
+        console.error('Error verificando correo:', error.message);
+        return res.redirect(`${frontendUrl}/verificar-correo?error=server_error`);
     }
 });
 

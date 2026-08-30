@@ -55,13 +55,9 @@ export const EdadFormulario = ({ datosUsuario, onClose, notificationsRef, closeA
       const response = await axios.post('http://localhost:3000/preregistro', payload)
       
       if (response.data.success) {
-        notificationsRef.current?.addNotification({
-          title: 'Becky te ha mandado un mensaje',
-          message: '¡Registro completado! Revisa tu correo para verificar tu cuenta.',
-          type: 'success',
-          showGif: true
-        })
-        if (closeAll) closeAll()
+        // En lugar de notificación, llama a closeAll con origen 'preregistro'
+        // Esto disparará la renderización de PreregistroConfirmado a nivel de Registro
+        if (closeAll) closeAll('preregistro')
       }
     } catch (error) {
       if (error.response && error.response.data.error) {
