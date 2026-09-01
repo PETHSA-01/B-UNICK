@@ -10,6 +10,7 @@ const BARRAS_COMPLETADAS = 7
 export const EdadFormulario = ({ datosUsuario, onClose, notificationsRef, closeAll }) => {
   console.log('Datos del usuario recibidos en EdadFormulario:', datosUsuario)
   const [visible, setVisible] = useState('edad')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -37,6 +38,7 @@ export const EdadFormulario = ({ datosUsuario, onClose, notificationsRef, closeA
       return
     }
 
+    setIsLoading(true)
     try {
       const payload = {
         email: datosUsuario.email,
@@ -75,6 +77,8 @@ export const EdadFormulario = ({ datosUsuario, onClose, notificationsRef, closeA
           showGif: false
         })
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -101,6 +105,32 @@ export const EdadFormulario = ({ datosUsuario, onClose, notificationsRef, closeA
   })
 
   if(visible === 'edad'){
+    if (isLoading) {
+      return (
+        <> 
+        <div className="fondo" onClick={handleBackdropClick}>
+          <div className="contenedor"  onClick={(e) => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => close()} aria-label="Volver">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          
+            <div className="dialogo-wrapper">
+              <div className="BarrasProgreso">{barrasProgreso}</div>
+              <Dialogo label="Creando tu personaje..."/>
+            </div>
+
+            <div className="loading-overlay">
+              <div className="spinner" />
+              <p className="loading-text">Registrando tu cuenta...</p>
+            </div>
+          </div>
+        </div>
+        </>
+      )
+    }
+
     return (
           <> 
           <div className="fondo" onClick={handleBackdropClick}>
@@ -126,10 +156,17 @@ export const EdadFormulario = ({ datosUsuario, onClose, notificationsRef, closeA
                       name="edad"
                       value={datosUsuario.edad }
                       onChange={(e) => datosUsuario.edad = e.target.value}
+                      disabled={isLoading}
                     />
                   </label>
               
-                  <button type="submit" className="btn-submit" >Continuar</button>
+                  <button 
+                    type="submit" 
+                    className="btn-submit" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Registrando...' : 'Continuar'}
+                  </button>
                 </div>
               </form>
               </div>

@@ -128,7 +128,7 @@ router.post('/preregistro', async (req, res) => {
             }
         });
 
-        const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verificar-correo?token=${token}`;
+        const verificationUrl = `${process.env.BACKEND_URL || 'http://localhost:3000'}/verificar-correo?token=${token}`;
 
         await transporter.sendMail({
             from: '"B-unick" ',
@@ -137,13 +137,13 @@ router.post('/preregistro', async (req, res) => {
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2>¡Bienvenido a B-unick, ${username}!</h2>
-                    <p>Gracias por registrarte. Para completar tu registro, por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:</p>
+                    <p>Gracias por registrarte, cariño. Para completar tu registro, por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:</p>
                     <p style="text-align: center; margin: 30px 0;">
-                        <a href="${verificationUrl}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                        <a href="${verificationUrl}" style="background-color: #9b82b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
                             Verificar mi correo
                         </a>
                     </p>
-                    <p>O copia y pega este enlace en tu navegador:</p>
+                    <p>También puedes copia y pega este enlace en tu navegador:</p>
                     <p style="word-break: break-all; color: #666;">${verificationUrl}</p>
                     <p>Este enlace expira en 24 horas.</p>
                     <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">

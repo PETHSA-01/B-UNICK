@@ -55,12 +55,13 @@ export const Registro = ({ onClose }) => {
     setVisible('')
     if (origen === 'preregistro') {
       // Flujo preregistro: muestra PreregistroConfirmado
+      // NO llamar onClose() - necesitamos que Registro siga montado
       setShowPreregistroConfirmado(true)
     } else {
       // Flujo email verification: muestra CuentaConfirmada
       setShowConfirmada(true)
+      if (onClose) onClose()
     }
-    if (onClose) onClose()
   }
 
   useEffect(() => {
@@ -200,6 +201,15 @@ export const Registro = ({ onClose }) => {
     }
   }
 
+  // Renderizar PreregistroConfirmado (éxito de preregistro)
+  // Este componente NO debe ser cerrado por closeAll, se renderiza a nivel de Registro
+  if (showPreregistroConfirmado) {
+    return <PreregistroConfirmado closeAll={closeAll} />
+  }
+
+  if (showConfirmada) {
+    return <CuentaConfirmada onClose={closeAll} />
+  }
 
   if (visible === '') return null
 
@@ -225,16 +235,6 @@ return (
     }}
   />
 )
-}
-
-// Renderizar PreregistroConfirmado (éxito de preregistro)
-// Este componente NO debe ser cerrado por closeAll, se renderiza a nivel de Registro
-if (showPreregistroConfirmado) {
-  return <PreregistroConfirmado closeAll={closeAll} />
-}
-
-if (showConfirmada) {
-  return <CuentaConfirmada onClose={closeAll} />
 }
 
   return (
