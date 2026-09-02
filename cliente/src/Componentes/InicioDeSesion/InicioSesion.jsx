@@ -4,6 +4,7 @@ import { Dialogo } from '../elementos_pequeños/Dialogo'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
 import { Registro } from '../Registro/Registro'
 import { RecuperarContraseñaCorreo } from './RecuperarContraseñaCorreo'
+import api from '../../api/axios'
 
 export const InicioSesion = ({onClose}) => {
   const [email, setEmail] = useState('')
@@ -28,7 +29,7 @@ export const InicioSesion = ({onClose}) => {
   }, [])
 
  // const [visiblepasword, setvisiblepassr]
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email.trim() || !password.trim()) {
       notificationsRef.current?.addNotification({
@@ -37,11 +38,37 @@ export const InicioSesion = ({onClose}) => {
         type: 'error',
         showGif: false
       })
-    } else { //logica formulario
-      console.log({
-        contraseña:password,
-        mail: email
-      })
+    } else {
+      try {
+        const response = await api.post('/login', { email, password })
+        
+        if (response.data.success) {
+          // Cookies se establecen automáticamente por el navegador
+          close()
+          window.location.href = '/'
+        } else if (response.status === 403 && response.data.requireVerification) {
+          notificationsRef.current?.addNotification({
+            title: 'Becky te ha mandado un mensaje',
+            message: response.data.error,
+            type: 'error',
+            showGif: false
+          })
+        } else {
+          notificationsRef.current?.addNotification({
+            title: 'Becky te ha mandado un mensaje',
+            message: response.data.error || 'Credenciales inválidas',
+            type: 'error',
+            showGif: false
+          })
+        }
+      } catch (error) {
+        notificationsRef.current?.addNotification({
+          title: 'Becky te ha mandado un mensaje',
+          message: 'Error de conexión con el servidor',
+          type: 'error',
+          showGif: false
+        })
+      }
     }
   }
 

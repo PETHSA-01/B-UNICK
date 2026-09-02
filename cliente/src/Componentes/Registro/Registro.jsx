@@ -7,7 +7,7 @@ import { InicioFormularioCF } from './InicioFormularioCF'
 import { InicioSesion } from '../InicioDeSesion/InicioSesion'
 import { CuentaConfirmada } from './CuentaConfirmada'
 import { PreregistroConfirmado } from './PreregistroConfirmado'
-import axios from 'axios'
+import api from '../../api/axios'
 
 const validarPassword = (password) => {
   const errores = [];
@@ -129,9 +129,7 @@ export const Registro = ({ onClose }) => {
       }
 
       try {
-        const response = await axios.post('http://localhost:3000/validacionregistro', { email, username }, {
-          validateStatus: (status) => status < 400
-        });
+        const response = await api.post('/validacionregistro', { email, username });
         
         if (response.data.success) {
           const DatosDelUsuario = {

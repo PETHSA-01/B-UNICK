@@ -2,7 +2,7 @@ import React from 'react'
 import '../../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import { Dialogo } from '../../elementos_pequeños/Dialogo'
 import { useState } from 'react'
-import axios from 'axios'
+import api from '../../../api/axios'
 
 const TOTAL_BARRAS = 7
 const BARRAS_COMPLETADAS = 7
@@ -54,7 +54,7 @@ export const EdadFormulario = ({ datosUsuario, onClose, notificationsRef, closeA
       }
       console.log('Enviando a /preregistro:', payload)
 
-      const response = await axios.post('http://localhost:3000/preregistro', payload)
+      const response = await api.post('/preregistro', payload)
       
       if (response.data.success) {
         // En lugar de notificación, llama a closeAll con origen 'preregistro'

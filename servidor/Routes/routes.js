@@ -119,7 +119,7 @@ router.post('/preregistro', async (req, res) => {
         await connection.commit();
 
         const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            host: process.env.SMTP_HOST ,
             port: process.env.SMTP_PORT,
             secure: false,
             auth: {
@@ -128,7 +128,7 @@ router.post('/preregistro', async (req, res) => {
             }
         });
 
-        const verificationUrl = `${process.env.BACKEND_URL || 'http://localhost:3000'}/verificar-correo?token=${token}`;
+        const verificationUrl = `${process.env.BACKEND_URL}/api/verificar-correo?token=${token}`;
 
         await transporter.sendMail({
             from: '"B-unick" ',
@@ -178,7 +178,7 @@ router.get('/verificar-correo', async (req, res) => {
     // Clave secreta para verificar la firma del JWT (desde .env o valor por defecto)
     const jwtSecret = process.env.JWT_SECRET || 'bunyk_secret_key_change_in_production';
     // URL base del frontend para redirección (desde .env o valor por defecto)
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL;
 
     // Validación: token es requerido en la URL
     if (!token) {
@@ -237,6 +237,90 @@ router.get('/verificar-correo', async (req, res) => {
         // Error inesperado del servidor
         console.error('Error verificando correo:', error.message);
         return res.redirect(`${frontendUrl}/verificar-correo?error=server_error`);
+    }
+});
+
+// POST /login - Autentica usuario, verifica contraseña, revisa verificación de email, setea cookies httpOnly
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    const pool = req.pool;
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Correo y contraseña son requeridos' });
+    }
+
+    try {
+        const [users] = await pool.execute(
+            'SELECT id, correo, contrasena_hash, nombre_usuario, correo_verificado FROM usuarios WHERE correo = ?',
+            [email]
+        );
+
+        if (users.length === 0) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        const user = users[0];
+
+        const validPassword = await bcrypt.compare(password, user.contrasena_hash);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        if (!user.correo_verificado) {
+            return res.status(403).json({ 
+                error: 'Verifica tu correo antes de iniciar sesión',
+                requireVerification: true 
+            });
+        }
+
+        const jwtSecret = process.env.JWT_SECRET ;
+        const accessToken = jwt.sign(
+            { userId: user.id, email: user.correo, tipo: 'access' },
+            jwtSecret,
+            { expiresIn: '24h' }
+        );
+
+        const refreshToken = jwt.sign(
+            { userId: user.id, tipo: 'refresh' },
+            jwtSecret,
+            { expiresIn: '7d' }
+        );
+
+        const refreshExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await pool.execute(
+            `INSERT INTO tokens (usuario_id, token, tipo, fecha_expiracion) VALUES (?, ?, 'refresh', ?)`,
+            [user.id, refreshToken, refreshExpiry]
+        );
+
+        const isProduction = process.env.NODE_ENV === 'production';
+        
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: 'lax',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.correo,
+                username: user.nombre_usuario,
+                correo_verificado: user.correo_verificado
+            }
+        });
+
+    } catch (error) {
+        console.error('Error en login:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 

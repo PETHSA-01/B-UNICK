@@ -14,7 +14,10 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors())
+app.use(cors({
+  origin: process.env.FRONTEND_URL ,
+  credentials: true
+}))
 // initialize the database connection pool
 let pool;
 
@@ -35,7 +38,7 @@ let pool;
         });
 
         // use the router
-        app.use("/", router);
+        app.use("/api", router);
 
         // start the server
         app.listen(port, () => {
