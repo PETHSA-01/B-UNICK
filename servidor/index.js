@@ -1,9 +1,10 @@
 //importing express, environmental variables, bodyparser, router, database connection function and declaring them in a varibale to be using it in our index.js file
 const express = require('express');
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
 const ConnectDB = require('./DB/mysqldb');
 const app = express();
-const router = require('./Routes/routes');
+const router = require('./Routes/routes-registro-iniciosesion');
 const bodyParser = require('body-parser');
 const cors = require("cors")
 dotenv.config();
@@ -18,6 +19,7 @@ app.use(cors({
   origin: process.env.FRONTEND_URL ,
   credentials: true
 }))
+app.use(cookieParser())
 // initialize the database connection pool
 let pool;
 

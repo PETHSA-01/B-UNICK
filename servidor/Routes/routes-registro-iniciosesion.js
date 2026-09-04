@@ -119,7 +119,7 @@ router.post('/preregistro', async (req, res) => {
         await connection.commit();
 
         const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST ,
+            host: process.env.SMTP_HOST,
             port: process.env.SMTP_PORT,
             secure: false,
             auth: {
@@ -320,6 +320,53 @@ router.post('/login', async (req, res) => {
 
     } catch (error) {
         console.error('Error en login:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// GET /api/me - Obtiene información del usuario autenticado desde la cookie
+router.get('/me', async (req, res) => {
+    const accessToken = req.cookies?.accessToken;
+    if (!accessToken) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const jwtSecret = process.env.JWT_SECRET;
+    const pool = req.pool;
+
+    try {
+        const decoded = jwt.verify(accessToken, jwtSecret);
+        
+        if (decoded.tipo !== 'access') {
+            return res.status(401).json({ error: 'Invalid token type' });
+        }
+
+        const [users] = await pool.execute(
+            'SELECT id, correo, nombre_usuario, correo_verificado FROM usuarios WHERE id = ?',
+            [decoded.userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+
+        const user = users[0];
+        res.json({
+            user: {
+                id: user.id,
+                email: user.correo,
+                username: user.nombre_usuario,
+                correo_verificado: user.correo_verificado
+            }
+        });
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token expired' });
+        }
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        console.error('Error en /me:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });

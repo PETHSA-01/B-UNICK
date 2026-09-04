@@ -37,18 +37,20 @@
 - ✅ BarraLateral.css (in estilospequeños.css) - Created with full styling
 - ✅ AuthContext.jsx - Created with /api/me integration
 - ✅ AppLayout.jsx - Layout wrapper with sidebar + Outlet
-- ✅ main.jsx - Route structure with AppLayout
+- ✅ main.jsx - Complete route structure with AppLayout
 - ✅ Inicio.jsx - Basic implementation with login/register modals
-- ⚠️ Conversaciones.jsx - Empty, needs implementation
-- ⚠️ Crear.jsx - Basic placeholder
-- ⚠️ Wiki.jsx - Basic placeholder
-- ⚠️ Notificaciones.jsx - Missing (imported but not created)
-- ⚠️ Perfil.jsx - Basic placeholder
+- ⚠️ Conversaciones.jsx - **Exists but empty placeholder** (just `<div>Conversaciones</div>`), no logic or backend integration
+- ⚠️ Crear.jsx - **Exists but empty placeholder** (just `<div>Crear</div>`), no logic or backend integration
+- ⚠️ Wiki.jsx - **Exists but empty placeholder** (just `<div>Wiki</div>`), no logic or backend integration
+- ❌ Notificaciones.jsx - **Missing entirely** (imported in 7+ files but file not created)
+- ⚠️ Perfil.jsx - **Exists but empty placeholder** (just `<div>Perfil</div>`), no logic or backend integration
 - ✅ InicioSesion.jsx - Exists with login flow integration
 - ✅ Backend /api/me endpoint - Created
 - ✅ Backend /api/login - Created and working
 - ⚠️ Backend /api/refresh - Not implemented
 - ⚠️ Backend /api/logout - Not implemented
+
+**Note on Main Page Components:** All primary navigation pages (Conversaciones, Crear, Wiki, Perfil) are routed and mounted but render only static placeholder text. They lack: data fetching, state management, API integration, UI components, and business logic. Notificaciones is the only nav item with no component file at all.
 
 **Key Missing Backend Logic:**
 - /api/refresh endpoint (token refresh)
@@ -56,6 +58,7 @@
 - Cookie parsing middleware (cookie-parser added but needs verification)
 - Email verification flow completion
 - Password reset flow
+- Protected route middleware for authenticated endpoints
 
 ## Project Overview
 **B-unick** - Social web platform for makeup videos across urban cultures/styles (Gótico, Emo, Punk, Lolita, Visual Kei, Gyaru, etc.)
@@ -136,11 +139,11 @@ BACKEND_URL=http://localhost:3000
 | AppLayout | `cliente/src/layout/AppLayout.jsx` | ✅ Complete |
 | AuthContext | `cliente/src/context/AuthContext.jsx` | ✅ Complete |
 | Inicio | `cliente/src/Componentes/Inicio/Inicio.jsx` | ✅ Basic |
-| Conversaciones | `cliente/src/Componentes/Conversaciones/Conversaciones.jsx` | ⚠️ Placeholder |
-| Crear | `cliente/src/Componentes/Crear/Crear.jsx` | ⚠️ Placeholder |
-| Wiki | `cliente/src/Componentes/WIKI/Wiki.jsx` | ⚠️ Placeholder |
-| Notificaciones | `cliente/src/Componentes/elementos_pequeños/Notificaciones.jsx` | ❌ Missing |
-| Perfil | `cliente/src/Componentes/Perfil/Perfil.jsx` | ⚠️ Placeholder |
+| Conversaciones | `cliente/src/Componentes/Conversaciones/Conversaciones.jsx` | ⚠️ Placeholder (empty) |
+| Crear | `cliente/src/Componentes/Crear/Crear.jsx` | ⚠️ Placeholder (empty) |
+| Wiki | `cliente/src/Componentes/WIKI/Wiki.jsx` | ⚠️ Placeholder (empty) |
+| Notificaciones | `cliente/src/Componentes/elementos_pequeños/Notificaciones.jsx` | ❌ Missing (not created) |
+| Perfil | `cliente/src/Componentes/Perfil/Perfil.jsx` | ⚠️ Placeholder (empty) |
 
 ## Key Functional Requirements (from DER)
 **Authentication (RQFN1-RQFN13):**
@@ -249,13 +252,13 @@ BACKEND_URL=http://localhost:3000
 |-------|-------------|
 | Email sending in production | Requires valid Gmail App Password in `SMTP_PASS` for production deployment |
 | Token cleanup | No scheduled job to clean expired tokens from `tokens` table |
-| Login endpoint | `POST /login` not yet implemented (RQFN4-RQFN10) |
 | Password recovery | `POST /olvido-contrasena`, `POST /recuperar-contrasena` not implemented (RQFN25-RQFN34) |
 | Culture preferences | First-time user preferences form not implemented (RQFN11-RQFN13) |
 | Notificaciones component | Component imported in multiple files but not created (`Notificaciones.jsx` missing) |
 | Token refresh | `/api/refresh` endpoint not implemented |
 | Logout | `/api/logout` endpoint not implemented |
 | Auth middleware | Backend middleware to verify accessToken for protected routes |
+| Main page components | Conversaciones, Crear, Wiki, Perfil exist but are empty placeholders with no logic/backend integration |
 
 ## Component Data Flow
 ```
@@ -308,4 +311,4 @@ AppLayout (layout wrapper)
 
 ---
 *Document updated: 2026-09-03*
-*Navigation bar (BarraLateral) implementation documented*
+*Navigation bar (BarraLateral) implementation documented - main page components status updated*

@@ -200,6 +200,7 @@
     justify-content: center;
   }
 
+
   
   
 
@@ -292,5 +293,349 @@
       justify-content:'center'; 
       z-index:1000 
     }
-
     
+
+/* ══════════════════════════════
+   BARRA LATERAL (SIDEBAR)
+══════════════════════════════ */
+
+/* ── BARRA LATERAL TOKENS ── */
+:root {
+  --sidebar-width-collapsed: 72px;
+  --sidebar-width-expanded: 250px;
+  --sidebar-mobile-height: 72px;
+  --sidebar-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --icon-size: 24px;
+  --icon-stroke: 2px;
+}
+
+/* ── DESKTOP SIDEBAR ── */
+.barra-lateral {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: var(--sidebar-width-collapsed);
+  background: linear-gradient(180deg, var(--color-fondo) 0%, var(--color-fondo2) 100%);
+  border-right: 1px solid var(--color-fondo3);
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  align-items: left;
+  gap: 8px;
+  z-index: 100;
+  transition: width var(--sidebar-transition);
+}
+
+.barra-lateral:hover,
+.barra-lateral:focus-within {
+  width: var(--sidebar-width-expanded);
+}
+
+/* ── MOBILE BOTTOM BAR ── */
+@media (max-width: 768px) {
+  .barra-lateral {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--sidebar-mobile-height);
+    width: 100%;
+    width: 100vw;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 8px env(safe-area-inset-left) 8px env(safe-area-inset-right);
+    border-top: 1px solid var(--color-fondo3);
+    border-right: none;
+    background: linear-gradient(0deg, var(--color-fondo2) 0%, var(--color-fondo) 100%);
+    box-shadow: 0 -4px 24px var(--color-sombra);
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+  
+  .barra-lateral:hover {
+    width: 100%;
+  }
+}
+
+/* ── SIGNATURE: MORPHING BLOB ── */
+.barra-lateral::before {
+  content: '';
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--color-acento), var(--color-acento2));
+  opacity: 0.15;
+  filter: blur(12px);
+  pointer-events: none;
+  transition: transform var(--sidebar-transition), opacity 0.2s;
+  transform: translate(-50%, -50%);
+}
+
+.barra-lateral:hover::before {
+  opacity: 0.25;
+}
+
+/* ── ICON BUTTON BASE ── */
+.barra-lateral-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-elementos2);
+  transition: color 0.15s, background 0.15s, transform 0.1s, max-width var(--sidebar-transition);
+  z-index: 1;
+}
+
+.barra-lateral-btn:hover,
+.barra-lateral-btn:focus-visible {
+  color: var(--color-acento);
+  background: var(--color-fondo3);
+  transform: scale(1.05);
+}
+
+.barra-lateral:hover .barra-lateral-btn,
+.barra-lateral:focus-within .barra-lateral-btn {
+  max-width: var(--sidebar-width-expanded);
+  justify-content: flex-start;
+  padding-left: 20px;
+}
+.barra-lateral-btn svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+/* ── DESKTOP: LABEL ON HOVER/EXPAND ── */
+.barra-lateral-label, .barra-lateral-auth-label {
+  position: absolute;
+  left: calc(var(--sidebar-width-collapsed) + 12px);
+  right: 12px;
+  opacity: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-texto);
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+  transform: translateX(-8px);
+  z-index: 10;
+}
+
+.barra-lateral:hover .barra-lateral-label,
+.barra-lateral:focus-within .barra-lateral-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* MOBILE: NO LABELS, CENTERED ICONS */
+@media (max-width: 768px) {
+  .barra-lateral-label { display: none; }
+  .barra-lateral-btn { width: 56px; height: 56px; }
+}
+
+/* ACTIVE STATE */
+.barra-lateral-btn[aria-current="page"] {
+  color: var(--color-acento);
+  background: var(--color-acento);
+  color: white;
+}
+
+/* BLOB POSITION UPDATES VIA JS (data-active-index) */
+/* DESKTOP: Vertical positions */
+.barra-lateral[data-active-index="0"]::before { transform: translate(-50%, calc(-50% + 0px)); }
+.barra-lateral[data-active-index="1"]::before { transform: translate(-50%, calc(-50% + 64px)); }
+.barra-lateral[data-active-index="2"]::before { transform: translate(-50%, calc(-50% + 128px)); }
+.barra-lateral[data-active-index="3"]::before { transform: translate(-50%, calc(-50% + 192px)); }
+.barra-lateral[data-active-index="4"]::before { transform: translate(-50%, calc(-50% + 256px)); }
+
+/* MOBILE: Horizontal positions */
+@media (max-width: 768px) {
+  .barra-lateral[data-active-index="0"]::before { transform: translate(calc(-50% + 0px), -50%); }
+  .barra-lateral[data-active-index="1"]::before { transform: translate(calc(-50% + 20%), -50%); }
+  .barra-lateral[data-active-index="2"]::before { transform: translate(calc(-50% + 40%), -50%); }
+  .barra-lateral[data-active-index="3"]::before { transform: translate(calc(-50% + 60%), -50%); }
+  .barra-lateral[data-active-index="4"]::before { transform: translate(calc(-50% + 80%), -50%); }
+}
+
+/* REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  .barra-lateral,
+  .barra-lateral::before,
+  .barra-lateral-btn,
+  .barra-lateral-label {
+    transition: none !important;
+  }
+}
+
+/* ── AUTH SECTION IN SIDEBAR ── */
+.barra-lateral-auth {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+
+@media (max-width: 768px) {
+  .barra-lateral-auth {
+    display: none; /* Hidden on mobile, shown in InvocarRegistroInicioDeSesion modal instead */
+  }
+}
+
+/* Auth buttons inherit from .barra-lateral-btn base styles */
+/* They use the same base class so they inherit all the hover/expand behavior */
+
+.barra-lateral-auth .barra-lateral-btn {
+  width: 100%;
+  max-width: var(--sidebar-width-expanded);
+  /* Inherits: width, height, border-radius, transition, etc. from .barra-lateral-btn */
+  /* Override only what's necessary for auth section */
+  max-width: var(--sidebar-width-expanded);
+}
+
+.barra-lateral-auth .barra-lateral-btn svg {
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.barra-lateral-auth .barra-lateral-label {
+  position: absolute;
+  left: calc(var(--sidebar-width-collapsed) + 12px);
+  right: 12px;
+  opacity: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-texto);
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+  transform: translateX(-8px);
+  z-index: 10;
+}
+
+.barra-lateral:hover .barra-lateral-auth .barra-lateral-label,
+.barra-lateral:focus-within .barra-lateral-auth .barra-lateral-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Auth buttons behave like main nav buttons on hover/expand */
+.barra-lateral:hover .barra-lateral-auth .barra-lateral-btn,
+.barra-lateral:focus-within .barra-lateral-auth .barra-lateral-btn {
+  justify-content: flex-start;
+  padding-left: 20px;
+}
+
+.barra-lateral-auth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.barra-lateral-auth-btn--register {
+  background: var(--color-fondo3);
+  color: var(--color-texto);
+}
+
+.barra-lateral-auth-btn--login {
+  background: var(--color-fondo3);
+  color: var(--color-texto);
+}
+
+/* Ensure auth button labels behave like main nav labels */
+.barra-lateral-auth-btn .barra-lateral-label {
+  position: absolute;
+  left: calc(var(--sidebar-width-collapsed) + 12px);
+  right: 12px;
+  opacity: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-texto);
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+  transform: translateX(-8px);
+  z-index: 10;
+}
+
+.barra-lateral:hover .barra-lateral-auth .barra-lateral-label,
+.barra-lateral:focus-within .barra-lateral-auth .barra-lateral-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (max-width: 768px) {
+  .barra-lateral-auth-label { display: none; }
+}
+
+.barra-lateral:hover .barra-lateral-auth-btn,
+.barra-lateral:focus-within .barra-lateral-auth-btn {
+  justify-content: flex-start;
+  padding-left: 20px;
+}
+
+/* ── PROFILE AVATAR IN SIDEBAR ── */
+.barra-lateral-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-acento), var(--color-acento2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px var(--color-sombra);
+}
+
+/* BLOB POSITION UPDATES VIA JS (data-active-index) */
+/* DESKTOP: Vertical positions */
+.barra-lateral[data-active-index="0"]::before { transform: translate(-50%, calc(-50% + 0px)); }
+.barra-lateral[data-active-index="1"]::before { transform: translate(-50%, calc(-50% + 64px)); }
+.barra-lateral[data-active-index="2"]::before { transform: translate(-50%, calc(-50% + 128px)); }
+.barra-lateral[data-active-index="3"]::before { transform: translate(-50%, calc(-50% + 192px)); }
+.barra-lateral[data-active-index="4"]::before { transform: translate(-50%, calc(-50% + 256px)); }
+
+/* MOBILE: Horizontal positions */
+@media (max-width: 768px) {
+  .barra-lateral[data-active-index="0"]::before { transform: translate(calc(-50% + 0px), -50%); }
+  .barra-lateral[data-active-index="1"]::before { transform: translate(calc(-50% + 20%), -50%); }
+  .barra-lateral[data-active-index="2"]::before { transform: translate(calc(-50% + 40%), -50%); }
+  .barra-lateral[data-active-index="3"]::before { transform: translate(calc(-50% + 60%), -50%); }
+  .barra-lateral[data-active-index="4"]::before { transform: translate(calc(-50% + 80%), -50%); }
+}
+
+/* REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  .barra-lateral,
+  .barra-lateral::before,
+  .barra-lateral-btn,
+  .barra-lateral-label {
+    transition: none !important;
+  }
+}
