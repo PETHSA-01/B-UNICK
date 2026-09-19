@@ -1,88 +1,64 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useSearchParams, useNavigate } from 'react-router'
-import { InicioSesion } from '../InicioDeSesion/InicioSesion'
-import { Registro } from '../Registro/Registro'
+import React, { useEffect, useState, useRef } from 'react'
+import { useAuth } from '../../context/AuthContext'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
-import '../../estilos/InicioDeSesionEstilos/iniciosesion.css'
+import { PreferenciasFormulario } from '../Registro/PreferenciasFormulario'
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * Componente que renderiza el contenido principal de la app.
- * Muestra un formulario de inicio de sesi n y un bot n de registro.
- * Muestra un modal para el inicio de sesi n y otro para el registro.
- * Muestra un componente de notificaciones que se puede usar en cualquier parte de la app.
- */
-/*******  ca9e1fca-485a-4fbc-a5d2-e07a127d4f18  *******/
 export const Inicio = () => {
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const [showLogin, setShowLogin] = useState(false)
-  const [showRegistro, setShowRegistro] = useState(false)
+  const { isAuthenticated, user, refreshUser } = useAuth()
   const notificationsRef = useRef(null)
-  const [showLoginModal, setShowLoginModal] = useState(false)
+  const [cerradoPreferencias, setCerradoPreferencias] = useState(false)
 
-  // Check if redirected from login (success)
   useEffect(() => {
-    const loginSuccess = searchParams.get('login') === 'success'
-    if (loginSuccess) {
-      setShowLoginModal(true)
-      // Clean URL
-      navigate('/', { replace: true })
-    }
-  }, [searchParams, navigate])
+    // Si la sesión cambió y ahora hay un usuario, permitir que el formulario
+    // de preferencias vuelva a considerarse (solo se muestra una vez por sesión
+    // mientras tengaPreferencias sea false; el cierre manual lo descarta).
+    setCerradoPreferencias(false)
+  }, [isAuthenticated, user?.tienePreferencias])
 
-  const handleLoginSuccess = () => {
-    setShowLoginModal(false)
-  }
+  // RQFN11-13: mostrar el formulario si hay sesión, aún sin preferencias,
+  // y el usuario no lo cerró manualmente en esta visita.
+  const mostrarPreferencias =
+    isAuthenticated &&
+    user?.tienePreferencias === false &&
+    !cerradoPreferencias
 
-  const handleRegistroSuccess = () => {
-    setShowRegistro(false)
-  }
+  useEffect(() => {
+    if (!isAuthenticated) return
+    const flagKey = 'bienvenida_bunyk'
+    const yaVisto = sessionStorage.getItem(flagKey) === 'true'
+    if (yaVisto) return
 
-  const closeLoginModal = () => {
-    setShowLoginModal(false)
+    sessionStorage.setItem(flagKey, 'true')
+    const nombre = user?.username || user?.email?.split('@')[0] || ''
+    notificationsRef.current?.addNotification({
+      title: 'Becky te ha mandado un mensaje',
+      message: `¡Bienvenida a B-unick${nombre ? `, ${nombre}` : ''}! Cariño, tu cuenta está lista. Explora los maquillajes, la wiki y la comunidad.`,
+      type: 'success',
+      showGif: true
+    })
+  }, [isAuthenticated, user])
+
+  const completarPreferencias = () => {
+    setCerradoPreferencias(true)
+    // Refresca el contexto desde `/api/me` para que `tienePreferencias === true`
+    // y el formulario no reaparezca al navegar/recargar (el backend ya guardó).
+    refreshUser()
   }
 
   return (
     <>
-      {/* Login/Registro modal overlay */}
-      {showLoginModal && (
-        <InicioSesion 
-          onClose={closeLoginModal}
+      <div className="inicio-contenido">
+        <h1>B-unick</h1>
+        <p>¿Qué tan única puedes ser?</p>
+      </div>
+
+      {mostrarPreferencias && (
+        <PreferenciasFormulario
+          onClose={() => setCerradoPreferencias(true)}
+          onCompletado={completarPreferencias}
         />
       )}
 
-      {showRegistro && (
-        <div className="pantallas-r-is">
-          <Registro 
-            onClose={() => setShowRegistro(false)} 
-          />
-        </div>
-      )}
-
-      {/* Main content */}
-      <div className="inicio-contenido">
-        <h1>Bienvenido a B-unick</h1>
-        
-        <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <button 
-            className="btn-submit" 
-            onClick={() => setShowLogin(true)}
-            style={{ padding: '1rem 2rem', fontSize: '1.1rem' }}
-          >
-            Iniciar Sesión
-          </button>
-          <button 
-            className="btn-submit" 
-            style={{ background: 'var(--color-fondo3)', color: 'var(--color-texto)', padding: '1rem 2rem', fontSize: '1.1rem' }}
-            onClick={() => setShowRegistro(true)}
-          >
-            Registrarse
-          </button>
-        </div>
-      </div>
-
-      {/* Notificaciones */}
       <Notificaciones ref={notificationsRef} />
     </>
   )

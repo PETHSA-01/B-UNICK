@@ -1,6 +1,7 @@
 import React from 'react'
 import { Outlet, useLocation } from 'react-router'
 import { BarraLateral } from '../Componentes/elementos_pequeños/BarraLateral'
+import './AppLayout.css'
 
 export const AppLayout = () => {
   const location = useLocation()
@@ -13,7 +14,7 @@ export const AppLayout = () => {
   return (
     <>
       <BarraLateral />
-      <main style={{ marginLeft: '72px', minHeight: '100vh', transition: 'margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+      <main className="app-main">
         <Outlet />
       </main>
     </>

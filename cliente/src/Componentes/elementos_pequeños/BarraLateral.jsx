@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../../context/AuthContext'
+import { useAuthModal } from '../../context/AuthModalContext'
+import { createPortal } from 'react-dom'
 import { InicioSesion } from '../InicioDeSesion/InicioSesion'
 import { Registro } from '../Registro/Registro'
-import { createPortal } from 'react-dom'
 import '../../estilos/estilospequeños/estilospequeños.css'
 
 /* ── MAIN COMPONENT ── */
@@ -13,7 +14,7 @@ const LABELS = {
   conversaciones: 'Conversaciones',
   crear: 'Crear',
   wiki: 'Wiki',
-  notificaciones: 'Notificaciones'
+  notificaciones: 'Notificaciones',
 }
 
 const NAV_ITEMS = [
@@ -25,8 +26,8 @@ const NAV_ITEMS = [
 ]
 
 const AUTH_ITEMS = [
-  { key: 'login', href: '/', icon: 'login', label: 'Iniciar sesión', onClick: () => navigate('/') },
-  { key: 'register', href: '/', icon: 'register', label: 'Registrarse', onClick: () => navigate('/') },
+  { key: 'login', icon: 'login', label: 'Iniciar sesión', mode: 'login' },
+  { key: 'register', icon: 'register', label: 'Registrarse', mode: 'register' },
 ]
 
 const ICON_MAP = {
@@ -77,16 +78,24 @@ const ICON_MAP = {
 export const BarraLateral = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, isAuthenticated, loading, logout } = useAuth()
+  const { user, isAuthenticated, loading } = useAuth()
+  const { isOpen, mode, openModal, closeModal, switchMode } = useAuthModal()
   const [activeIndex, setActiveIndex] = useState(0)
   const containerRef = useRef(null)
 
   // Update active index based on current route
   useEffect(() => {
-    const newIndex = NAV_ITEMS.findIndex(item => location.pathname === item.href ||
-      (item.key === 'inicio' && location.pathname === '/'))
+    const path = location.pathname
+    if (path === '/perfil' || path.startsWith('/usuarios/')) {
+      setActiveIndex(-1)
+      return
+    }
+    const newIndex = NAV_ITEMS.findIndex(item => path === item.href ||
+      (item.key === 'inicio' && path === '/'))
     setActiveIndex(newIndex >= 0 ? newIndex : 0)
   }, [location.pathname])
+
+  const enPerfil = location.pathname === '/perfil' || location.pathname.startsWith('/usuarios/')
 
   const handleKeyDown = (e, index) => {
     let newIndex = index
@@ -111,6 +120,31 @@ export const BarraLateral = () => {
   const handleNavClick = (href, index) => {
     setActiveIndex(index)
     navigate(href)
+  }
+
+  const handleAuthClick = (clickedMode) => {
+    openModal(clickedMode)
+  }
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        closeModal()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, closeModal])
+
+  // Close modal on click outside
+  const handleOverlayClick = () => {
+    closeModal()
   }
 
   // Hide sidebar on verification route
@@ -141,17 +175,21 @@ export const BarraLateral = () => {
         </button>
       ))}
 
-{/* Signature: Morphing blob */}
+      {/* Signature: Morphing blob */}
       <div className="barra-blob" aria-hidden="true" />
 
-      {/* Auth section - only on desktop */}
+      {/* Auth section - responsive */}
       <div className="barra-lateral-auth">
         {loading ? (
           <div className="barra-lateral-avatar" style={{ background: 'var(--color-fondo3)' }}>...</div>
         ) : isAuthenticated ? (
-          <button className="barra-lateral-btn barra-lateral-auth-btn barra-lateral-auth-btn--user">
+          <button className={`barra-lateral-btn barra-lateral-auth-btn barra-lateral-auth-btn--user${enPerfil ? ' barra-lateral-auth-btn--activo' : ''}`} onClick={() => navigate('/perfil')} aria-current={enPerfil ? 'page' : undefined}>
             <div className="barra-lateral-avatar">
-              {user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
+              {user?.fotoPerfil ? (
+                <img src={user.fotoPerfil} alt={user?.username || user?.email} />
+              ) : (
+                user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'
+              )}
             </div>
             <span className="barra-lateral-label barra-lateral-auth-label">{user?.username || user?.email}</span>
           </button>
@@ -161,16 +199,29 @@ export const BarraLateral = () => {
               <button
                 key={item.key}
                 className={`barra-lateral-btn barra-lateral-auth-btn ${item.key === 'register' ? 'barra-lateral-auth-btn--register' : ''}`}
-                onClick={item.onClick}
+                onClick={() => handleAuthClick(item.mode)}
               >
                 {typeof ICON_MAP[item.icon] === 'function' ? ICON_MAP[item.icon]() : ICON_MAP[item.icon]}
-               <span className="barra-lateral-label">{item.label}</span>
-               
+                <span className="barra-lateral-label">{item.label}</span>
               </button>
             ))}
           </div>
         )}
       </div>
+
+      {/* Auth Modal Overlay */}
+      {isOpen && createPortal(
+        <div className="auth-modal-overlay" onClick={handleOverlayClick} style={{ zIndex: 100 }}>
+          <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
+            {mode === 'login' ? (
+              <InicioSesion onClose={closeModal} />
+            ) : (
+              <Registro onClose={closeModal} onSwitchMode={switchMode} />
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </nav>
   )
 }

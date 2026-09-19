@@ -43,6 +43,8 @@ html, body {
     --color-h2: #7F5C90;
     --color-h3: #9370A4;
     --color-p: #493553;
+    --color-texto-suave: #5E4380;
+    --color-acento-fuerte: #6B4E8C;
 }
 
 h1{

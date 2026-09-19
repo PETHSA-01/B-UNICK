@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useAuth } from '../../context/AuthContext'
+import { useAuthModal } from '../../context/AuthModalContext'
 import "../../estilos/InicioDeSesionEstilos/iniciosesion.css"
 import { Dialogo } from '../elementos_pequeños/Dialogo'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
-import {createContext} from 'react'
 import { InicioFormularioCF } from './InicioFormularioCF'
-import { InicioSesion } from '../InicioDeSesion/InicioSesion'
 import { CuentaConfirmada } from './CuentaConfirmada'
 import { PreregistroConfirmado } from './PreregistroConfirmado'
 import api from '../../api/axios'
@@ -31,7 +31,10 @@ const validarUsuario = (nombre) => {
 } 
 
 
-export const Registro = ({ onClose }) => {
+export const Registro = ({ onClose, onSwitchMode }) => {
+  const { cookieConsent, setCookieConsent } = useAuth()
+  const { switchMode: switchModeFromContext } = useAuthModal()
+  const switchMode = onSwitchMode || switchModeFromContext
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -42,7 +45,6 @@ export const Registro = ({ onClose }) => {
   // Estado para mostrar PreregistroConfirmado (éxito de preregistro)
   const [showPreregistroConfirmado, setShowPreregistroConfirmado] = useState(false)
   const notificationsRef = useRef(null)
-  const cookieNotificationAdded = useRef(false)
   const [mostrarcontra, setmostrarcontra] = useState(false)
   const [mostrarconfirm, setmostrarconfirm] = useState(false)
   const [datosUsuario, setDatosUsuario] = useState(null)
@@ -63,20 +65,6 @@ export const Registro = ({ onClose }) => {
       if (onClose) onClose()
     }
   }
-
-  useEffect(() => {
-    if(!cookieNotificationAdded.current){
-        notificationsRef.current?.addNotification({
-        title: 'Becky te ha mandado un mensaje',
-        message:
-          'Cariño, te recuerdo que este sitio utiliza cookies para almacenar tus datos de inicio de sesión. Así que si no quieres repetir este tedioso proceso, por favor acepta las cookies.',
-        type: 'info',
-        showGif: true,
-      })
-      cookieNotificationAdded.current = true;
-    }
-    
-  }, [])
 
   useEffect(() => {
     if (datosUsuario) {
@@ -224,18 +212,7 @@ export const Registro = ({ onClose }) => {
     )
   }
 
-if (visible === 'iniciosesion') {
 return (
-  <InicioSesion 
-    onClose={() => {
-      setVisible('') 
-      if (onClose) onClose()
-    }}
-  />
-)
-}
-
-  return (
       <> 
       <div className="fondo" onClick={handleBackdropClick}>
       <div className="contenedor"  onClick={(e) => e.stopPropagation()}> {/* El onclick detiene que el resto del contenedor se cierre al ser presionado */}
@@ -276,7 +253,7 @@ return (
           <button type="submit" className="btn-submit">Registrarse</button>
           <p className="texto-registro">¿Ya tienes una cuenta? <a href="#" onClick={(e) => {
             e.preventDefault()
-            setVisible('iniciosesion')
+            switchMode('login')
           }}>Inicia Sesión</a></p>
         </form>
 
@@ -284,7 +261,12 @@ return (
     </div>
 
     {/*<!-- Componente reutilizable de notificaciones -->*/}
-    <Notificaciones ref={notificationsRef} />
+    <Notificaciones 
+      ref={notificationsRef} 
+      cookieConsent={cookieConsent}
+      onCookieAccept={setCookieConsent}
+      onCookieReject={setCookieConsent}
+    />
 
       </>
   )

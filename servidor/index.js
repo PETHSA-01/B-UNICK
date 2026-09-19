@@ -3,8 +3,10 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const ConnectDB = require('./DB/mysqldb');
+const initDb = require('./DB/initDb');
 const app = express();
-const router = require('./Routes/routes-registro-iniciosesion');
+const router = require('./Routes/routes-autenticacion');
+const routerUsuarios = require('./Routes/routes-usuarios');
 const bodyParser = require('body-parser');
 const cors = require("cors")
 dotenv.config();
@@ -25,6 +27,7 @@ let pool;
 
 (async () => {
     try {
+        await initDb();
         pool = ConnectDB.pool;
         console.log('Pool initialized:', !!pool);
 
@@ -41,6 +44,7 @@ let pool;
 
         // use the router
         app.use("/api", router);
+        app.use("/api", routerUsuarios);
 
         // start the server
         app.listen(port, () => {
