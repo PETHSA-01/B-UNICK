@@ -232,7 +232,7 @@ return (
           <div className="input-wrapper">
             <input type={mostrarcontra ? 'text' : 'password'} placeholder="Contraseña" className="textoinput" id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             <button type="button" className="ojo-btn" onClick={togglePass}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                 <circle cx="12" cy="12" r="3"/>
               </svg>
@@ -241,7 +241,7 @@ return (
           <div className="input-wrapper">
             <input type={mostrarconfirm ? 'text' : 'password'} placeholder="Confirmar Contraseña" className="textoinput" id="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
             <button type="button" className="ojo-btn" onClick={tooglePassConfirm}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                 <circle cx="12" cy="12" r="3"/>
               </svg>
