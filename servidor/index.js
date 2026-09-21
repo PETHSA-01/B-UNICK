@@ -7,6 +7,7 @@ const initDb = require('./DB/initDb');
 const app = express();
 const router = require('./Routes/routes-autenticacion');
 const routerUsuarios = require('./Routes/routes-usuarios');
+const routerNotificaciones = require('./Routes/routes-notificaciones');
 const bodyParser = require('body-parser');
 const cors = require("cors")
 dotenv.config();
@@ -45,6 +46,7 @@ let pool;
         // use the router
         app.use("/api", router);
         app.use("/api", routerUsuarios);
+        app.use("/api", routerNotificaciones);
 
         // start the server
         app.listen(port, () => {

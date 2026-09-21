@@ -15,8 +15,8 @@
       background-color: var(--color-fondo3);
       border-radius: 16px 16px 4px 16px;
       padding: 14px 22px;
-      font-size: 18px;
-      font-weight: 600;
+      font-size: 16px;
+      font-weight: 500;
       color: var(--color-texto);
       flex: 1;
       margin-bottom: 12px;
@@ -77,7 +77,7 @@
       align-items: center;
       gap: 8px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 500;
       color: var(--color-texto);
     }
 
@@ -103,7 +103,6 @@
       cursor: pointer;
       color: var(--color-elementos2);
       font-size: 18px;
-      line-height: 1;
       padding: 0 2px;
     }
 
@@ -124,8 +123,6 @@
     .notif-emoji {
         width: 186px;
         height: 86px;
-        font-size: 24px;
-        line-height: 1;
         align-self: center;
     }
 
@@ -136,7 +133,7 @@
       color: var(--color-texto);
       line-height: 1.5;
     }
-    .notif-titulo { font-weight: 700; margin-bottom: 2px; }
+    .notif-titulo { font-weight: 500; margin-bottom: 2px; }
 
     /* ══════════════════════════════
    MÓVIL
@@ -204,7 +201,7 @@
   
   
 
-  .textoinput { height: 50px; font-size: 15px; }
+  .textoinput { height: 50px; font-size: 14px; }
   .btn-submit { height: 48px; }
 
   /* Notif pegada arriba en móvil: el contenedor controla posición y tamaño */
@@ -279,7 +276,7 @@
       border-radius: 8px;
       cursor: pointer;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 500;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
     .pantallas-r-is{ 
@@ -306,7 +303,7 @@
   --sidebar-mobile-height: 72px;
   --sidebar-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --icon-size: 24px;
-  --icon-stroke: 2px;
+  --icon-stroke: 1.5px;
 }
 
 /* ── DESKTOP SIDEBAR ── */
@@ -425,6 +422,33 @@
   z-index: 1;
 }
 
+/* Badge de notificaciones sin leer */
+.barra-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-acento-fuerte);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .barra-badge {
+    top: 10px;
+    right: 10px;
+  }
+}
+
 /* ── DESKTOP: LABEL ON HOVER/EXPAND ── */
 .barra-lateral-label, .barra-lateral-auth-label {
   position: absolute;
@@ -434,8 +458,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   color: var(--color-texto);
   pointer-events: none;
   transition: opacity 0.15s, transform 0.15s;
@@ -573,7 +597,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--color-texto);
   pointer-events: none;
   transition: opacity 0.15s, transform 0.15s;
@@ -623,7 +647,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--color-texto);
   pointer-events: none;
   transition: opacity 0.15s, transform 0.15s;
@@ -706,8 +730,8 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 12px;
   flex-shrink: 0;
   box-shadow: 0 2px 8px var(--color-sombra);
   overflow: hidden;
@@ -729,7 +753,7 @@
 /* ── COOKIE CONSENT TOAST ── */
 .notif-cookie { border-left: 4px solid var(--color-fondo3); }
 .cookie-consent-buttons { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; padding-top: 0.5rem; }
-.cookie-consent-btn { padding: 0.6rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; border: none; }
+.cookie-consent-btn { padding: 0.6rem 1.25rem; border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 14px; border: none; }
 .cookie-consent-btn--primary { background: var(--color-fondo3); color: var(--color-texto); }
 .cookie-consent-btn--danger { background: var(--color-elementos); color: white; }
 
@@ -738,9 +762,9 @@
 .notif-action-btn {
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   border: none;
   background: var(--color-elementos);
   color: white;

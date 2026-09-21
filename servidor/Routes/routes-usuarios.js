@@ -357,8 +357,8 @@ router.post('/seguir/:id', verificarAcceso, async (req, res) => {
             );
             const nombreSeguidor = yoRows[0]?.nombre_usuario || 'Alguien';
             await connection.execute(
-                `INSERT INTO notificaciones (usuario_id, tipo, mensaje) VALUES (?, 'nuevo_seguidor', ?)`,
-                [seguidoId, `${nombreSeguidor} te ha seguido`]
+                `INSERT INTO notificaciones (usuario_id, tipo, mensaje, usuario_actor_id) VALUES (?, 'nuevo_seguidor', ?, ?)`,
+                [seguidoId, `${nombreSeguidor} te ha seguido`, seguidorId]
             );
         } catch (notifError) {
             console.error('Error creando notificación nuevo_seguidor:', notifError.message);

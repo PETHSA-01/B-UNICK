@@ -1,0 +1,350 @@
+/* ============================================================
+   Notificaciones — drawer superpuesto (RQFN69-72)
+   Escritorio: cajón a la derecha (right:0).
+   Móvil (≤768px): pantalla completa, por encima de la bottom bar.
+   ============================================================ */
+
+.notif-drawer-contenedor {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.notif-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(83, 60, 94, 0.14);
+  animation: notif-fade-in 0.18s ease;
+}
+
+/* ── Panel ── */
+.notif-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(360px, calc(100vw - 72px));
+  display: flex;
+  flex-direction: column;
+  background: var(--color-fondo);
+  border-left: 1px solid var(--color-fondo2);
+  box-shadow: -12px 0 24px -16px rgba(83, 60, 94, 0.28);
+  outline: none;
+  overflow: hidden;
+  animation: notif-panel-in 0.18s ease-out;
+}
+
+.notif-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 56px;
+  padding: 0 8px 0 20px;
+  border-bottom: 1px solid var(--color-fondo2);
+  background: var(--color-fondo);
+  flex-shrink: 0;
+}
+
+.notif-drawer-titulo {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--color-h1);
+  margin: 0;
+}
+
+.notif-drawer-cerrar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-texto-suave);
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.notif-drawer-cerrar:hover {
+  background: rgba(83, 60, 94, 0.06);
+}
+
+.notif-drawer-cerrar:focus-visible {
+  outline: 2px solid var(--color-acento-fuerte);
+  outline-offset: 2px;
+}
+
+.notif-drawer-cuerpo {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-fondo3) transparent;
+}
+
+/* ── Cargando ── */
+.notif-drawer-cargando {
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--color-texto-suave);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ── Estado vacío / sin sesión: contenido centrado (mismo patrón que el
+     "no encontramos nada" del Perfil: icono + título + texto + botón) ── */
+.notif-drawer-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 56px 28px;
+}
+
+.notif-drawer-vacio-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-fondo2);
+  color: var(--color-acento-fuerte);
+}
+
+.notif-drawer-vacio-icono svg {
+  width: 28px;
+  height: 28px;
+}
+
+.notif-drawer-vacio-titulo {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-h1);
+  max-width: 30ch;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.notif-drawer-vacio-texto {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-texto-suave);
+  max-width: 32ch;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.notif-drawer-vacio-btn {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-acento-fuerte);
+  background: var(--color-acento-fuerte);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.notif-drawer-vacio-btn:hover {
+  background: var(--color-texto-suave);
+  border-color: var(--color-texto-suave);
+}
+
+.notif-drawer-vacio-btn:focus-visible {
+  outline: 2px solid var(--color-acento-fuerte);
+  outline-offset: 2px;
+}
+
+/* ── Lista de filas ── */
+.notif-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notif-item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  column-gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-fondo2);
+  transition: background 0.15s ease;
+}
+
+.notif-item:hover {
+  background: var(--color-fondo);
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item--enlace {
+  cursor: pointer;
+}
+
+.notif-item--enlace:focus-visible {
+  outline: 2px solid var(--color-acento-fuerte);
+  outline-offset: -2px;
+}
+
+.notif-item-avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.notif-item-avatar img,
+.notif-item-avatar span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--color-fondo3);
+  color: var(--color-texto-suave);
+  font-size: 12px;
+  font-weight: 500;
+  object-fit: cover;
+}
+
+.notif-item-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.notif-item-mensaje {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-p);
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+.notif-item-usuario {
+  font-weight: 500;
+  color: var(--color-h1);
+}
+
+.notif-item-cifra {
+  font-weight: 500;
+  color: var(--color-burbuja);
+}
+
+/* Burbuja estilo chat (Becky) */
+.notif-burbuja {
+  background: var(--color-burbuja);
+  color: #fff;
+  font-size: 12.5px;
+  line-height: 1.4;
+  padding: 10px 14px;
+  border-radius: 4px 14px 14px 14px;
+  overflow-wrap: anywhere;
+  margin: 0;
+  align-self: start;
+}
+
+.notif-burbuja--grande {
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.notif-burbuja .notif-item-mensaje,
+.notif-burbuja .notif-item-usuario,
+.notif-burbuja .notif-item-cifra {
+  color: #fff;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.notif-burbuja-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Acciones dentro de la burbuja de Becky */
+.notif-burbuja-accion {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 400;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.notif-burbuja-accion:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.notif-burbuja-accion:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ── Animaciones ── */
+@keyframes notif-panel-in {
+  from { transform: translateX(12px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes notif-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Móvil: pantalla completa por encima de la bottom bar ── */
+@media (max-width: 768px) {
+  .notif-drawer {
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 84px;
+    width: 100%;
+    border-right: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .notif-drawer-cerrar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .notif-item,
+  .notif-burbuja {
+    font-size: 13px;
+  }
+
+  .notif-item {
+    padding: 14px 16px;
+  }
+}
+
+/* ── Movimiento reducido ── */
+@media (prefers-reduced-motion: reduce) {
+  .notif-drawer,
+  .notif-drawer-backdrop {
+    animation: none;
+  }
+}

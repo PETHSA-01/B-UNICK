@@ -5,6 +5,8 @@ import { useAuthModal } from '../../context/AuthModalContext'
 import { createPortal } from 'react-dom'
 import { InicioSesion } from '../InicioDeSesion/InicioSesion'
 import { Registro } from '../Registro/Registro'
+import { NotificacionesPagina } from '../Notificaciones/NotificacionesPagina'
+import api from '../../api/axios'
 import '../../estilos/estilospequeños/estilospequeños.css'
 
 /* ── MAIN COMPONENT ── */
@@ -81,6 +83,8 @@ export const BarraLateral = () => {
   const { user, isAuthenticated, loading } = useAuth()
   const { isOpen, mode, openModal, closeModal, switchMode } = useAuthModal()
   const [activeIndex, setActiveIndex] = useState(0)
+  const [notificacionesAbiertas, setNotificacionesAbiertas] = useState(false)
+  const [noLeidas, setNoLeidas] = useState(0)
   const containerRef = useRef(null)
 
   // Update active index based on current route
@@ -120,6 +124,39 @@ export const BarraLateral = () => {
   const handleNavClick = (href, index) => {
     setActiveIndex(index)
     navigate(href)
+  }
+
+  // Carga el conteo de no leídas cuando hay sesión (al montar y al cambiar ruta).
+  useEffect(() => {
+    let activo = true
+    if (!isAuthenticated) {
+      return () => { activo = false }
+    }
+    api.get('/notificaciones')
+      .then((res) => {
+        if (activo) setNoLeidas(res.data.noLeidas || 0)
+      })
+      .catch(() => {
+        if (activo) setNoLeidas(0)
+      })
+    return () => { activo = false }
+  }, [isAuthenticated, location.pathname])
+
+  // La campana abre el drawer superpuesto (no navega); sin sesión el drawer
+  // muestra el aviso de Becky con su botón de iniciar sesión.
+  const handleNotificacionesClick = (index) => {
+    setActiveIndex(index)
+    setNotificacionesAbiertas((prev) => !prev)
+  }
+
+  const cerrarNotificaciones = () => {
+    setNotificacionesAbiertas(false)
+    // Al cerrar se refresca el conteo (la página marcó las leídas).
+    if (isAuthenticated) {
+      api.get('/notificaciones')
+        .then((res) => setNoLeidas(res.data.noLeidas || 0))
+        .catch(() => {})
+    }
   }
 
   const handleAuthClick = (clickedMode) => {
@@ -167,11 +204,21 @@ export const BarraLateral = () => {
           data-nav-btn
           aria-current={index === activeIndex ? 'page' : undefined}
           aria-label={item.label}
-          onClick={() => handleNavClick(item.href, index)}
+          aria-expanded={item.key === 'notificaciones' && notificacionesAbiertas ? true : undefined}
+          aria-controls={item.key === 'notificaciones' && notificacionesAbiertas ? 'panel-notificaciones' : undefined}
+          onClick={() => item.key === 'notificaciones'
+            ? handleNotificacionesClick(index)
+            : handleNavClick(item.href, index)
+          }
           onKeyDown={e => handleKeyDown(e, index)}
         >
           <span className="barra-lateral-label">{LABELS[item.key]}</span>
           {typeof ICON_MAP[item.icon] === 'function' ? ICON_MAP[item.icon]() : ICON_MAP[item.icon]}
+          {item.key === 'notificaciones' && isAuthenticated && noLeidas > 0 && (
+            <span className="barra-badge" aria-label={`${noLeidas} notificaciones sin leer`}>
+              {noLeidas > 99 ? '99+' : noLeidas}
+            </span>
+          )}
         </button>
       ))}
 
@@ -219,6 +266,14 @@ export const BarraLateral = () => {
               <Registro onClose={closeModal} onSwitchMode={switchMode} />
             )}
           </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Drawer de notificaciones superpuesto (escritorio) / pantalla completa (móvil) */}
+      {notificacionesAbiertas && createPortal(
+        <div id="panel-notificaciones">
+          <NotificacionesPagina onClose={cerrarNotificaciones} />
         </div>,
         document.body
       )}
