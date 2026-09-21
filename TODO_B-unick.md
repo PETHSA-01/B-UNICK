@@ -115,13 +115,13 @@
 
 **Checklist:**
 - [x] Ruta `/perfil` registrada y componente montado
-- [ ] Vista de perfil funcional: nombre de usuario, foto, descripción (**pendiente**, solo placeholder `<div>Perfil</div>`)
-- [ ] Configuración de cuenta: cambiar username, foto de perfil, descripción
-- [ ] Cambio de contraseña (requiere contraseña actual + doble confirmación)
-- [ ] Estadísticas: likes totales, publicaciones, seguidores/seguidos
-- [ ] Botón seguir/dejar de seguir
-- [ ] Listas de seguidores y seguidos
-- [ ] Endpoints backend para todo lo anterior (perfil, edición, seguidores)
+- [x] Vista de perfil funcional: nombre de usuario, foto, descripción (propio `/perfil` y ajeno `/usuarios/:id`)
+- [x] Configuración de cuenta: cambiar username, foto de perfil, descripción (modales Editar perfil / Cambiar contraseña / Cerrar sesión en la página Perfil)
+- [x] Cambio de contraseña (requiere contraseña actual + doble confirmación; revoca refresh tokens de otras sesiones)
+- [x] Estadísticas: likes totales, publicaciones, seguidores/seguidos
+- [x] Botón seguir/dejar de seguir (con notificación `nuevo_seguidor`)
+- [x] Listas de seguidores y seguidos (propias y ajenas, en modales)
+- [x] Endpoints backend para todo lo anterior (`routes-usuarios.js`: GET/PUT `/perfil`, `POST /perfil/contrasena`, `PUT /perfil/foto`, `GET /usuarios/:id/perfil`, `POST /seguir/:id`, listas)
 
 ---
 
@@ -135,10 +135,10 @@
 **Checklist:**
 - [x] Componente `Notificaciones.jsx` creado (sistema interno con `useImperativeHandle`, tarjetas con título/mensaje/gif)
 - [x] Integrado actualmente para mostrar confirmaciones del flujo de registro y el aviso de cookies
-- [ ] **RQFN69** — Ruta `/notificaciones` como página completa con lista persistente y estado vacío "Nada aquí" (**pendiente**, aún no hay vista de lista ni backend)
-- [ ] **RQFN70-71** — Backend: generar notificaciones por eventos (nuevo contenido de seguidos, likes, comentarios, nuevos seguidores) usando la tabla `notificaciones`
-- [ ] **RQFN72** — Notificación especial de baja similitud (<40%) con acciones "Cambiar categoría" y "Wiki"
-- [ ] Endpoint para listar/marcar como leídas notificaciones
+- [x] **RQFN69** — Página de notificaciones (**drawer superpuesto** `NotificacionesPagina.jsx`, no ruta standalone): lista persistente, estado vacío "Nada aquí" y badge de no leídas
+- [x] **RQFN70-71** — Backend lista/marca leídas (`GET /api/notificaciones` + `POST /api/notificaciones/leidas`); trigger activo: `nuevo_seguidor` (lo escribe `POST /seguir`); los triggers restantes (`nuevo_contenido_seguido`, `nuevo_like`, `like_comentario`, `nuevo_comentario`) se escriben cuando su feature origen exista
+- [x] **RQFN72** — Notificación de baja similitud renderizada con acciones "Cambiar categoría" y "Wiki" (se genera cuando exista el cálculo de semejanza)
+- [x] Endpoint para listar/marcar como leídas notificaciones (`routerNotificaciones` tras `verificarAcceso`)
 
 ---
 
@@ -151,12 +151,14 @@
 - Recursos adicionales por subestilo.
 
 **Checklist:**
-- [x] Ruta `/wiki` y componente montado
-- [x] Tablas `culturas_estilos`, `subculturas_estilos`, `subcultura_recursos` ya en el esquema
-- [ ] Vista funcional por cultura/estilo (**pendiente**, solo placeholder `<div>Wiki</div>`)
-- [ ] Página por subestilo: nombre, imagen, descripción/origen/diferencias, bibliografía
-- [ ] Botón "Utilizar" que redirige a Maquillajes con filtros aplicados
-- [ ] Endpoints backend para listar culturas, subculturas y recursos
+- [x] Ruta `/wiki`, `/wiki/:culturaId` y `/wiki/:culturaId/:subculturaId` registradas y componente único montado
+- [x] Tablas `culturas_estilos`, `subculturas_estilos`, `subcultura_recursos` ya en el esquema (se conservan por sus FK: `usuario_preferencias`, `videos` y por `GET /api/culturas` para `PreferenciasFormulario`)
+- [x] Vista funcional por cultura/estilo (**contenido desde JSON local**, no desde DB, por decisión del equipo): `cliente/src/Componentes/WIKI/datos/wiki.json` con **8 culturas y 75 subestilos redactados** (template editorial: Sección 1-6 por cultura + `ficha` de 5 campos por subestilo; `SCHEMA_VERSION = 6` con re-seed de `subculturas_estilos` a 75 filas; substyle 76 «Otros TikTok» fusionado en el 75 «Variados TikTok» el 2026-09-20)
+- [x] **Apartados reescritos a conteo variable fiel a cada guía MD (2026-09-20)**: se dejó de forzar la estructura uniforme 4/5/3 — Gótico S1 de **2** apartados y S3 de **3** pasos, Emo S4 de **1**, Punk/Lolita S4 de **4** (recuperan "Tipo y Forma de Nariz"/"Nariz y Labios"), TikTok S1 de **3** (sin "Evolución"); nuevo campo opcional **`items: [{titulo, texto}]`** en apartados/pasos donde la guía conserva sub-listas reales → renderizados como `<ul class="wiki-sub-lista">` (`ListaItems` en `Wiki.jsx` + `.wiki-sub-lista` en `wiki.css`). Cultura 5 Visual Kei (redactada a mano, sin guía MD) se mantiene 4/5/3 sin items
+- [x] Página por subestilo: nombre, imagen real (URL integradas; el sello de iniciales queda como respaldo), `ficha` (origen/filosofía/vestuario/maquillaje/morfología), bibliografía y recursos
+- [x] Botón "Utilizar" que redirige a `Maquillajes` con los filtros de ese estilo aplicados (`/maquillajes?cultura=X&subcultura=Y`)
+- [x] **Rediseño portal tipo Fandom (2026-09-19)**: `.wiki-bar` (pestañas por cultura teñidas con `--wiki-color-tinta`), panel de artículo + riel lateral (≥1200px), infobox flotante con fichas `dl`, TOC ("Contenido", ≥3 apartados), h2 con slug, categorías al pie, navbox entre páginas hermanas y grid de tarjetas miembro; `tonoAccesible(hex)` mezcla el color de cultura con #2f2638 hasta contraste AA 4.5:1
+- [x] **Nota**: los endpoints backend por subcultura ya no hacen falta (el contenido vive en `wiki.json`); `GET /api/culturas` sigue existiendo para el formulario de preferencias
 
 ---
 
@@ -170,7 +172,8 @@
 - Tabs de categoría: Todos, Tutorial, Delineados, Sombras, Lip Combo, Base, Video Maquillajes.
 
 **Checklist:**
-- [ ] Página/listado de videos con miniatura, imagen, creador, likes, % de similitud (**no implementado**)
+- [x] Ruta `/maquillajes` y componente placeholder montado (lee `cultura`/`subcultura` de query params y muestra el estado vacío preparado para el feed real)
+- [ ] Página/listado de videos con miniatura, imagen, creador, likes, % de similitud (**paso 3 del roadmap**) — el feed arrancará con los datos que existan en BD hasta que Crear contenido publique videos
 - [ ] Scroll infinito (cargas de 30 en 30)
 - [ ] Ordenamiento: similitud, likes, fecha, cultura, subestilo
 - [ ] Filtros: edad, partes de la cara, tono/tipo de piel, toggle de similitud
@@ -260,10 +263,10 @@
 
 *(Soporte transversal a los requerimientos de Crear contenido y Autenticación.)*
 
-- [ ] Integración Cloudinary (almacenamiento y distribución de medios) — mencionada en la propuesta, sin evidencia de implementación en el código actual
-- [ ] Integración Sightengine (moderación automática de imágenes/video)
+- [x] Integración Cloudinary (almacenamiento y distribución de medios) — implementado para la foto de perfil (`helpers/cloudinary.js`, base64→JSON, `c_fill,w_400,h_400`)
+- [ ] Integración Sightengine (moderación automática de imágenes/video) — pendiente hasta Crear contenido; la foto de perfil no pasa por moderación por ahora
 - [x] Integración Nodemailer + Gmail para correos de verificación (funcional en `/preregistro`)
-- [ ] Nodemailer para correo de recuperación de contraseña
+- [x] Nodemailer para correo de recuperación de contraseña (`/olvido-contrasena` → `/recuperar-contrasena`)
 
 ---
 
@@ -293,18 +296,18 @@
 | Módulo | RQFN | Estado |
 |---|---|---|
 | Registro + verificación de correo | RQFN14, RQFN17-24 | ✅ Completo (falta validar conteo exacto de opciones) |
-| Login + refresh + logout + reenvío verificación | RQFN1-10 | ✅ Completo (falta auto-redirección RQFN3; logout UI diferido a Perfil) |
+| Login + refresh + logout + reenvío verificación | RQFN1-10 | ✅ Completo (incluye auto-redirección RQFN3; logout UI en Perfil) |
 | Preferencias de cultura/estilo (usuario nuevo) | RQFN11-13 | ✅ Completo (`/culturas`, `/preferencias`, `PreferenciasFormulario.jsx`, `tienePreferencias`) |
 | Recuperación de contraseña | RQFN25-34 | ✅ Completo (`/olvido-contrasena`, `/recuperar-contrasena`, ruta `/restablecer`) |
-| Navegación (sidebar) | RQFN35-39 | ✅ Completo (falta slogan y ocultar en vista de video) |
-| Perfil | RQFN41-56 | ❌ Placeholder |
-| Notificaciones | RQFN69-72 | ⚠️ Componente base y aviso de cookies sí, vista de lista y backend no |
-| Wiki | RQFN73-78 | ❌ Placeholder |
-| Maquillajes (feed) | RQFN79-98 | ❌ No implementado |
+| Navegación (sidebar) | RQFN35-39 | ✅ Completo (falta slogan en la barra — hoy vive solo en Inicio — y ocultar en vista de video) |
+| Perfil | RQFN41-56 | ✅ Completo (`routes-usuarios.js`, header rediseñado, seguir + listas, foto Cloudinary) |
+| Notificaciones | RQFN69-72 | ✅ Completo (drawer superpuesto + backend; trigger `nuevo_seguidor` activo, resto pendiente de sus features) |
+| Wiki | RQFN73-78 | ✅ Contenidos y componente único (paso 2 del roadmap): `wiki.json` (**8 culturas/75 subestilos** redactados al template editorial: Sección 1-6 + `ficha` de 5 campos, `imagen` con fotos reales en los 83 items (8 culturas + 75 subestilos) desde `wiki/IMAGENES_PENDIENTES.md`; el sello de iniciales queda como respaldo; substyle «Otros TikTok» fusionado en «Variados TikTok») + `Wiki.jsx` (tres vistas, kicker `Numero`, Sección 1-6 en cultura / ficha en subestilo) + rutas anidadas + "Utilizar" → `/maquillajes` |
+| Maquillajes (feed) | RQFN79-98 | ⚠️ Placeholder `/maquillajes` listo (lee query params); feed real en paso 3 del roadmap |
 | Detalle de video | RQFN100-120 | ❌ No implementado |
 | Crear contenido | RQFN121-125 | ❌ Placeholder |
 | Conversaciones | RQFN126-141 | ❌ Placeholder |
-| Cloudinary / Sightengine | (transversal) | ❌ No implementado |
+| Cloudinary / Sightengine | (transversal) | ⚠️ Cloudinary en foto de perfil; Sightengine pendiente (Crear contenido) |
 | Sistema de recomendación | (transversal) | ❌ No implementado |
 
 *Basado en el código del ZIP `B-unick.zip` tal como fue subido, y en la sección "Key Functional Requirements (from DER)" de `AGENTS.md`. Última verificación: revisión directa de `servidor/Routes/routes-autenticacion.js`, `servidor/helpers/{jwt,correo}.js`, `servidor/middleware/verificarToken.js`, componentes en `cliente/src/Componentes/`, y `servidor/DB/bunyk_db.sql`.*

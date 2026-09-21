@@ -4,6 +4,106 @@ Todos los cambios notables del proyecto B-unick se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y el
 versionado es [SemVer](https://semver.org/lang/es/).
 
+## [1.1.0] — 2026-09-20
+
+Segundo release versionado del proyecto. Empaqueta los pasos 1 y 2 del roadmap
+(Notificaciones — drawer y Wiki — portal editorial), el placeholder funcional
+de Maquillajes, mejoras de Perfil/autenticación y toda la documentación
+actualizada (AGENTS.md, TODO_B-unick.md, DocumentacionDelCodigo.md, guías de
+`wiki/`) junto con las habilidades de opencode usadas para redactar el contenido.
+
+### Añadido — Notificaciones: drawer superpuesto (RQFN69-72, paso 1 del roadmap)
+
+- Backend: nuevo `servidor/Routes/routes-notificaciones.js` con
+  `GET /api/notificaciones` (`{ success, noLeidas, notificaciones }`, orden
+  desc por fecha, actor con avatar resuelto vía `mapearUsuarioConFoto` o `null`
+  para tipos de sistema) y `POST /api/notificaciones/leidas`, ambos tras
+  `verificarAcceso`; montado en `servidor/index.js`.
+- BD: `SCHEMA_VERSION = 3` — columna `notificaciones.usuario_actor_id`
+  (nullable, `fk_notif_actor`) + seed de 3 notificaciones para `test_user_01`;
+  `POST /seguir` inserta `usuario_actor_id`.
+- Frontend: `cliente/src/Componentes/Notificaciones/NotificacionesPagina.jsx`
+  como drawer superpuesto portalizado en `id="panel-notificaciones"`: a la
+  **derecha** en escritorio (`right:0`, `width:min(360px, calc(100vw - 72px))`,
+  filas con filetes finos y burbujas magenta de Becky, pesos ≤500) y pantalla
+  completa en móvil (≤768px, `bottom:84px`); abre con la campana de la
+  BarraLateral (con o sin sesión), badge de no leídas, marca leídas al abrir,
+  estado vacío = fila de Becky, sin sesión = estado vacío centrado con botón
+  "Iniciar sesión", ESC/backdrop/✕ cierran con retorno de foco.
+- CSS: nuevo `cliente/src/estilos/NotificacionesEstilos/notificaciones.css`
+  (`--color-burbuja: #7a5fa0`, `notif-panel-in`/`notif-fade-in` anuladas con
+  `prefers-reduced-motion: reduce`) y `.barra-badge` en `estilospequeños.css`.
+- La ruta standalone `/notificaciones` se eliminó de `cliente/src/main.jsx`
+  (redirige a `/` con `<Navigate to='/' replace />`); solo existe el trigger
+  `nuevo_seguidor` — el resto del enum se renderiza en `construirAcciones` y se
+  escribirá cuando existan sus features de origen (paso 6 del roadmap).
+
+### Añadido — Wiki: portal tipo Fandom (RQFN73-78, paso 2 del roadmap)
+
+- `cliente/src/Componentes/WIKI/Wiki.jsx` + `wiki.css`: componente único de
+  tres vistas (`/wiki`, `/wiki/:culturaId`, `/wiki/:culturaId/:subculturaId`)
+  con barra de pestañas por cultura teñida con `--wiki-color-tinta`
+  (`tonoAccesible(hex)` garantiza contraste AA 4.5:1 sobre #fff), panel de
+  artículo + riel lateral (≥1200px), infobox flotante con fichas `dl`, TOC,
+  categorías, navbox y grid de tarjetas miembro.
+- Contenido en `cliente/src/Componentes/WIKI/datos/wiki.json` (nuevo
+  directorio `datos/`): **8 culturas / 75 subestilos (ids 1-75)** redactados
+  siguiendo el template editorial (Sección 1-6 por cultura con apartados y
+  pasos de conteo variable fiel a cada guía MD + `ficha` de 5 campos por
+  subestilo) e **imágenes reales en los 83 items** (8 culturas + 75
+  subestilos) con URL verificadas (200/206 `image/*`); el sello de iniciales
+  queda como respaldo del componente cuando `imagen` no existe.
+- Substyle 76 «Otros TikTok» **fusionado en el 75 «Variados TikTok»**
+  (2026-09-20): contenido reescrito del MD §11 centrado en historia/contexto de
+  los trends de performance; foto del antiguo 75 conservada.
+- BD sincronizada: seed de `subculturas_estilos` con **75 filas (ids 1-75)** en
+  `servidor/DB/bunyk_db.sql` y `SCHEMA_VERSION = 6` (cultura 9 'Otros'
+  eliminada, tabla reemplazada desde `wiki.json`).
+- Botón "Utilizar este estilo" en subestilos → `/maquillajes?cultura=<id>&subcultura=<id>`.
+
+### Añadido — Maquillajes: placeholder funcional (paso 3 preparado)
+
+- `cliente/src/Componentes/Maquillajes/Maquillajes.jsx` + `maquillajes.css`:
+  ruta `/maquillajes` montada en `main.jsx`; lee `cultura`/`subcultura` de
+  query params, resuelve los nombres desde `wiki.json` y enlaza a la Wiki.
+  El feed real (scroll infinito 30+30, orden, filtros, pestañas) queda como
+  paso 3 del roadmap.
+
+### Añadido — Mejoras de Perfil / autenticación y frontend
+
+- Normalización de pesos tipográficos a **≤500** en todo el frontend (Perfil,
+  toast de cookies y Drawer) y grosor de trazo de SVG a 1.5px.
+- Avatar de la BarraLateral con foto real (`user.fotoPerfil`) en vez de solo
+  la inicial; header de Perfil con username `<h1>` a 22px/500.
+- Ajustes menores en formularios de registro, `estilos.css`,
+  `estilospequeños.css`, `perfil.css`, `iniciosesion.css`, `BarraLateral.jsx`,
+  `Perfil.jsx`, `InicioSesion.jsx`, `routes-usuarios.js` y `servidor/index.js`.
+
+### Añadido — Habilidades de opencode y documentación
+
+- Nuevas skills de opencode: `.opencode/skills/investigacion/` (investiga
+  con método y entrega hallazgos verificados, con fuentes y nivel de
+  confianza) y `.opencode/skills/redaccion-de-textos/` (redacta textos claros
+  con voz propia, con modo para público adolescente).
+- Directorio `wiki/` con las 7 guías editoriales fuente (MD por cultura) e
+  `IMAGENES_PENDIENTES.md` (checklist de las 83 imágenes con URLs verificadas).
+- `AGENTS.md`, `TODO_B-unick.md` y `DocumentacionDelCodigo.md` actualizados
+  al estado real (conteos 8/75, `SCHEMA_VERSION = 6`, drawer, Maquillajes
+  placeholder); `README.md` con la iteración v1.1.0.
+
+### Conocido
+
+- Lint del frontend: **50 errores baseline preexistentes** de ESLint
+  (no corregidos en esta iteración; los nuevos archivos del release no
+  introducen errores nuevos; se documentan, no se arreglan).
+- Triggers de notificaciones restantes (`nuevo_contenido_seguido`, `nuevo_like`,
+  `like_comentario`, `nuevo_comentario`, `semejanza_baja`): renderizados en
+  `construirAcciones` pero se escriben cuando existan sus features de origen
+  (paso 6 del roadmap).
+- Conversaciones y Crear siguen como placeholders sin lógica.
+- Las pestañas Guardados/Vistas/Chats del Perfil son solo visuales.
+- Feed real de Maquillajes (RQFN79-98): pendiente, paso 3 del roadmap.
+
 ## [1.0.0] — 2026-09-18
 
 Primer release versionado del proyecto. Empaqueta la implementación completa
@@ -119,3 +219,4 @@ de la página Perfil (RQFN41-56) y todo el historial previo de desarrollo.
   localStorage.
 
 [1.0.0]: https://github.com/PETHSA-01/B-UNICK/releases/tag/v1.0.0
+[1.1.0]: https://github.com/PETHSA-01/B-UNICK/releases/tag/v1.1.0

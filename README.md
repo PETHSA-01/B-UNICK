@@ -51,7 +51,7 @@ El cliente usa el proxy de Vite (`/api` → `http://localhost:3000`).
 
 ## Estado del proyecto
 
-Iteración **v1.0.0** (2026-09-18):
+Iteración **v1.1.0** (2026-09-20):
 
 - ✅ **Registro completo** con formulario de características físicas en 7 pasos
   y verificación de correo por JWT.
@@ -71,8 +71,22 @@ Iteración **v1.0.0** (2026-09-18):
   `--color-acento-fuerte` con contraste verificado, `:focus-visible` y
   `prefers-reduced-motion`.
 - ✅ **Layout dedicado** (`AppLayout.css` con `.app-main`).
-- ⚠️ Pendientes: página de Notificaciones (RQFN69-72), Wiki, Crear,
-  Maquillajes, Video detalle y Conversaciones.
+- ✅ **Notificaciones — drawer superpuesto (RQFN69-72)**: `NotificacionesPagina.jsx`
+  portalizado desde la campana de la BarraLateral (derecha en escritorio /
+  pantalla completa en móvil), `GET /api/notificaciones` +
+  `POST /api/notificaciones/leidas` (`servidor/Routes/routes-notificaciones.js`),
+  badge de no leídas y tipo `nuevo_seguidor` activo.
+- ✅ **Wiki — portal tipo Fandom (RQFN73-78)**: componente único de tres vistas
+  (`/wiki`, `/wiki/:culturaId`, `/wiki/:culturaId/:subculturaId`) con contenido
+  en `cliente/src/Componentes/WIKI/datos/wiki.json` (**8 culturas / 75
+  subestilos**, template editorial Sección 1-6 + ficha de 5 campos por
+  subestilo, imágenes reales en los 83 items) y seed de BD sincronizado
+  (`subculturas_estilos` con 75 filas, `SCHEMA_VERSION = 6`).
+- ✅ **Maquillajes — placeholder funcional**: `/maquillajes` montada, lee
+  `cultura`/`subcultura` de query params y enlaza a la Wiki (feed real en paso
+  3 del roadmap).
+- ⚠️ Pendientes: feed de Maquillajes (RQFN79-98), Crear, Video detalle y
+  Conversaciones.
 
 Detalle técnico completo (contratos, rutas API, estructura de datos,
 roadmap): ver `AGENTS.md`.
@@ -89,7 +103,7 @@ roadmap): ver `AGENTS.md`.
 ```bash
 cd cliente && npm run dev      # Dev server
 cd cliente && npm run build    # Build de producción
-cd cliente && npm run lint     # ESLint (51 errores baseline conocidos)
+cd cliente && npm run lint     # ESLint (50 errores baseline conocidos)
 cd servidor && npm run dev     # Backend con nodemon
 cd servidor && npm start       # Backend producción
 ```
