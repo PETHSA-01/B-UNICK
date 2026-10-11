@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Configuración de usuario</title>
+<style>
+  :root{
+    --bg-page:#dcdadf;
+    --card-bg:#ffffff;
+    --ink:#221f26;
+    --ink-soft:#726c7c;
+    --ink-faint:#a29cae;
+    --accent:#df1284;
+    --accent-dark:#b30f6a;
+    --accent-soft:#fbe2f0;
+    --line:#e9e5ee;
+    --field-bg:#f7f5f9;
+    --avatar-bg:#d3d1d7;
+    --avatar-ink:#5b5564;
+    --radius-card:22px;
+    --radius-field:10px;
+    --radius-btn:999px;
+    font-family:'Poppins','Segoe UI',ui-rounded,system-ui,-apple-system,sans-serif;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background:var(--bg-page);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:48px 20px;
+  }
+
+  .page-title{
+    position:fixed;
+    top:20px;
+    left:24px;
+    font-size:13px;
+    color:var(--ink-faint);
+    letter-spacing:.02em;
+  }
+
+  /* ===== tarjeta principal ===== */
+  .settings-card{
+    width:100%;
+    max-width:760px;
+    background:var(--card-bg);
+    border-radius:var(--radius-card);
+    box-shadow:0 30px 60px -25px rgba(40,20,50,.35);
+    overflow:hidden;
+  }
+
+  .settings-header{
+    padding:34px 40px 26px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:20px;
+  }
+
+  .settings-header h1{
+    margin:0 0 6px;
+    font-size:26px;
+    font-weight:700;
+  }
+
+  .settings-header p{
+    margin:0;
+    font-size:14px;
+    color:var(--ink-soft);
+    max-width:44ch;
+    line-height:1.5;
+  }
+
+  .close-btn{
+    width:34px;
+    height:34px;
+    flex:none;
+    border:none;
+    border-radius:50%;
+    background:var(--field-bg);
+    color:var(--ink-soft);
+    font-size:16px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* ===== secciones ===== */
+  .settings-section{ padding:8px 40px 6px; }
+
+  .settings-section + .settings-section{
+    border-top:1px solid var(--line);
+    padding-top:26px;
+  }
+
+  .section-title{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:18px 0 4px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--accent);
+    letter-spacing:.03em;
+  }
+
+  .section-title .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--accent);
+    flex:none;
+  }
+
+  .section-title span.label{
+    font-size:15px;
+    color:var(--ink);
+    font-weight:600;
+  }
+
+  /* ===== apartado (una acción = un bloque) ===== */
+  .apartado{
+    display:grid;
+    grid-template-columns:1fr 1.15fr;
+    gap:28px;
+    padding:22px 0;
+    border-bottom:1px solid var(--line);
+  }
+
+  .settings-section > .apartado:last-child{ border-bottom:none; }
+
+  .apartado-info h3{
+    margin:0 0 6px;
+    font-size:15px;
+    font-weight:600;
+  }
+
+  .apartado-info p{
+    margin:0;
+    font-size:13px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:32ch;
+  }
+
+  .apartado-control{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .field-label{
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-soft);
+    margin-bottom:-2px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea{
+    width:100%;
+    font-family:inherit;
+    font-size:14px;
+    color:var(--ink);
+    background:var(--field-bg);
+    border:1.5px solid transparent;
+    border-radius:var(--radius-field);
+    padding:12px 14px;
+    outline:none;
+    transition:border-color .15s ease, background .15s ease;
+  }
+
+  input:focus, textarea:focus{
+    border-color:var(--accent);
+    background:#fff;
+  }
+
+  input:disabled{
+    color:var(--ink-faint);
+    cursor:not-allowed;
+  }
+
+  textarea{
+    resize:vertical;
+    min-height:84px;
+    line-height:1.5;
+  }
+
+  .char-counter{
+    align-self:flex-end;
+    font-size:11px;
+    color:var(--ink-faint);
+    margin-top:-6px;
+  }
+
+  .input-icon{
+    position:relative;
+    display:flex;
+  }
+
+  .input-icon input{ padding-right:44px; }
+
+  .input-icon .eye-btn{
+    position:absolute;
+    right:6px;
+    top:50%;
+    transform:translateY(-50%);
+    width:32px;
+    height:32px;
+    border:none;
+    background:transparent;
+    color:var(--ink-faint);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .input-icon .eye-btn svg{ width:18px; height:18px; }
+
+  /* ===== botones ===== */
+  .btn{
+    align-self:flex-start;
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:600;
+    padding:11px 22px;
+    border-radius:var(--radius-btn);
+    border:none;
+    cursor:pointer;
+    margin-top:4px;
+  }
+
+  .btn-primary{
+    background:var(--accent);
+    color:#fff;
+  }
+
+  .btn-primary:hover{ background:var(--accent-dark); }
+
+  .btn-secondary{
+    background:var(--accent-soft);
+    color:var(--accent-dark);
+  }
+
+  /* ===== apartado de foto de perfil ===== */
+  .apartado-photo .apartado-control{
+    flex-direction:row;
+    align-items:center;
+    gap:20px;
+  }
+
+  .avatar-preview{
+    width:84px;
+    height:84px;
+    border-radius:50%;
+    background:var(--avatar-bg);
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+
+  .avatar-preview svg{ width:56px; height:56px; color:var(--avatar-ink); }
+
+  .avatar-actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .avatar-hint{
+    font-size:11.5px;
+    color:var(--ink-faint);
+  }
+
+  /* ===== footer ===== */
+  .settings-footer{
+    padding:24px 40px 32px;
+    display:flex;
+    justify-content:flex-end;
+  }
+
+  /* ===== responsive ===== */
+  @media (max-width:640px){
+    .apartado{ grid-template-columns:1fr; gap:12px; }
+    .settings-header, .settings-section, .settings-footer{ padding-left:24px; padding-right:24px; }
+    .apartado-photo .apartado-control{ flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<span class="page-title">Maquetado visual · Configuración de usuario</span>
+
+<div class="settings-card">
+
+  <div class="settings-header">
+    <div>
+      <h1>Configuración</h1>
+      <p>Administra la información pública de tu perfil y los datos de acceso a tu cuenta.</p>
+    </div>
+    <button class="close-btn" aria-label="Cerrar">✕</button>
+  </div>
+
+  <!-- ================= SECCIÓN 1: PERFIL ================= -->
+  <section class="settings-section">
+    <div class="section-title"><span class="dot"></span><span class="label">Perfil</span></div>
+
+    <!-- 1. Nombre de usuario -->
+    <div class="apartado">
+      <div class="apartado-info">
+        <h3>Nombre de usuario</h3>
+        <p>Este es el nombre con el que te identifican las demás personas en la plataforma.</p>
+      </div>
+      <div class="apartado-control">
+        <span class="field-label">Nombre de usuario</span>
+        <input type="text" value="Usuario" />
+        <button class="btn btn-primary">Cambiar nombre de usuario</button>
+      </div>
+    </div>
+
+    <!-- 2. Descripción -->
+    <div class="apartado">
+      <div class="apartado-info">
+        <h3>Descripción</h3>
+        <p>Aparece justo debajo de tu nombre en tu perfil público.</p>
+      </div>
+      <div class="apartado-control">
+        <span class="field-label">Descripción</span>
+        <textarea>Descripción Descripción Descripción Descripción Descripción Descripción Descripción Descripción</textarea>
+        <span class="char-counter">128/200</span>
+        <button class="btn btn-primary">Cambiar descripción</button>
+      </div>
+    </div>
+
+    <!-- 3. Foto de perfil -->
+    <div class="apartado apartado-photo">
+      <div class="apartado-info">
+        <h3>Foto de perfil</h3>
+        <p>Se muestra en tu perfil, tus publicaciones y tus comentarios.</p>
+      </div>
+      <div class="apartado-control">
+        <div class="avatar-preview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+          </svg>
+        </div>
+        <div class="avatar-actions">
+          <button class="btn btn-primary">Cambiar foto de perfil</button>
+          <span class="avatar-hint">JPG o PNG, máx. 5&nbsp;MB</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECCIÓN 2: CONFIGURACIÓN DEL USUARIO ================= -->
+  <section class="settings-section">
+    <div class="section-title"><span class="dot"></span><span class="label">Configuración del usuario</span></div>
+
+    <!-- 1. Contraseña -->
+    <div class="apartado">
+      <div class="apartado-info">
+        <h3>Contraseña</h3>
+        <p>Para cambiarla, primero confirma tu contraseña actual.</p>
+      </div>
+      <div class="apartado-control">
+        <span class="field-label">Contraseña actual</span>
+        <div class="input-icon">
+          <input type="password" placeholder="Contraseña actual" />
+          <button class="eye-btn" aria-label="Mostrar contraseña">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+
+        <span class="field-label">Contraseña nueva</span>
+        <div class="input-icon">
+          <input type="password" placeholder="Contraseña nueva" />
+          <button class="eye-btn" aria-label="Mostrar contraseña">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+
+        <span class="field-label">Confirmar contraseña nueva</span>
+        <div class="input-icon">
+          <input type="password" placeholder="Confirmar contraseña" />
+          <button class="eye-btn" aria-label="Mostrar contraseña">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+
+        <button class="btn btn-primary">Cambiar contraseña</button>
+      </div>
+    </div>
+
+    <!-- 2. Correo -->
+    <div class="apartado">
+      <div class="apartado-info">
+        <h3>Correo electrónico</h3>
+        <p>Te enviaremos un enlace de confirmación a la nueva dirección antes de aplicar el cambio.</p>
+      </div>
+      <div class="apartado-control">
+        <span class="field-label">Correo actual</span>
+        <input type="email" value="usuario@correo.com" disabled />
+
+        <span class="field-label">Correo nuevo</span>
+        <input type="email" placeholder="nuevo@correo.com" />
+
+        <span class="field-label">Confirma con tu contraseña</span>
+        <div class="input-icon">
+          <input type="password" placeholder="Contraseña" />
+          <button class="eye-btn" aria-label="Mostrar contraseña">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+
+        <button class="btn btn-primary">Cambiar correo</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="settings-footer">
+    <button class="btn btn-secondary">Cerrar</button>
+  </div>
+
+</div>
+
+</body>
+</html>

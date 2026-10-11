@@ -1,0 +1,1978 @@
+openapi: 3.0.3
+info:
+  title: B-unick API
+  version: 1.0.0
+  description: |
+    API REST de **B-unick**, la plataforma web social para publicar videos e
+    imágenes sobre maquillajes de culturas urbanas y estilos alternativos, con
+    recomendaciones basadas en las características físicas del usuario.
+
+    Convenciones generales:
+
+    - **Base URL**: todos los endpoints se montan bajo `/api` (el servidor de
+      desarrollo escucha en `http://localhost:3000`). Aquí ya está incluido en
+      `servers`.
+    - **Autenticación**: por cookies `httpOnly`. `POST /login` guarda
+      `accessToken` (JWT, 24 h) y `refreshToken` (7 d). Los endpoints marcados con
+      el candado requieren la cookie `accessToken` (ver `cookieAuth`).
+    - **Respuestas de error**: `{ "error": "mensaje" }`; algunas incluyen
+      `field` (validación de registro) o `motivos` (moderación de contenido).
+    - **Paginación**: las listas devuelven
+      `{ success, total, pagina, limite, hasMore, ... }`. `limite` máximo es 60.
+    - **Moderación**: publicar (video o conversación con imágenes) pasa por
+      Sightengine **antes** de guardar en la base de datos. Si la moderación no
+      está configurada responde `503`; si rechaza, `422` con `motivos`.
+  contact:
+    name: B-unick
+servers:
+  - url: http://localhost:3000/api
+    description: Desarrollo local
+  - url: https://bunick.lat/api
+    description: Producción
+
+tags:
+  - name: Sistema
+    description: Estado del servidor.
+  - name: Autenticación
+    description: Registro, verificación de correo, login y recuperación de contraseña.
+  - name: Culturas
+    description: Catálogo de culturas y subculturas (uso público y preferencias).
+  - name: Perfil
+    description: Datos, edición, foto, contraseña, correo, seguir y listas del usuario.
+  - name: Videos
+    description: Feed, detalle, interacciones y estadísticas de publicaciones.
+  - name: Conversaciones
+    description: Foro de conversaciones con likes, comentarios, denuncias y auto-eliminación.
+  - name: Notificaciones
+    description: Lista y marcado de notificaciones propias.
+
+security:
+  - cookieAuth: []
+
+paths:
+  /:
+    get:
+      tags: [Sistema]
+      summary: Comprobación de vida del servidor
+      security: []
+      responses:
+        '200':
+          description: Texto plano
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Hello World!
+
+  # ------------------------------------------------------------------ #
+  # Autenticación                                                      #
+  # ------------------------------------------------------------------ #
+  /validacionregistro:
+    post:
+      tags: [Autenticación]
+      summary: Comprueba disponibilidad de correo y nombre de usuario
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, username]
+              properties:
+                email: { type: string, format: email }
+                username: { type: string }
+      responses:
+        '200':
+          description: Ambos disponibles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string }
+        '400':
+          description: Falta correo o nombre de usuario
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorCampo' }
+        '409':
+          description: Correo o nombre de usuario ya registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorCampo' }
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /preregistro:
+    post:
+      tags: [Autenticación]
+      summary: Crea la cuenta con características físicas y envía el correo de verificación
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, username, ojos, nariz, labios, cara, colorPiel, tipoPiel, edad]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+                username: { type: string }
+                ojos: { type: string, description: Forma de ojos }
+                nariz: { type: string }
+                labios: { type: string }
+                cara: { type: string, description: Tipo de rostro }
+                colorPiel: { type: string }
+                tipoPiel: { type: string }
+                edad: { type: string, description: Rango de edad, p. ej. "18-24" }
+      responses:
+        '201':
+          description: Cuenta creada; se envió el correo de verificación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string }
+                  usuarioId: { type: integer }
+        '400':
+          description: Faltan campos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: Correo o nombre de usuario ya en uso
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorCampo' }
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /verificar-correo:
+    get:
+      tags: [Autenticación]
+      summary: Verifica el correo a partir del enlace enviado por email
+      description: Valida el JWT de la familia email, marca `correo_verificado=1`, consume el token y redirige al frontend.
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirección a `FRONTEND_URL/verificar-correo?success=true` o `?success=false&error=<codigo>`
+        '400':
+          description: Token ausente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /verificar-cambio-correo:
+    get:
+      tags: [Autenticación]
+      summary: Confirma el cambio de correo desde el enlace enviado al correo nuevo
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirección a `FRONTEND_URL/perfil?correoConfirmado=1` o `?correoError=<codigo>`
+        '400':
+          description: Token ausente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /login:
+    post:
+      tags: [Autenticación]
+      summary: Inicia sesión por correo o nombre de usuario
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identificador, password]
+              properties:
+                identificador: { type: string, description: Correo O nombre de usuario }
+                password: { type: string, format: password }
+      responses:
+        '200':
+          description: Sesión iniciada; setea cookies accessToken y refreshToken
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  user: { $ref: '#/components/schemas/Usuario' }
+        '400':
+          description: Faltan credenciales
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Credenciales incorrectas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403':
+          description: Correo sin verificar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /me:
+    get:
+      tags: [Autenticación]
+      summary: Devuelve el usuario de la sesión activa
+      responses:
+        '200':
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/Usuario' }
+        '401':
+          description: Sin sesión
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /refresh:
+    post:
+      tags: [Autenticación]
+      summary: Renueva el accessToken a partir del refreshToken
+      security: []
+      responses:
+        '200':
+          description: Nuevo accessToken emitido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  user: { $ref: '#/components/schemas/Usuario' }
+        '401':
+          description: Refresh token ausente, inválido o revocado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /logout:
+    post:
+      tags: [Autenticación]
+      summary: Cierra la sesión del dispositivo actual
+      responses:
+        '200':
+          description: Refresh token revocado y cookies limpiadas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+
+  /olvido-contrasena:
+    post:
+      tags: [Autenticación]
+      summary: Envía el enlace de recuperación de contraseña
+      description: Respuesta neutral (no revela si el correo existe).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          description: Respuesta neutral
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+        '400':
+          description: Correo ausente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /recuperar-contrasena:
+    post:
+      tags: [Autenticación]
+      summary: Restablece la contraseña usando el token del correo
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, nuevaContrasena]
+              properties:
+                token: { type: string }
+                nuevaContrasena: { type: string, format: password }
+      responses:
+        '200':
+          description: Contraseña actualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+        '400':
+          description: Token inválido o expirado, o contraseña inválida
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /reenviar-verificacion:
+    post:
+      tags: [Autenticación]
+      summary: Reenvía el correo de verificación
+      description: Respuesta neutral (no revela si el correo existe o ya está verificado).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          description: Respuesta neutral
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+        '400':
+          description: Correo ausente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ------------------------------------------------------------------ #
+  # Culturas                                                           #
+  # ------------------------------------------------------------------ #
+  /culturas:
+    get:
+      tags: [Culturas]
+      summary: Lista culturas con sus subculturas anidadas
+      security: []
+      responses:
+        '200':
+          description: Catálogo completo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  culturas:
+                    type: array
+                    items: { $ref: '#/components/schemas/Cultura' }
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /preferencias:
+    post:
+      tags: [Culturas]
+      summary: Guarda las preferencias de cultura/subcultura del usuario (1 a 3)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [preferencias]
+              properties:
+                preferencias:
+                  type: array
+                  minItems: 1
+                  maxItems: 3
+                  items:
+                    type: object
+                    required: [culturaId, subculturaId]
+                    properties:
+                      culturaId: { type: integer }
+                      subculturaId: { type: integer }
+      responses:
+        '200':
+          description: Preferencias guardadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string }
+                  user:
+                    type: object
+                    properties:
+                      id: { type: integer }
+                      tienePreferencias: { type: boolean }
+        '400':
+          description: Preferencias inválidas o subcultura que no pertenece a la cultura
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Sin sesión
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ------------------------------------------------------------------ #
+  # Perfil                                                             #
+  # ------------------------------------------------------------------ #
+  /perfil:
+    get:
+      tags: [Perfil]
+      summary: Perfil propio con estadísticas
+      responses:
+        '200':
+          description: Perfil propio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  user: { $ref: '#/components/schemas/Perfil' }
+        '401':
+          description: Sin sesión
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    put:
+      tags: [Perfil]
+      summary: Edita el nombre de usuario y la descripción propios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                descripcion: { type: string, maxLength: 200 }
+      responses:
+        '200':
+          description: Perfil actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: Nombre de usuario ya en uso
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /perfil/contrasena:
+    post:
+      tags: [Perfil]
+      summary: Cambia la contraseña propia
+      description: |
+        Exige la contraseña actual y la confirmación de la nueva. Al cambiar la
+        contraseña se revocan los refresh tokens de las demás sesiones.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contrasenaActual, nuevaContrasena, confirmarContrasena]
+              properties:
+                contrasenaActual: { type: string, format: password }
+                nuevaContrasena: { type: string, format: password }
+                confirmarContrasena: { type: string, format: password }
+      responses:
+        '200':
+          description: Contraseña actualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+        '400':
+          description: Contraseña actual incorrecta o confirmación que no coincide
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /perfil/correo:
+    post:
+      tags: [Perfil]
+      summary: Solicita el cambio de correo (flujo de 2 pasos)
+      description: Valida la contraseña y la disponibilidad del nuevo correo, y envía un enlace de confirmación al correo nuevo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nuevoCorreo, contrasena]
+              properties:
+                nuevoCorreo: { type: string, format: email }
+                contrasena: { type: string, format: password }
+      responses:
+        '200':
+          description: Solicitud aceptada (respuesta robusta, no revela fallos de envío)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+        '400':
+          description: Correo inválido o contraseña incorrecta
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: El nuevo correo ya está en uso
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /perfil/foto:
+    put:
+      tags: [Perfil]
+      summary: Actualiza la foto de perfil
+      description: La imagen se envía como dataURL y el servidor la sube a Cloudinary con recorte cuadrado 400×400.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [imagen]
+              properties:
+                imagen: { type: string, description: 'dataURL (data:image/...;base64,...)' }
+      responses:
+        '200':
+          description: Foto actualizada; devuelve la URL final
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  fotoPerfil: { type: string, format: uri }
+        '400':
+          description: Imagen ausente o inválida
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /perfil/seguidores:
+    get:
+      tags: [Perfil]
+      summary: Lista de seguidores del usuario propio
+      responses:
+        '200':
+          description: Seguidores propios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  usuarios:
+                    type: array
+                    items: { $ref: '#/components/schemas/UsuarioLista' }
+
+  /perfil/siguiendo:
+    get:
+      tags: [Perfil]
+      summary: Lista de usuarios a los que sigue el usuario propio
+      responses:
+        '200':
+          description: Seguidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  usuarios:
+                    type: array
+                    items: { $ref: '#/components/schemas/UsuarioLista' }
+
+  /perfil/videos:
+    get:
+      tags: [Perfil]
+      summary: Publicaciones del perfil propio (masonry con scroll infinito)
+      parameters:
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página de publicaciones propias
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaVideos' }
+
+  /perfil/guardados:
+    get:
+      tags: [Perfil]
+      summary: Videos guardados por el usuario propio
+      parameters:
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página de guardados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaVideos' }
+
+  /perfil/vistos:
+    get:
+      tags: [Perfil]
+      summary: Historial de videos vistos (últimos 14 días)
+      parameters:
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página del historial
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaVideos' }
+
+  /perfil/caracteristicas:
+    get:
+      tags: [Perfil]
+      summary: Características físicas registradas del usuario
+      responses:
+        '200':
+          description: Características (o null si no tiene)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  caracteristicas:
+                    nullable: true
+                    type: object
+                    properties:
+                      forma_ojos: { type: string }
+                      tipo_nariz: { type: string }
+                      tipo_labios: { type: string }
+                      tipo_rostro: { type: string }
+                      color_piel: { type: string }
+                      tipo_piel: { type: string }
+                      edad: { type: string }
+
+  /perfil/conversaciones:
+    get:
+      tags: [Perfil]
+      summary: Conversaciones iniciadas por el usuario propio
+      parameters:
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página de conversaciones propias
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaConversaciones' }
+
+  /usuarios/{id}/perfil:
+    get:
+      tags: [Perfil]
+      summary: Perfil de otro usuario
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      responses:
+        '200':
+          description: Perfil ajeno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  user: { $ref: '#/components/schemas/PerfilAjeno' }
+        '400':
+          description: Id inválido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Usuario inexistente o correo sin verificar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /usuarios/{id}/seguidores:
+    get:
+      tags: [Perfil]
+      summary: Seguidores de otro usuario
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      responses:
+        '200':
+          description: Seguidores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  usuarios:
+                    type: array
+                    items: { $ref: '#/components/schemas/UsuarioLista' }
+        '404':
+          description: Usuario inexistente o correo sin verificar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /usuarios/{id}/siguiendo:
+    get:
+      tags: [Perfil]
+      summary: Usuarios seguidos por otro usuario
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      responses:
+        '200':
+          description: Seguidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  usuarios:
+                    type: array
+                    items: { $ref: '#/components/schemas/UsuarioLista' }
+        '404':
+          description: Usuario inexistente o correo sin verificar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /usuarios/{id}/videos:
+    get:
+      tags: [Perfil]
+      summary: Publicaciones de otro usuario
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página de publicaciones ajenas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaVideos' }
+        '404':
+          description: Usuario inexistente o correo sin verificar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /usuarios/{id}/conversaciones:
+    get:
+      tags: [Perfil]
+      summary: Conversaciones iniciadas por otro usuario
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página de conversaciones ajenas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaConversaciones' }
+        '404':
+          description: Usuario inexistente o correo sin verificar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /seguir/{id}:
+    post:
+      tags: [Perfil]
+      summary: Sigue o deja de seguir a un usuario (toggle)
+      description: Si empieza a seguir, crea una notificación `nuevo_seguidor`.
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      responses:
+        '200':
+          description: Resultado del toggle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  siguiendo: { type: boolean }
+        '400':
+          description: No puedes seguirte a ti mismo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Usuario inexistente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ------------------------------------------------------------------ #
+  # Videos                                                             #
+  # ------------------------------------------------------------------ #
+  /videos:
+    get:
+      tags: [Videos]
+      summary: Feed de Maquillajes (público, personalizable con sesión)
+      description: |
+        Feed principal. Sin sesión devuelve el contenido de forma genérica;
+        con sesión aplica el boost por preferencias de likes y permite
+        `mis_caracteristicas=1`. Al buscar (`q`) se ignoran las características
+        físicas. Si el filtro estricto por características devuelve 0, se
+        dividen los resultados en apartados (`coincidenciaParcial`); si nada
+        coincide, devuelve todo en orden original (`sinCoincidencia`).
+      security:
+        - cookieAuth: []
+        - {}
+      parameters:
+        - name: categoria
+          in: query
+          schema:
+            type: string
+            enum: [Video Maquillajes, Tutorial, Delineados, Sombras, Lip Combo, Base]
+        - name: cultura
+          in: query
+          schema: { type: integer }
+        - name: subcultura
+          in: query
+          schema: { type: integer }
+        - name: q
+          in: query
+          description: Búsqueda en descripción, cultura y subcultura
+          schema: { type: string }
+        - name: orden
+          in: query
+          schema:
+            type: string
+            enum: [semejanza, relevantes, fecha, cultura, subestilo]
+            default: semejanza
+        - name: edad
+          in: query
+          schema: { type: string }
+        - name: ojos
+          in: query
+          schema: { type: string }
+        - name: nariz
+          in: query
+          schema: { type: string }
+        - name: labios
+          in: query
+          schema: { type: string }
+        - name: boca
+          in: query
+          description: Alias de labios (columna tipo_labios)
+          schema: { type: string }
+        - name: rostro
+          in: query
+          schema: { type: string }
+        - name: piel_color
+          in: query
+          schema: { type: string }
+        - name: piel_tipo
+          in: query
+          schema: { type: string }
+        - name: mis_caracteristicas
+          in: query
+          description: '1 para filtrar por las características del usuario (requiere sesión)'
+          schema: { type: string, enum: ['1'] }
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página del feed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FeedVideos' }
+    post:
+      tags: [Videos]
+      summary: Crea una publicación (video o tutorial)
+      description: |
+        Valida y modera con Sightengine antes de guardar. Notifica a los
+        seguidores (`nuevo_contenido_seguido`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [categoria_contenido, cultura_id, subcultura_id, descripcion, caracteristicas]
+              properties:
+                categoria_contenido:
+                  type: string
+                  enum: [Video Maquillajes, Tutorial, Delineados, Sombras, Lip Combo, Base]
+                cultura_id: { type: integer }
+                subcultura_id: { type: integer }
+                url_video:
+                  type: string
+                  format: uri
+                  description: Obligatorio salvo en Tutorial
+                descripcion: { type: string, maxLength: 2000 }
+                rango_edad: { type: string }
+                proporcion: { type: string, example: '4:5' }
+                imagenes:
+                  type: array
+                  maxItems: 5
+                  items: { type: string, format: uri }
+                etiquetas:
+                  type: array
+                  maxItems: 20
+                  items: { type: string, maxLength: 30 }
+                pasos:
+                  type: array
+                  description: Solo en tutoriales
+                  items:
+                    type: object
+                    properties:
+                      tipo: { type: string }
+                      contenido: { type: string }
+                caracteristicas:
+                  type: object
+                  description: 6 rasgos obligatorios
+                  properties:
+                    forma_ojos: { type: string }
+                    tipo_nariz: { type: string }
+                    tipo_labios: { type: string }
+                    tipo_rostro: { type: string }
+                    color_piel: { type: string }
+                    tipo_piel: { type: string }
+                    edad: { type: string }
+      responses:
+        '201':
+          description: Publicación creada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  id: { type: integer }
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Rechazado por moderación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorModeracion' }
+        '502':
+          description: Error al consultar Sightengine
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '503':
+          description: Moderación no configurada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /videos/filtros:
+    get:
+      tags: [Videos]
+      summary: Valores canónicos para los filtros físicos
+      security: []
+      responses:
+        '200':
+          description: Catálogo de valores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ojos: { type: array, items: { type: string } }
+                  narices: { type: array, items: { type: string } }
+                  labios: { type: array, items: { type: string } }
+                  rostros: { type: array, items: { type: string } }
+                  coloresPiel: { type: array, items: { type: string } }
+                  tiposPiel: { type: array, items: { type: string } }
+                  edades: { type: array, items: { type: string } }
+
+  /videos/{id}:
+    get:
+      tags: [Videos]
+      summary: Detalle de una publicación
+      security:
+        - cookieAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Detalle completo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  video: { $ref: '#/components/schemas/VideoDetalle' }
+        '400':
+          description: Id inválido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Video inexistente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    put:
+      tags: [Videos]
+      summary: Edita una publicación propia
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                descripcion: { type: string, maxLength: 2000 }
+                categoria_contenido: { type: string }
+                cultura_id: { type: integer }
+                subcultura_id: { type: integer }
+                etiquetas:
+                  type: array
+                  maxItems: 20
+                  items: { type: string, maxLength: 30 }
+      responses:
+        '200':
+          description: Publicación actualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+        '400':
+          description: Datos inválidos (p. ej. subcultura que no pertenece a la cultura)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403':
+          description: No eres el autor
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Video inexistente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    delete:
+      tags: [Videos]
+      summary: Elimina una publicación propia
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Publicación eliminada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+        '403':
+          description: No eres el autor
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Video inexistente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /videos/{id}/like:
+    post:
+      tags: [Videos]
+      summary: Da o quita el like a un video (toggle)
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Resultado del toggle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  like: { type: boolean }
+                  cantidadLikes: { type: integer }
+
+  /videos/{id}/guardar:
+    post:
+      tags: [Videos]
+      summary: Guarda o quita de guardados un video (toggle)
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Resultado del toggle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  guardado: { type: boolean }
+                  cantidadGuardados: { type: integer }
+
+  /videos/{id}/compartir:
+    post:
+      tags: [Videos]
+      summary: Registra un compartido (una vez por usuario y video)
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Resultado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  nuevo: { type: boolean, description: true si fue el primer compartido de este usuario }
+                  cantidadCompartidos: { type: integer }
+
+  /videos/{id}/visto:
+    post:
+      tags: [Videos]
+      summary: Registra una vista del video
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Vista registrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+
+  /videos/{id}/voto:
+    post:
+      tags: [Videos]
+      summary: Vota la semejanza del video (a favor o en contra)
+      description: |
+        En contra se exige al menos una razón. Si se marca "Selección de estilo
+        alternativo" hay que indicar un `estiloAlternativoId` distinto al del
+        video. Puede disparar una notificación `semejanza_baja` al autor.
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [voto]
+              properties:
+                voto: { type: string, enum: [favor, contra] }
+                razones:
+                  type: array
+                  items: { type: integer }
+                estiloAlternativoId: { type: integer }
+      responses:
+        '200':
+          description: Voto registrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  avisoSemejanza:
+                    type: boolean
+                    description: true si se creó la notificación semejanza_baja
+        '400':
+          description: Voto inválido (faltan razones, estilo alternativo inválido, etc.)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /videos/{id}/comentarios:
+    post:
+      tags: [Videos]
+      summary: Comenta un video (o responde a un comentario)
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [texto]
+              properties:
+                texto: { type: string, maxLength: 250 }
+                comentario_padre_id:
+                  type: integer
+                  nullable: true
+                  description: Si viene, es una respuesta
+      responses:
+        '201':
+          description: Comentario creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  comentario: { $ref: '#/components/schemas/Comentario' }
+        '400':
+          description: Texto inválido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /videos/{id}/comentarios/{cid}/like:
+    post:
+      tags: [Videos]
+      summary: Da o quita el like a un comentario (toggle)
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+        - $ref: '#/components/parameters/ComentarioId'
+      responses:
+        '200':
+          description: Resultado del toggle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  like: { type: boolean }
+                  cantidadLikes: { type: integer }
+
+  /videos/{id}/estadisticas:
+    get:
+      tags: [Videos]
+      summary: Estadísticas de un video propio (gráficas)
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Resumen y tendencia diaria de 14 días
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  estadisticas:
+                    type: object
+                    properties:
+                      resumen:
+                        type: object
+                        properties:
+                          vistas: { type: integer }
+                          likes: { type: integer }
+                          guardados: { type: integer }
+                          compartidos: { type: integer }
+                          comentarios: { type: integer }
+                          votosFavor: { type: integer }
+                          votosContra: { type: integer }
+                          votosTotal: { type: integer }
+                          semejanza: { type: integer, nullable: true }
+                      diario:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            fecha: { type: string, format: date }
+                            vistas: { type: integer }
+                            likes: { type: integer }
+                            guardados: { type: integer }
+                            compartidos: { type: integer }
+                            comentarios: { type: integer }
+                            votosFavor: { type: integer }
+                            votosContra: { type: integer }
+                      desde: { type: string, format: date }
+                      hasta: { type: string, format: date }
+        '400':
+          description: Id inválido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403':
+          description: No eres el autor
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Video inexistente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ------------------------------------------------------------------ #
+  # Conversaciones                                                     #
+  # ------------------------------------------------------------------ #
+  /conversaciones:
+    get:
+      tags: [Conversaciones]
+      summary: Feed de conversaciones (público, sesión opcional)
+      security:
+        - cookieAuth: []
+        - {}
+      parameters:
+        - name: tema
+          in: query
+          schema: { type: string }
+        - name: cultura
+          in: query
+          description: Uno o varios ids separados por coma
+          schema: { type: string, example: '1,3' }
+        - name: subcultura
+          in: query
+          schema: { type: integer }
+        - name: q
+          in: query
+          description: Búsqueda en título, texto y tema
+          schema: { type: string }
+        - name: desde
+          in: query
+          schema: { type: string, format: date }
+        - name: hasta
+          in: query
+          schema: { type: string, format: date }
+        - name: orden
+          in: query
+          schema:
+            type: string
+            enum: [fecha, likes, sin_responder, siguiendo]
+            default: fecha
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página del feed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaConversaciones' }
+    post:
+      tags: [Conversaciones]
+      summary: Crea una conversación
+      description: Si hay imágenes se moderan con Sightengine antes de guardar.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tema, subcultura_id, titulo, texto]
+              properties:
+                tema: { type: string, maxLength: 40 }
+                subcultura_id: { type: integer }
+                titulo: { type: string, maxLength: 80 }
+                texto: { type: string, maxLength: 500 }
+                imagenes:
+                  type: array
+                  maxItems: 3
+                  items: { type: string, format: uri }
+      responses:
+        '201':
+          description: Conversación creada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  id: { type: integer }
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Rechazado por moderación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorModeracion' }
+        '502':
+          description: Error al consultar Sightengine
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '503':
+          description: Moderación no configurada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /conversaciones/temas:
+    get:
+      tags: [Conversaciones]
+      summary: Catálogo de temas permitidos
+      security: []
+      responses:
+        '200':
+          description: Lista de temas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  temas: { type: array, items: { type: string } }
+
+  /conversaciones/denuncia-motivos:
+    get:
+      tags: [Conversaciones]
+      summary: Catálogo de motivos de denuncia
+      security: []
+      responses:
+        '200':
+          description: Motivos disponibles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  motivos:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        descripcion: { type: string }
+
+  /conversaciones/{id}:
+    get:
+      tags: [Conversaciones]
+      summary: Detalle de una conversación
+      security:
+        - cookieAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/ConversacionId'
+      responses:
+        '200':
+          description: Conversación con galería y comentarios anidados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  conversacion: { $ref: '#/components/schemas/ConversacionDetalle' }
+        '404':
+          description: Conversación inexistente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /conversaciones/{id}/visto:
+    post:
+      tags: [Conversaciones]
+      summary: Registra una vista de la conversación
+      parameters:
+        - $ref: '#/components/parameters/ConversacionId'
+      responses:
+        '200':
+          description: Vista registrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+
+  /conversaciones/{id}/like:
+    post:
+      tags: [Conversaciones]
+      summary: Da o quita el like a una conversación (toggle)
+      parameters:
+        - $ref: '#/components/parameters/ConversacionId'
+      responses:
+        '200':
+          description: Resultado del toggle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  like: { type: boolean }
+                  cantidadLikes: { type: integer }
+
+  /conversaciones/{id}/comentarios:
+    post:
+      tags: [Conversaciones]
+      summary: Comenta una conversación (o responde a un comentario)
+      parameters:
+        - $ref: '#/components/parameters/ConversacionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [texto]
+              properties:
+                texto: { type: string, maxLength: 250 }
+                comentario_padre_id: { type: integer, nullable: true }
+      responses:
+        '201':
+          description: Comentario creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  comentario: { $ref: '#/components/schemas/Comentario' }
+        '400':
+          description: Texto inválido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /conversaciones/{id}/comentarios/{cid}/like:
+    post:
+      tags: [Conversaciones]
+      summary: Da o quita el like a un comentario (toggle)
+      parameters:
+        - $ref: '#/components/parameters/ConversacionId'
+        - $ref: '#/components/parameters/ComentarioId'
+      responses:
+        '200':
+          description: Resultado del toggle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  like: { type: boolean }
+                  cantidadLikes: { type: integer }
+
+  /conversaciones/{id}/denuncias:
+    post:
+      tags: [Conversaciones]
+      summary: Denuncia una conversación
+      description: |
+        Si la conversación acumula al menos 20 vistas y más del 45% de denuncias
+        sobre vistas, se elimina automáticamente (RQFN141).
+      parameters:
+        - $ref: '#/components/parameters/ConversacionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motivos]
+              properties:
+                motivos:
+                  type: array
+                  minItems: 1
+                  maxItems: 10
+                  items: { type: integer }
+      responses:
+        '200':
+          description: Denuncia registrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  eliminada: { type: boolean, description: true si cruzó el umbral de auto-eliminación }
+                  message: { type: string, nullable: true }
+        '400':
+          description: Sin motivos, motivo inexistente, denuncia propia o demasiados motivos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Conversación inexistente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: Ya denunciaste esta conversación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ------------------------------------------------------------------ #
+  # Notificaciones                                                     #
+  # ------------------------------------------------------------------ #
+  /notificaciones:
+    get:
+      tags: [Notificaciones]
+      summary: Notificaciones del usuario propio
+      responses:
+        '200':
+          description: Lista descendente por fecha
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  noLeidas: { type: integer }
+                  notificaciones:
+                    type: array
+                    items: { $ref: '#/components/schemas/Notificacion' }
+        '401':
+          description: Sin sesión
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /notificaciones/leidas:
+    post:
+      tags: [Notificaciones]
+      summary: Marca todas las notificaciones propias como leídas
+      responses:
+        '200':
+          description: Notificaciones marcadas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Exito' }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: JWT de acceso guardado en una cookie httpOnly.
+
+  parameters:
+    Pagina:
+      name: pagina
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    Limite:
+      name: limite
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 60, default: 30 }
+    UsuarioId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    VideoId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    ConversacionId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    ComentarioId:
+      name: cid
+      in: path
+      required: true
+      schema: { type: integer }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string, example: 'Error interno del servidor' }
+
+    ErrorCampo:
+      type: object
+      properties:
+        error: { type: string }
+        field: { type: string, enum: [email, username] }
+
+    ErrorModeracion:
+      type: object
+      properties:
+        error: { type: string, example: 'La publicación no pasó la moderación.' }
+        motivos: { type: array, items: { type: string } }
+
+    Exito:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+
+    Usuario:
+      type: object
+      properties:
+        id: { type: integer }
+        email: { type: string, format: email }
+        username: { type: string }
+        fotoPerfil: { type: string, format: uri }
+        descripcion: { type: string, nullable: true }
+        correo_verificado: { type: boolean }
+        tienePreferencias: { type: boolean }
+
+    UsuarioLista:
+      type: object
+      properties:
+        id: { type: integer }
+        nombre_usuario: { type: string }
+        fotoPerfil: { type: string, format: uri }
+        descripcion: { type: string, nullable: true }
+        yoSigo: { type: boolean }
+
+    Perfil:
+      allOf:
+        - $ref: '#/components/schemas/Usuario'
+        - type: object
+          properties:
+            fechaRegistro: { type: string, format: date-time }
+            videos: { type: integer }
+            likesRecibidos: { type: integer }
+            seguidores: { type: integer }
+            siguiendo: { type: integer }
+
+    PerfilAjeno:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        fotoPerfil: { type: string, format: uri }
+        descripcion: { type: string, nullable: true }
+        fechaRegistro: { type: string, format: date-time }
+        yaSigo: { type: boolean }
+        videos: { type: integer }
+        likesRecibidos: { type: integer }
+        seguidores: { type: integer }
+        siguiendo: { type: integer }
+
+    Subcultura:
+      type: object
+      properties:
+        id: { type: integer }
+        cultura_id: { type: integer }
+        nombre: { type: string }
+        imagen_ref: { type: string, nullable: true }
+        descripcion: { type: string, nullable: true }
+        bibliografia: { type: string, nullable: true }
+
+    Cultura:
+      type: object
+      properties:
+        id: { type: integer }
+        nombre: { type: string }
+        descripcion: { type: string, nullable: true }
+        imagen_ref: { type: string, nullable: true }
+        subculturas:
+          type: array
+          items: { $ref: '#/components/schemas/Subcultura' }
+
+    Creador:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        fotoPerfil: { type: string, format: uri }
+
+    ReferenciaSimple:
+      type: object
+      properties:
+        id: { type: integer }
+        nombre: { type: string }
+
+    Video:
+      type: object
+      properties:
+        id: { type: integer }
+        urlVideo: { type: string, format: uri }
+        miniatura: { type: string, format: uri, nullable: true }
+        descripcion: { type: string }
+        categoria: { type: string }
+        cultura: { $ref: '#/components/schemas/ReferenciaSimple' }
+        subcultura: { $ref: '#/components/schemas/ReferenciaSimple' }
+        creador: { $ref: '#/components/schemas/Creador' }
+        likes: { type: integer }
+        vistas: { type: integer }
+        guardados: { type: integer }
+        compartidos: { type: integer }
+        cantidadComentarios: { type: integer }
+        votos:
+          type: object
+          properties:
+            favor: { type: integer }
+            contra: { type: integer }
+        semejanza: { type: integer, nullable: true, description: null si el total de votos no supera 1000 }
+        rangoEdad: { type: string }
+        proporcion: { type: string }
+        fechaPublicacion: { type: string, format: date-time }
+        apartado: { type: string, description: Presente solo en el fallback de coincidencia parcial }
+
+    Comentario:
+      type: object
+      properties:
+        id: { type: integer }
+        texto: { type: string }
+        autor: { $ref: '#/components/schemas/Creador' }
+        cantidadLikes: { type: integer }
+        likeDado: { type: boolean }
+        esRespuesta: { type: boolean }
+        comentario_padre_id: { type: integer, nullable: true }
+        fecha: { type: string, format: date-time }
+        respuestas:
+          type: array
+          items: { $ref: '#/components/schemas/Comentario' }
+
+    VideoDetalle:
+      allOf:
+        - $ref: '#/components/schemas/Video'
+        - type: object
+          properties:
+            galeria: { type: array, items: { type: string, format: uri } }
+            etiquetas: { type: array, items: { type: string } }
+            pasos:
+              type: array
+              items:
+                type: object
+                properties:
+                  tipo: { type: string }
+                  contenido: { type: string }
+            comentarios:
+              type: array
+              items: { $ref: '#/components/schemas/Comentario' }
+            yaSigo: { type: boolean }
+            razonesVoto:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: integer }
+                  descripcion: { type: string }
+                  esAlternativo: { type: boolean }
+            estadoPropio:
+              type: object
+              properties:
+                like: { type: boolean }
+                guardado: { type: boolean }
+
+    FeedVideos:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        videos:
+          type: array
+          items: { $ref: '#/components/schemas/Video' }
+        total: { type: integer }
+        pagina: { type: integer }
+        limite: { type: integer }
+        hasMore: { type: boolean }
+        marcaFiltrosActivos: { type: boolean }
+        coincidenciaParcial: { type: boolean }
+        sinCoincidencia: { type: boolean }
+
+    PaginaVideos:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        videos:
+          type: array
+          items: { $ref: '#/components/schemas/Video' }
+        total: { type: integer }
+        pagina: { type: integer }
+        limite: { type: integer }
+        hasMore: { type: boolean }
+
+    Conversacion:
+      type: object
+      properties:
+        id: { type: integer }
+        tema: { type: string }
+        titulo: { type: string }
+        texto: { type: string }
+        cultura: { $ref: '#/components/schemas/ReferenciaSimple' }
+        subcultura: { $ref: '#/components/schemas/ReferenciaSimple' }
+        creador: { $ref: '#/components/schemas/Creador' }
+        likes: { type: integer }
+        vistas: { type: integer }
+        cantidadComentarios: { type: integer }
+        fechaPublicacion: { type: string, format: date-time }
+        galeria: { type: array, items: { type: string, format: uri } }
+        ultimosParticipantes:
+          type: array
+          items: { $ref: '#/components/schemas/Creador' }
+        ultimaRespuesta: { type: string, format: date-time, nullable: true }
+        estadoPropio:
+          type: object
+          properties:
+            like: { type: boolean }
+            denuncie: { type: boolean }
+
+    ConversacionDetalle:
+      allOf:
+        - $ref: '#/components/schemas/Conversacion'
+        - type: object
+          properties:
+            cantidadDenuncias: { type: integer }
+            esDueño: { type: boolean }
+            comentarios:
+              type: array
+              items: { $ref: '#/components/schemas/Comentario' }
+
+    PaginaConversaciones:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        conversaciones:
+          type: array
+          items: { $ref: '#/components/schemas/Conversacion' }
+        total: { type: integer }
+        pagina: { type: integer }
+        limite: { type: integer }
+        hasMore: { type: boolean }
+
+    Notificacion:
+      type: object
+      properties:
+        id: { type: integer }
+        tipo:
+          type: string
+          enum: [nuevo_seguidor, nuevo_contenido_seguido, nuevo_like, like_comentario, nuevo_comentario, semejanza_baja]
+        mensaje: { type: string }
+        leida: { type: boolean }
+        video_id: { type: integer, nullable: true }
+        conversacion_id: { type: integer, nullable: true }
+        actor:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/Creador'
+          description: null para notificaciones de sistema (semejanza_baja)
+        fecha: { type: string, format: date-time }

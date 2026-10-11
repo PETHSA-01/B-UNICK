@@ -155,7 +155,7 @@ export const Notificaciones = forwardRef((props, ref) => {
             </div>
           </div>
 
-          {notif.action && (
+          {notif.action && !Array.isArray(notif.action) && (
             <div className="notif-actions-bar">
               <button
                 type="button"
@@ -169,6 +169,26 @@ export const Notificaciones = forwardRef((props, ref) => {
               >
                 {notif.action.label}
               </button>
+            </div>
+          )}
+
+          {Array.isArray(notif.action) && (
+            <div className="notif-actions-bar notif-actions-bar--multi">
+              {notif.action.map((accion, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`notif-action-btn ${accion.tone ? `notif-action-btn--${accion.tone}` : ''}`}
+                  onClick={() => {
+                    accion.onClick?.()
+                    if (accion.dismissOnClick !== false) {
+                      removeNotification(notif.id)
+                    }
+                  }}
+                >
+                  {accion.label}
+                </button>
+              ))}
             </div>
           )}
         </article>

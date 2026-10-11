@@ -319,11 +319,18 @@
     left: 0;
     top: 0;
     right: 0;
-    bottom: 84px;
+    bottom: 0;
     width: 100%;
     border-right: 0;
     box-shadow: none;
     border-radius: 0;
+  }
+
+  /* El drawer se coloca por ENCIMA de la bottom bar (z-50): en móvil abarca
+     la pantalla completa como el resto de los paneles de la barra lateral.
+     (RQFN: "en móvil debe comportarse como otro elemento de la barra"). */
+  .notif-drawer-contenedor {
+    z-index: 60;
   }
 
   .notif-drawer-cerrar {

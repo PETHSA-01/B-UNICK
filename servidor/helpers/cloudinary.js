@@ -26,8 +26,32 @@ async function eliminarImagen(url) {
     }
 }
 
+// Fotograma de un video como imagen, para moderarlo con la API Image Moderation
+// (RQFN59). Cloudinary entrega el frame en el porcentaje indicado del video con
+// la transformación `so_##p`, así que funciona con cualquier duración sin
+// consultar la duración del asset ni arriesgar un offset fuera de rango.
+// Devuelve null si la URL no es un video de Cloudinary servida sin firma
+// (una URL firmada no admite transformaciones añadidas).
+function urlFotogramaVideo(urlVideo, porcentaje) {
+    if (typeof urlVideo !== 'string' || !urlVideo) return null;
+    let url;
+    try {
+        url = new URL(urlVideo);
+    } catch (e) {
+        return null;
+    }
+    if (url.hostname !== 'res.cloudinary.com') return null;
+    if (url.search) return null;
+    if (!url.pathname.includes('/video/upload/')) return null;
+    const conTransformacion = url.pathname
+        .replace(/\.[a-z0-9]+$/i, '.jpg')
+        .replace('/video/upload/', `/video/upload/so_${porcentaje}p,w_640,q_auto/`);
+    return `${url.protocol}//${url.host}${conTransformacion}`;
+}
+
 module.exports = {
     cloudinary,
     subirImagen,
-    eliminarImagen
+    eliminarImagen,
+    urlFotogramaVideo
 };

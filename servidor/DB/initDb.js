@@ -6,9 +6,11 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const DB_HOST = process.env.MYSQLDB_HOST || 'localhost';
+const DB_PORT = Number(process.env.MYSQLDB_PORT) || 3306;
 const DB_USER = process.env.MYSQLDB_USER || 'root';
 const DB_PASSWORD = process.env.MYSQLDB_CONTRASENA || '';
 const DB_NAME = process.env.MYSQLDB_DB || 'bunyk_db';
+const DB_SSL = process.env.MYSQLDB_SSL === 'true' ? { rejectUnauthorized: false } : undefined;
 const RESET_DB = process.env.RESET_DB === 'true';
 const SCHEMA_VERSION_TABLE = 'schema_version';
 
@@ -38,8 +40,10 @@ async function initDb() {
 
     const connection = await mysql2.createConnection({
         host: DB_HOST,
+        port: DB_PORT,
         user: DB_USER,
         password: DB_PASSWORD,
+        ssl: DB_SSL,
         multipleStatements: true
     });
 

@@ -49,6 +49,65 @@ cd cliente && npm install && npm run dev
 
 El cliente usa el proxy de Vite (`/api` → `http://localhost:3000`).
 
+## Despliegue
+
+Arquitectura (según la propuesta del proyecto): **frontend + backend juntos en
+un único servicio web de Render**, que compila el cliente con Vite y lo sirve
+con Express desde el mismo origen; la **base de datos MySQL vive en Railway**.
+Al compartir origen, el frontend llama a `/api` sin CORS ni problemas de cookies
+`httpOnly`.
+
+### 1. Base de datos en Railway
+
+1. Crea un proyecto y añade el plugin **MySQL**.
+2. En la pestaña *Variables*/*Connect* copia el **host público**, **puerto**,
+   **usuario**, **contraseña** y el nombre de la base.
+3. En *Settings → Networking* habilita el **TCP Proxy público** (el host
+   interno `*.railway.internal` solo sirve dentro de Railway).
+4. Anota esos datos: se usan como `MYSQLDB_HOST`, `MYSQLDB_PORT`,
+   `MYSQLDB_USER`, `MYSQLDB_CONTRASENA` y `MYSQLDB_DB` (`bunyk_db`).
+   Railway exige TLS, así que `MYSQLDB_SSL=true`.
+
+> La base se crea sola en el primer arranque: `servidor/DB/initDb.js` lee
+> `servidor/DB/bunyk_db.sql` y aplica el esquema + seeds. El usuario de
+> Railway debe poder crear la base `bunyk_db`.
+
+### 2. Repositorio
+
+`servidor/DB/bunyk_db.sql` **debe estar en el repositorio** (lo usa `initDb` en
+cada arranque). Ya no está en `.gitignore`; asegúrate de commitearlo antes de
+desplegar. Los `.env` reales **no** se suben (usa los `.env.example`).
+
+### 3. Servicio en Render
+
+Con el repo en GitHub, usa el blueprint incluido (**New → Blueprint →
+`render.yaml`**) o crea un **Web Service** manual con:
+
+- **Build Command:**
+  `npm --prefix servidor install && npm --prefix cliente install && npm --prefix cliente run build`
+- **Start Command:** `node servidor/index.js`
+- **Health Check Path:** `/api/videos/filtros`
+- **Runtime:** Node (el `render.yaml` fija `NODE_VERSION=24`).
+
+Render inyecta `PORT` automáticamente. Rellena en el dashboard los secretos
+marcados con `sync: false` (Railway, JWT, Cloudinary, Sightengine, Gmail) y las
+variables `VITE_CLOUDINARY_*` (se embeben en el build del cliente). Usa
+`NODE_ENV=production` y `RESET_DB=false`.
+
+### 4. URLs y primer deploy
+
+1. Tras el primer deploy, Render asigna una URL pública
+   (p. ej. `https://b-unick.onrender.com`).
+2. Configura `FRONTEND_URL` y `BACKEND_URL` con **esa misma URL** y vuelve a
+   desplegar. `FRONTEND_URL` se usa como `origin` de CORS y destino de las
+   redirecciones de verificación de correo/restablecimiento.
+3. Verifica el correo de verificación configurando en Google Cloud el redirect
+   de OAuth y `BACKEND_URL/api/verificar-correo` como origen permitido.
+
+> **Aviso:** cada vez que se sube `SCHEMA_VERSION` en `bunyk_db.sql`, `initDb`
+> **re-crea la base** (DROP + re-import) y se pierden los datos reales. Mantén
+> `RESET_DB=false` y cambia `SCHEMA_VERSION` solo cuando quieras resembrar.
+
 ## Estado del proyecto
 
 Iteración **v1.1.0** (2026-09-20):

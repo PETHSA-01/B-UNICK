@@ -1,0 +1,1601 @@
+{
+  "info": {
+    "_postman_id": "8d5e2597-daf2-4f1a-a28a-c38240f41dec",
+    "name": "B-unick API",
+    "description": "Colección generada desde servidor/docs/openapi.yaml. Todos los endpoints viven bajo /api. La autenticación es por cookies httpOnly: ejecuta primero 'Iniciar sesión por correo o nombre de usuario' y Postman (app de escritorio) guardará accessToken/refreshToken y los enviará solos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "videoId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "usuarioId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "conversacionId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "comentarioId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Sistema",
+      "item": [
+        {
+          "name": "Comprobación de vida del servidor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Autenticación",
+      "item": [
+        {
+          "name": "Comprueba disponibilidad de correo y nombre de usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/validacionregistro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "validacionregistro"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"string\",\n  \"username\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crea la cuenta con características físicas y envía el correo de verificación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/preregistro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "preregistro"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"string\",\n  \"password\": \"string\",\n  \"username\": \"string\",\n  \"ojos\": \"string\",\n  \"nariz\": \"string\",\n  \"labios\": \"string\",\n  \"cara\": \"string\",\n  \"colorPiel\": \"string\",\n  \"tipoPiel\": \"string\",\n  \"edad\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verifica el correo a partir del enlace enviado por email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/verificar-correo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "verificar-correo"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Valida el JWT de la familia email, marca `correo_verificado=1`, consume el token y redirige al frontend."
+          },
+          "response": []
+        },
+        {
+          "name": "Confirma el cambio de correo desde el enlace enviado al correo nuevo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/verificar-cambio-correo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "verificar-cambio-correo"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inicia sesión por correo o nombre de usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identificador\": \"string\",\n  \"password\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Devuelve el usuario de la sesión activa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Renueva el accessToken a partir del refreshToken",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cierra la sesión del dispositivo actual",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Envía el enlace de recuperación de contraseña",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/olvido-contrasena",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "olvido-contrasena"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Respuesta neutral (no revela si el correo existe)."
+          },
+          "response": []
+        },
+        {
+          "name": "Restablece la contraseña usando el token del correo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recuperar-contrasena",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recuperar-contrasena"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"string\",\n  \"nuevaContrasena\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reenvía el correo de verificación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reenviar-verificacion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reenviar-verificacion"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Respuesta neutral (no revela si el correo existe o ya está verificado)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Culturas",
+      "item": [
+        {
+          "name": "Lista culturas con sus subculturas anidadas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/culturas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "culturas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Guarda las preferencias de cultura/subcultura del usuario (1 a 3)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/preferencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "preferencias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferencias\": [\n    {\n      \"culturaId\": 1,\n      \"subculturaId\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Perfil",
+      "item": [
+        {
+          "name": "Perfil propio con estadísticas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edita el nombre de usuario y la descripción propios",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"string\",\n  \"descripcion\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cambia la contraseña propia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/contrasena",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "contrasena"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contrasenaActual\": \"string\",\n  \"nuevaContrasena\": \"string\",\n  \"confirmarContrasena\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Exige la contraseña actual y la confirmación de la nueva. Al cambiar la\ncontraseña se revocan los refresh tokens de las demás sesiones.\n"
+          },
+          "response": []
+        },
+        {
+          "name": "Solicita el cambio de correo (flujo de 2 pasos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/correo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "correo"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoCorreo\": \"string\",\n  \"contrasena\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Valida la contraseña y la disponibilidad del nuevo correo, y envía un enlace de confirmación al correo nuevo."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualiza la foto de perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/foto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "foto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imagen\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "La imagen se envía como dataURL y el servidor la sube a Cloudinary con recorte cuadrado 400×400."
+          },
+          "response": []
+        },
+        {
+          "name": "Lista de seguidores del usuario propio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/seguidores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "seguidores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lista de usuarios a los que sigue el usuario propio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/siguiendo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "siguiendo"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Publicaciones del perfil propio (masonry con scroll infinito)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/videos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "videos"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Videos guardados por el usuario propio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/guardados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "guardados"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de videos vistos (últimos 14 días)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/vistos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "vistos"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Características físicas registradas del usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/caracteristicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "caracteristicas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Conversaciones iniciadas por el usuario propio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/conversaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "conversaciones"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Perfil de otro usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{idId}}/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{idId}}",
+                "perfil"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Seguidores de otro usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{idId}}/seguidores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{idId}}",
+                "seguidores"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Usuarios seguidos por otro usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{idId}}/siguiendo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{idId}}",
+                "siguiendo"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Publicaciones de otro usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{idId}}/videos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{idId}}",
+                "videos"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Conversaciones iniciadas por otro usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{idId}}/conversaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{idId}}",
+                "conversaciones"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sigue o deja de seguir a un usuario (toggle)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/seguir/{{idId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "seguir",
+                "{{idId}}"
+              ]
+            },
+            "description": "Si empieza a seguir, crea una notificación `nuevo_seguidor`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Videos",
+      "item": [
+        {
+          "name": "Feed de Maquillajes (público, personalizable con sesión)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos"
+              ],
+              "query": [
+                {
+                  "key": "categoria",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "cultura",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "subcultura",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Búsqueda en descripción, cultura y subcultura"
+                },
+                {
+                  "key": "orden",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "edad",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "ojos",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "nariz",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "labios",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "boca",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Alias de labios (columna tipo_labios)"
+                },
+                {
+                  "key": "rostro",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "piel_color",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "piel_tipo",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "mis_caracteristicas",
+                  "value": "",
+                  "disabled": true,
+                  "description": "1 para filtrar por las características del usuario (requiere sesión)"
+                },
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Feed principal. Sin sesión devuelve el contenido de forma genérica;\ncon sesión aplica el boost por preferencias de likes y permite\n`mis_caracteristicas=1`. Al buscar (`q`) se ignoran las características\nfísicas. Si el filtro estricto por características devuelve 0, se\ndividen los resultados en apartados (`coincidenciaParcial`); si nada\ncoincide, devuelve todo en orden original (`sinCoincidencia`).\n"
+          },
+          "response": []
+        },
+        {
+          "name": "Crea una publicación (video o tutorial)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_contenido\": \"string\",\n  \"cultura_id\": 1,\n  \"subcultura_id\": 1,\n  \"url_video\": \"string\",\n  \"descripcion\": \"string\",\n  \"rango_edad\": \"string\",\n  \"proporcion\": \"4:5\",\n  \"imagenes\": [\n    \"string\"\n  ],\n  \"etiquetas\": [\n    \"string\"\n  ],\n  \"pasos\": [\n    {\n      \"tipo\": \"string\",\n      \"contenido\": \"string\"\n    }\n  ],\n  \"caracteristicas\": {\n    \"forma_ojos\": \"string\",\n    \"tipo_nariz\": \"string\",\n    \"tipo_labios\": \"string\",\n    \"tipo_rostro\": \"string\",\n    \"color_piel\": \"string\",\n    \"tipo_piel\": \"string\",\n    \"edad\": \"string\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Valida y modera con Sightengine antes de guardar. Notifica a los\nseguidores (`nuevo_contenido_seguido`).\n"
+          },
+          "response": []
+        },
+        {
+          "name": "Valores canónicos para los filtros físicos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos/filtros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "filtros"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle de una publicación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edita una publicación propia",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"string\",\n  \"categoria_contenido\": \"string\",\n  \"cultura_id\": 1,\n  \"subcultura_id\": 1,\n  \"etiquetas\": [\n    \"string\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Elimina una publicación propia",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Da o quita el like a un video (toggle)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Guarda o quita de guardados un video (toggle)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}/guardar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}",
+                "guardar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registra un compartido (una vez por usuario y video)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}/compartir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}",
+                "compartir"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registra una vista del video",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}/visto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}",
+                "visto"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vota la semejanza del video (a favor o en contra)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}/voto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}",
+                "voto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voto\": \"string\",\n  \"razones\": [\n    1\n  ],\n  \"estiloAlternativoId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "En contra se exige al menos una razón. Si se marca \"Selección de estilo\nalternativo\" hay que indicar un `estiloAlternativoId` distinto al del\nvideo. Puede disparar una notificación `semejanza_baja` al autor.\n"
+          },
+          "response": []
+        },
+        {
+          "name": "Comenta un video (o responde a un comentario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}/comentarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}",
+                "comentarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"string\",\n  \"comentario_padre_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Da o quita el like a un comentario (toggle)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}/comentarios/{{cidId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}",
+                "comentarios",
+                "{{cidId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Estadísticas de un video propio (gráficas)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{idId}}/estadisticas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{idId}}",
+                "estadisticas"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Conversaciones",
+      "item": [
+        {
+          "name": "Feed de conversaciones (público, sesión opcional)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones"
+              ],
+              "query": [
+                {
+                  "key": "tema",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "cultura",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Uno o varios ids separados por coma"
+                },
+                {
+                  "key": "subcultura",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Búsqueda en título, texto y tema"
+                },
+                {
+                  "key": "desde",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "hasta",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "orden",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crea una conversación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tema\": \"string\",\n  \"subcultura_id\": 1,\n  \"titulo\": \"string\",\n  \"texto\": \"string\",\n  \"imagenes\": [\n    \"string\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Si hay imágenes se moderan con Sightengine antes de guardar."
+          },
+          "response": []
+        },
+        {
+          "name": "Catálogo de temas permitidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones/temas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones",
+                "temas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Catálogo de motivos de denuncia",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones/denuncia-motivos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones",
+                "denuncia-motivos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle de una conversación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones/{{idId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones",
+                "{{idId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registra una vista de la conversación",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones/{{idId}}/visto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones",
+                "{{idId}}",
+                "visto"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Da o quita el like a una conversación (toggle)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones/{{idId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones",
+                "{{idId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Comenta una conversación (o responde a un comentario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones/{{idId}}/comentarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones",
+                "{{idId}}",
+                "comentarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"string\",\n  \"comentario_padre_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Da o quita el like a un comentario (toggle)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones/{{idId}}/comentarios/{{cidId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones",
+                "{{idId}}",
+                "comentarios",
+                "{{cidId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Denuncia una conversación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversaciones/{{idId}}/denuncias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversaciones",
+                "{{idId}}",
+                "denuncias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivos\": [\n    1\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Si la conversación acumula al menos 20 vistas y más del 45% de denuncias\nsobre vistas, se elimina automáticamente (RQFN141).\n"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notificaciones",
+      "item": [
+        {
+          "name": "Notificaciones del usuario propio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notificaciones"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Marca todas las notificaciones propias como leídas",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones/leidas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notificaciones",
+                "leidas"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

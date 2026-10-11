@@ -10,8 +10,8 @@
 
 /* ── Fondo de la vista (chrome de la wiki) ── */
 .wiki-vista {
-  background: var(--color-fondo2);
-  min-height: 100%;
+  background: var(--color-fondo);
+  min-height: 100vh;
 }
 
 /* ── Barra de la wiki: «Wiki» + pestañas por cultura ── */
@@ -106,7 +106,7 @@
 .wiki-contenedor {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 24px 20px;
+  padding: 28px 20px 40px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 24px;
@@ -114,9 +114,9 @@
 
 .wiki-panel {
   min-width: 0;
-  background: var(--color-fondo);
+  background: var(--color-tarjeta);
   border: 1px solid var(--color-fondo3);
-  border-radius: 8px;
+  border-radius: 16px;
   padding: 28px 32px;
 }
 
@@ -269,9 +269,9 @@
   width: 300px;
   max-width: 100%;
   margin: 0 0 16px 24px;
-  background: #fff;
+  background: var(--color-tarjeta);
   border: 1px solid var(--color-fondo3);
-  border-radius: 6px;
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -286,7 +286,7 @@
 }
 
 .wiki-infobox-media {
-  background: #fff;
+  background: var(--color-tarjeta);
 }
 
 .wiki-infobox-media img {
@@ -585,7 +585,7 @@
   clear: both;
   margin-top: 28px;
   border: 1px solid var(--color-fondo3);
-  border-radius: 6px;
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -641,9 +641,9 @@
 }
 
 .wiki-rail-modulo {
-  background: var(--color-fondo);
+  background: var(--color-tarjeta);
   border: 1px solid var(--color-fondo3);
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -680,7 +680,7 @@
 }
 
 .wiki-rail-item:hover {
-  background: #fff;
+  background: var(--color-tarjeta);
 }
 
 .wiki-rail-item:focus-visible {
@@ -737,9 +737,9 @@
   display: flex;
   flex-direction: column;
   padding: 0;
-  background: #fff;
+  background: var(--color-tarjeta);
   border: 1px solid var(--color-fondo3);
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   text-align: left;
@@ -759,7 +759,7 @@
   display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
-  background: #fff;
+  background: var(--color-tarjeta);
 }
 
 .wiki-card-media img {

@@ -1,0 +1,652 @@
+/* ── Página Crear contenido (RQFN121-125) ── */
+.crear-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+    font-family: inherit;
+}
+
+.crear-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 28px;
+    align-items: start;
+}
+
+/* ── Columna formulario ── */
+.crear-form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+}
+
+.crear-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.crear-titulo {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.crear-subtitulo {
+    margin: 0;
+    font-size: 15px;
+    color: var(--color-texto-suave);
+}
+
+.crear-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.crear-campo--doble {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.crear-campo-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.crear-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.crear-label--sm {
+    font-size: 13px;
+    color: var(--color-texto-suave);
+}
+
+.crear-req {
+    color: var(--color-acento2);
+    margin-left: 3px;
+}
+
+/* ── Selects ── */
+.crear-select-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.crear-select {
+    appearance: none;
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-p);
+    background: var(--color-fondo);
+    border: 1px solid var(--color-fondo3);
+    border-radius: 12px;
+    padding: 11px 38px 11px 14px;
+    cursor: pointer;
+}
+
+.crear-select--sm {
+    padding: 9px 34px 9px 12px;
+    font-size: 13px;
+    border-radius: 10px;
+}
+
+.crear-select:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.crear-select:focus-visible {
+    outline: 2px solid var(--color-acento-fuerte);
+    outline-offset: 1px;
+}
+
+.crear-select-chevron {
+    position: absolute;
+    right: 12px;
+    width: 16px;
+    height: 16px;
+    color: var(--color-texto-suave);
+    pointer-events: none;
+}
+
+.crear-cambiar-modo {
+    align-self: flex-start;
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-acento-fuerte);
+    cursor: pointer;
+}
+
+.crear-cambiar-modo:hover {
+    text-decoration: underline;
+}
+
+/* ── Textareas / inputs ── */
+.crear-textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--color-p);
+    background: var(--color-fondo);
+    border: 1px solid var(--color-fondo3);
+    border-radius: 12px;
+    padding: 12px 14px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.crear-textarea--sm {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 10px;
+}
+
+.crear-textarea:focus-visible {
+    outline: 2px solid var(--color-acento-fuerte);
+    outline-offset: 1px;
+}
+
+.crear-contador {
+    align-self: flex-end;
+    font-size: 12px;
+    color: var(--color-texto-suave);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Toggle "Usar Características Personales" ── */
+.crear-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+    cursor: pointer;
+}
+
+.crear-toggle-pastilla {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--color-fondo3);
+    transition: background-color 0.18s ease;
+    flex-shrink: 0;
+}
+
+.crear-toggle-pastilla::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.18s ease;
+}
+
+.crear-toggle--on {
+    color: var(--color-acento-fuerte);
+}
+
+.crear-toggle--on .crear-toggle-pastilla {
+    background: var(--color-acento-fuerte);
+}
+
+.crear-toggle--on .crear-toggle-pastilla::after {
+    transform: translateX(18px);
+}
+
+.crear-toggle:focus-visible {
+    outline: 2px solid var(--color-acento-fuerte);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+/* ── Rasgos físicos ── */
+.crear-rasgos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+    margin-top: 4px;
+}
+
+.crear-rasgos-extras {
+    margin-top: 14px;
+}
+
+/* ── Etiquetas ── */
+.crear-etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--color-fondo);
+    border: 1px solid var(--color-fondo3);
+    border-radius: 12px;
+    min-height: 46px;
+}
+
+.crear-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-fondo2);
+    color: var(--color-h1);
+    border-radius: 999px;
+    padding: 4px 6px 4px 10px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.crear-chip-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: none;
+    color: var(--color-texto-suave);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.crear-chip-x:hover {
+    background: var(--color-fondo3);
+    color: var(--color-h1);
+}
+
+.crear-etiqueta-input {
+    flex: 1 1 140px;
+    min-width: 120px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--color-p);
+    padding: 6px 4px;
+}
+
+.crear-etiqueta-input:focus {
+    outline: none;
+}
+
+.crear-etiqueta-input::placeholder {
+    color: var(--color-texto-suave);
+}
+
+/* ── Acordeón de Pasos ── */
+.crear-acordeon {
+    background: var(--color-tarjeta);
+    border: 1px solid var(--color-fondo3);
+    border-radius: 16px;
+    /* Sin overflow:hidden: el menú de "Añadir Paso +" es position:absolute y
+       abre hacia abajo; un overflow:hidden aquí lo recortaba contra el borde
+       inferior del acordeón (las 8 opciones quedaban inaccesibles, sin scroll).
+       El fondo del propio acordeón ya respeta su radius y ni la cabecera ni el
+       cuerpo tocan las esquinas, así que no se pierde el recorte visual. */
+}
+
+.crear-acordeon-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    border: none;
+    background: none;
+    padding: 16px 18px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-h1);
+    cursor: pointer;
+}
+
+.crear-acordeon-cabecera .crear-select-chevron {
+    position: static;
+}
+
+.crear-acordeon-cabecera[aria-expanded="true"] .crear-select-chevron {
+    transform: rotate(180deg);
+}
+
+.crear-acordeon-cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 18px 18px;
+}
+
+.crear-paso {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: var(--color-fondo2);
+    border-radius: 12px;
+}
+
+.crear-paso-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.crear-paso-titulo {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.crear-add-paso {
+    position: relative;
+}
+
+.crear-add-paso-btn {
+    border: 1.5px dashed var(--color-fondo3);
+    background: none;
+    color: var(--color-acento-fuerte);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 999px;
+    padding: 9px 16px;
+    cursor: pointer;
+}
+
+.crear-add-paso-btn:hover {
+    background: var(--color-fondo2);
+}
+
+.crear-add-paso-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 20;
+    min-width: 190px;
+    max-height: min(320px, 55vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: var(--color-fondo);
+    border: 1px solid var(--color-fondo3);
+    border-radius: 12px;
+    box-shadow: 0 16px 32px -20px rgba(83, 60, 94, 0.45);
+}
+
+.crear-add-paso-menu button {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-p);
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.crear-add-paso-menu button:hover {
+    background: var(--color-fondo2);
+}
+
+/* ── Rail multimedia (sticky) ── */
+.crear-rail {
+    position: sticky;
+    top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.crear-caja {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--color-tarjeta);
+    border: 1px solid var(--color-fondo3);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.crear-caja-cabecera {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.crear-caja-titulo {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.crear-caja-ayuda {
+    font-size: 12px;
+    color: var(--color-texto-suave);
+}
+
+.crear-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 150px;
+    border: 1.5px dashed var(--color-fondo3);
+    border-radius: 14px;
+    background: none;
+    color: var(--color-texto-suave);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.crear-drop--sm {
+    min-height: 84px;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.crear-drop:hover {
+    border-color: var(--color-acento-fuerte);
+    background: var(--color-fondo2);
+}
+
+.crear-drop:focus-visible {
+    outline: 2px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.crear-drop-mas {
+    font-size: 26px;
+    line-height: 1;
+    color: var(--color-acento-fuerte);
+}
+
+.crear-drop-texto {
+    text-align: center;
+}
+
+.crear-media-preview {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #2f2638;
+}
+
+.crear-video-preview {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    background: #2f2638;
+}
+
+.crear-media-quitar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(47, 38, 56, 0.7);
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.crear-media-quitar:hover {
+    background: rgba(47, 38, 56, 0.9);
+}
+
+/* ── Galería 2×3 ── */
+.crear-galeria {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.crear-galeria-item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    background: var(--color-fondo2);
+}
+
+.crear-galeria-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ── Botón publicar ── */
+.crear-btn-publicar {
+    width: 100%;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-acento);
+    color: var(--color-h1);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 14px 20px;
+    cursor: pointer;
+    box-shadow: 0 12px 24px -14px rgba(83, 60, 94, 0.5);
+    transition: background-color 0.18s ease;
+}
+
+.crear-btn-publicar:hover {
+    background: var(--color-acento2);
+}
+
+.crear-btn-publicar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.crear-btn-publicar:focus-visible {
+    outline: 2px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.crear-btn-publicar--inline {
+    width: auto;
+    padding: 12px 24px;
+}
+
+/* ── Estado sin sesión ── */
+.crear-sin-sesion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+    padding: 50px 16px;
+}
+
+.crear-sin-sesion-texto {
+    margin: 0;
+    font-size: 15px;
+    color: var(--color-texto-suave);
+    max-width: 42ch;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1000px) {
+    .crear-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .crear-rail {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .crear-page {
+        padding: 20px 12px 40px;
+    }
+
+    .crear-titulo {
+        font-size: 24px;
+    }
+
+    .crear-campo--doble,
+    .crear-rasgos {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .crear-galeria {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .crear-toggle-pastilla,
+    .crear-toggle-pastilla::after,
+    .crear-drop,
+    .crear-btn-publicar {
+        transition: none;
+    }
+}

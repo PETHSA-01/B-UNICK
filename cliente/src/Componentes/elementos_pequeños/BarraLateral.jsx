@@ -13,6 +13,7 @@ import '../../estilos/estilospequeños/estilospequeños.css'
 
 const LABELS = {
   inicio: 'Inicio',
+  informacion: 'Información',
   conversaciones: 'Conversaciones',
   crear: 'Crear',
   wiki: 'Wiki',
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { key: 'crear', href: '/crear', icon: 'crear', label: LABELS.crear },
   { key: 'wiki', href: '/wiki', icon: 'wiki', label: LABELS.wiki },
   { key: 'notificaciones', href: '/notificaciones', icon: 'notificaciones', label: LABELS.notificaciones },
+  { key: 'informacion', href: '/informacion', icon: 'informacion', label: LABELS.informacion },
 ]
 
 const AUTH_ITEMS = [
@@ -34,6 +36,13 @@ const AUTH_ITEMS = [
 
 const ICON_MAP = {
   inicio: () => <img src="/logo.svg" alt="B-unick" width="28" height="28" style={{ objectFit: 'contain' }} />,
+  informacion: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  ),
   conversaciones: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -87,16 +96,21 @@ export const BarraLateral = () => {
   const [noLeidas, setNoLeidas] = useState(0)
   const containerRef = useRef(null)
 
+  // Deduce el ítem activo desde la ruta (misma regla que el efecto de ruta).
+  // Se reutiliza al cerrar notificaciones para devolver el blob al elemento
+  // que corresponde a la ruta (RQFN: "al cerrar se quita el sombreado").
+  const indiceDesdeRuta = (path) => {
+    if (path === '/perfil' || path.startsWith('/usuarios/')) {
+      return -1
+    }
+    const nuevo = NAV_ITEMS.findIndex(item => path === item.href ||
+      (item.key === 'inicio' && path === '/'))
+    return nuevo >= 0 ? nuevo : 0
+  }
+
   // Update active index based on current route
   useEffect(() => {
-    const path = location.pathname
-    if (path === '/perfil' || path.startsWith('/usuarios/')) {
-      setActiveIndex(-1)
-      return
-    }
-    const newIndex = NAV_ITEMS.findIndex(item => path === item.href ||
-      (item.key === 'inicio' && path === '/'))
-    setActiveIndex(newIndex >= 0 ? newIndex : 0)
+    setActiveIndex(indiceDesdeRuta(location.pathname))
   }, [location.pathname])
 
   const enPerfil = location.pathname === '/perfil' || location.pathname.startsWith('/usuarios/')
@@ -145,12 +159,24 @@ export const BarraLateral = () => {
   // La campana abre el drawer superpuesto (no navega); sin sesión el drawer
   // muestra el aviso de Becky con su botón de iniciar sesión.
   const handleNotificacionesClick = (index) => {
-    setActiveIndex(index)
-    setNotificacionesAbiertas((prev) => !prev)
+    setNotificacionesAbiertas((prev) => {
+      if (prev) {
+        // Al cerrar (toggle) se devuelve el blob al ítem que corresponde a la
+        // ruta (misma regla que el resto de la barra): no queda sombreado en
+        // Notificaciones. El blob SOLO se fija en la campana mientras el
+        // drawer está abierto.
+        setActiveIndex(indiceDesdeRuta(location.pathname))
+      } else {
+        setActiveIndex(index)
+      }
+      return !prev
+    })
   }
 
   const cerrarNotificaciones = () => {
     setNotificacionesAbiertas(false)
+    // Al cerrar se quita el sombreado: el blob vuelve al ítem de la ruta.
+    setActiveIndex(indiceDesdeRuta(location.pathname))
     // Al cerrar se refresca el conteo (la página marcó las leídas).
     if (isAuthenticated) {
       api.get('/notificaciones')
@@ -182,11 +208,6 @@ export const BarraLateral = () => {
   // Close modal on click outside
   const handleOverlayClick = () => {
     closeModal()
-  }
-
-  // Hide sidebar on verification route
-  if (location.pathname === '/verificar-correo') {
-    return null
   }
 
   return (

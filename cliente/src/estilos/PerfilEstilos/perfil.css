@@ -1,5 +1,5 @@
 .perfil-page {
-    max-width: 1000px;
+    max-width: 1180px;
     margin: 0 auto;
     padding: 28px 20px 18px;
     display: flex;
@@ -22,10 +22,10 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     column-gap: 28px;
-    background: var(--color-fondo);
-    border-radius: var(--radius-card);
+    background: var(--color-tarjeta);
+    border: 1px solid var(--color-fondo3);
+    border-radius: 16px;
     padding: 28px 72px 28px 28px;
-    box-shadow: 0 16px 32px -20px rgba(83, 60, 94, 0.28);
 }
 
 .perfil-avatar-wrap {
@@ -41,7 +41,7 @@
 .perfil-header .perfil-avatar {
     width: 112px;
     height: 112px;
-    box-shadow: 0 0 0 4px #fff;
+    box-shadow: 0 0 0 4px var(--color-tarjeta);
 }
 
 .perfil-avatar--fallback {
@@ -295,10 +295,10 @@
 .perfil-tabs {
     position: relative;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(var(--perfil-tabs-n, 4), 1fr);
     gap: 8px;
     width: 100%;
-    max-width: 1000px;
+    max-width: 1180px;
     margin: 10px auto 0;
     padding: 0 20px;
     z-index: 1;
@@ -337,7 +337,7 @@
 }
 
 .perfil-tab--activa {
-    background: #fff;
+    background: var(--color-tarjeta);
     color: var(--color-acento-fuerte);
     font-weight: 500;
 }
@@ -349,12 +349,12 @@
     right: 0;
     top: 100%;
     height: 14px;
-    background: #fff;
+    background: var(--color-tarjeta);
     z-index: 2;
 }
 
 .perfil-tab--activa:hover {
-    background: #fff;
+    background: var(--color-tarjeta);
     color: var(--color-acento-fuerte);
 }
 
@@ -369,7 +369,7 @@
     position: relative;
     z-index: 0;
     flex: 1;
-    background: #fff;
+    background: var(--color-tarjeta);
     border-top: 1.5px solid var(--color-fondo2);
     padding: 0 28px 48px;
 }
@@ -408,6 +408,138 @@
 }
 
 .perfil-vacio-texto {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--color-texto-suave);
+}
+
+/* ── Galería real de Publicaciones / Guardados (masonry del inicio) ── */
+.perfil-tab-videos {
+    padding: 28px 0 8px;
+}
+
+.perfil-tab-videos .maquillajes-masonry {
+    margin-bottom: 32px;
+}
+
+/* ── Conversaciones iniciadas (pestaña Chats) ── */
+.perfil-tab-conversaciones {
+    padding: 28px 0 8px;
+}
+
+.perfil-conv-lista {
+    list-style: none;
+    display: grid;
+    gap: 12px;
+    margin: 0 0 32px;
+    padding: 0;
+}
+
+.perfil-conv-item {
+    margin: 0;
+}
+
+.perfil-conv-enlace {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    padding: 12px;
+    background: var(--color-tarjeta);
+    border: 1px solid var(--color-fondo3);
+    border-radius: 16px;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+}
+
+.perfil-conv-enlace:hover {
+    border-color: var(--color-acento-fuerte);
+}
+
+.perfil-conv-thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 12px;
+    background: var(--color-fondo);
+    color: var(--color-texto-suave);
+    overflow: hidden;
+}
+
+.perfil-conv-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.perfil-conv-thumb svg {
+    width: 30px;
+    height: 30px;
+}
+
+.perfil-conv-cuerpo {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.perfil-conv-tema {
+    justify-self: start;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--color-fondo2);
+    color: var(--color-p);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.perfil-conv-titulo {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--color-h1);
+    overflow-wrap: anywhere;
+}
+
+.perfil-conv-meta {
+    display: grid;
+    gap: 2px;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--color-texto-suave);
+}
+
+.perfil-conv-cultura {
+    font-weight: 500;
+    color: var(--color-h2);
+}
+
+.perfil-conv-enlace:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.perfil-tab-cargando {
+    padding: 64px 24px;
+    text-align: center;
+    font-size: 15px;
+    color: var(--color-texto-suave);
+}
+
+.perfil-tab-error {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    max-width: 40ch;
+    margin: 0 auto;
+    padding: 64px 24px;
+    text-align: center;
+}
+
+.perfil-tab-error p {
     font-size: 15px;
     line-height: 1.55;
     color: var(--color-texto-suave);
@@ -642,6 +774,398 @@
     .perfil-gear-item,
     .perfil-tab,
     .perfil-lista-item {
+        transition: none;
+    }
+}
+
+/* ── Panel de configuración (mockup adaptado) ── */
+.config-overlay {
+    background-color: rgba(0, 0, 0, 0.25);
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    overflow-y: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px;
+}
+
+.config-panel {
+    background: var(--color-fondo);
+    border-radius: 22px;
+    box-shadow: 0 24px 48px -24px rgba(40, 20, 50, 0.4);
+    width: 100%;
+    max-width: 760px;
+    margin: auto 0;
+    overflow: hidden;
+}
+
+.config-header {
+    padding: 26px 36px 22px;
+    border-bottom: 1px solid var(--color-fondo3);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.config-titulo {
+    margin: 0 0 6px;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.config-subtitulo {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-texto-suave);
+    max-width: 46ch;
+}
+
+.config-cerrar {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-fondo2);
+    color: var(--color-texto-suave);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.config-cerrar svg {
+    width: 18px;
+    height: 18px;
+}
+
+.config-cerrar:hover,
+.config-cerrar:focus-visible {
+    background: var(--color-fondo3);
+    color: var(--color-h1);
+}
+
+.config-cerrar:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.config-seccion {
+    padding: 24px 36px 6px;
+}
+
+.config-seccion + .config-seccion {
+    border-top: 1px solid var(--color-fondo3);
+}
+
+.config-seccion-titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-acento-fuerte);
+}
+
+.config-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-acento-fuerte);
+    flex: none;
+}
+
+.config-apartado {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 28px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--color-fondo3);
+}
+
+.config-apartado--foto {
+    padding: 24px 36px;
+    background: var(--color-fondo2);
+}
+
+.config-apartado:last-child {
+    border-bottom: none;
+}
+
+.config-apartado-info h4 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.config-apartado-info p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-texto-suave);
+    max-width: 36ch;
+}
+
+.config-apartado-control {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+}
+
+/* ── Interruptor de modo oscuro (Apariencia) ── */
+.perfil-tema-fila {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.perfil-tema-switch {
+    position: relative;
+    width: 46px;
+    height: 26px;
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid var(--color-fondo3);
+    background: var(--color-fondo);
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.perfil-tema-thumb {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-elementos);
+    transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.perfil-tema-switch--activo {
+    background: var(--color-acento);
+    border-color: var(--color-acento2);
+}
+
+.perfil-tema-switch--activo .perfil-tema-thumb {
+    transform: translateX(20px);
+    background: var(--color-h1);
+}
+
+.perfil-tema-switch:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.perfil-tema-estado {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+}
+
+.config-field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+}
+
+.config-input,
+.config-textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--color-p);
+    background: var(--color-fondo2);
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.config-input:focus,
+.config-textarea:focus {
+    border-color: var(--color-acento-fuerte);
+    background: var(--color-fondo);
+}
+
+.config-input:disabled {
+    color: var(--color-elementos);
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.config-textarea {
+    resize: vertical;
+    min-height: 84px;
+    line-height: 1.5;
+}
+
+.config-contador {
+    align-self: flex-end;
+    margin-top: -4px;
+    font-size: 11px;
+    color: var(--color-texto-suave);
+}
+
+.config-apartado-control .input-wrapper {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.config-apartado-control .input-wrapper .textoinput {
+    margin-bottom: 0;
+}
+
+.config-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    margin-top: 4px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 11px 22px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+}
+
+.config-btn:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.config-btn--primario {
+    background: var(--color-acento-fuerte);
+    color: #fff;
+}
+
+.config-btn--primario:hover {
+    background: var(--color-texto-suave);
+}
+
+.config-btn--secundario {
+    background: var(--color-burbuja);
+    color: #fff;
+}
+
+.config-btn--secundario:hover {
+    background: var(--color-texto-suave);
+}
+
+.config-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.config-apartado--foto .config-apartado-control {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+
+.config-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: var(--color-fondo3);
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: var(--color-texto-suave);
+    font-size: 30px;
+    font-weight: 500;
+}
+
+.config-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.config-avatar-acciones {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.config-avatar-ayuda {
+    font-size: 11.5px;
+    color: var(--color-texto-suave);
+}
+
+.config-bloqueado-nota {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-acento-fuerte);
+    font-weight: 500;
+}
+
+.config-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 22px 36px 30px;
+}
+
+@media (max-width: 640px) {
+    .config-overlay {
+        padding: 16px 10px;
+    }
+
+    .config-header {
+        padding: 22px 22px 18px;
+    }
+
+    .config-seccion {
+        padding: 20px 22px 4px;
+    }
+
+    .config-apartado--foto {
+        padding: 20px 22px;
+    }
+
+    .config-footer {
+        padding: 18px 22px 24px;
+    }
+
+    .config-apartado {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .config-apartado--foto .config-apartado-control {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .config-titulo {
+        font-size: 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .config-input,
+    .config-textarea,
+    .config-btn,
+    .config-cerrar,
+    .perfil-tema-switch,
+    .perfil-tema-thumb {
         transition: none;
     }
 }

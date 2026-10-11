@@ -26,6 +26,7 @@ html, body {
   height: 100vh;
 }
 :root {
+    color-scheme: light;
     --color-fondo:      #f5f0f8;
     --color-iconos:     #F0D4E8;
     --color-fondo2:     #d8cce8;
@@ -46,6 +47,40 @@ html, body {
     --color-texto-suave: #5E4380;
     --color-acento-fuerte: #6B4E8C;
     --color-burbuja: #7a5fa0;
+    /* Superficie de tarjetas de contenido (canon de Conversaciones): #fff en claro */
+    --color-tarjeta: #FFFFFF;
+}
+
+/* Tema oscuro — mismas variables, valores invertidos.
+   Se activa con <html data-theme="dark"> (ver TemaContext). */
+[data-theme="dark"] {
+    color-scheme: dark;
+    --color-fondo:      #1C1621;  /* página */
+    --color-iconos:     #4A3A56;  /* fondo de círculos de ícono */
+    --color-fondo2:     #2A2130;  /* tarjetas, modales, inputs */
+    --color-fondo3:     #3C3148;  /* bordes, divisores, hover */
+
+    --color-acento:     #F4B8D4;  /* sin cambio: el rosa de marca se conserva */
+    --color-acento2:    #EC9FC4;  /* ligeramente más vivo para resaltar sobre fondo oscuro */
+
+    --color-texto:      #B89BD9;  /* texto morado general / opacidades */
+    --color-link:       #CF9EF0;  /* enlaces */
+    --color-elementos:  #9A82B8;  /* íconos secundarios */
+    --color-elementos2: #8871A8;  /* íconos/bordes aún más discretos */
+
+    --color-sombra: rgba(10, 6, 18, 0.55); /* sombra: ya no morado claro, ahora tinta casi negra */
+
+    --color-h1: #F2E6FA;  /* encabezado principal: máximo contraste */
+    --color-h2: #D9C2EC;
+    --color-h3: #BFA3D9;  /* encabezado terciario: el más tenue de los tres */
+
+    --color-p: #DCCFE6;            /* texto de cuerpo */
+    --color-texto-suave: #A892BE;  /* texto secundario, más tenue que --color-p */
+    --color-acento-fuerte: #7D5CA6; /* botón primario, pestaña activa, foco */
+    --color-burbuja: #815FA8;      /* burbujas de chat / Becky */
+
+    /* Superficie de tarjetas: las blancas se vuelven tarjeta oscura */
+    --color-tarjeta: #2A2130;
 }
 
 h1{

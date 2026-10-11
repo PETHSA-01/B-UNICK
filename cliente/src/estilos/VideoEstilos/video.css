@@ -1,0 +1,2121 @@
+/* ══ Página de detalle de video (RQFN100-120) ────────────────────────────
+   Layout de cine en escritorio (video a la izquierda sobre #2f2638 + panel
+   angosto a la derecha) y formato TikTok en móvil ≤768px. La ruta
+   /video/:id vive fuera de AppLayout (RQFN35): no hay barra lateral.      */
+
+/* ── Contenedores generales ── */
+.video-cine {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    background: #2f2638;
+}
+
+.video-movil {
+    position: fixed;
+    inset: 0;
+    background: #2f2638;
+    overflow: hidden;
+}
+
+/* ── Panel izquierdo: video (escritorio) ── */
+.video-cine-izq {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    background: #2f2638;
+}
+
+.video-cine-izq::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(201, 184, 222, 0.12) 0%, transparent 55%);
+    pointer-events: none;
+}
+
+.video-cine-reproductor {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-cine-reproductor video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #2f2638;
+}
+
+/* ── Botón de cerrar del cine ── */
+.video-cerrar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 20;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--color-h1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.video-cerrar svg {
+    width: 18px;
+    height: 18px;
+}
+
+.video-cerrar:hover {
+    background: var(--color-fondo2);
+}
+
+/* ── Íconos flotantes de navegación interna (pegados al borde del video) ── */
+.video-nav-flotante {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px;
+}
+
+.video-nav-flotante-item {
+    padding: 15px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.video-nav-flotante-item svg {
+    width: 20px;
+    height: 20px;
+}
+
+.video-nav-flotante-item:hover,
+.video-nav-flotante-item--activo {
+    background: var(--color-acento-fuerte);
+}
+
+/* ── Controles custom del cine (spec §3) ── */
+.video-cine-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(47, 38, 56, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    animation: video-fade 0.18s ease;
+}
+
+.video-cine-play:hover {
+    background: rgba(47, 38, 56, 0.75);
+}
+
+.video-cine-play svg {
+    width: 26px;
+    height: 26px;
+    margin-left: 4px;
+}
+
+.video-cine-controles {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 14;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: linear-gradient(0deg, rgba(47, 38, 56, 0.55), transparent);
+}
+
+.video-cine-control-play {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.video-cine-control-play:hover {
+    background: var(--color-acento-fuerte);
+}
+
+.video-cine-control-play svg {
+    width: 16px;
+    height: 16px;
+}
+
+.video-cine-control-sonido {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.video-cine-control-sonido:hover {
+    background: var(--color-acento-fuerte);
+}
+
+.video-cine-control-sonido--activo {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.video-cine-control-sonido svg {
+    width: 16px;
+    height: 16px;
+}
+
+.video-cine-barra {
+    flex: 1;
+    min-width: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.24);
+    cursor: pointer;
+    transition: height 0.12s ease;
+}
+
+.video-cine-barra:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+
+.video-cine-barra--tocando {
+    height: 8px;
+}
+
+.video-cine-barra-avance {
+    height: 100%;
+    background: var(--color-acento);
+}
+
+/* ── Panel derecho: información ── */
+.video-cine-der {
+    flex: 0 0 380px;
+    width: 380px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--color-fondo);
+    border-left: 1px solid var(--color-fondo3);
+    padding: 26px 24px 40px;
+}
+
+/* ── Cabecera del panel: creador + voto ── */
+.video-info-cabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.video-creador {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.video-creador-datos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.video-creador-nombre {
+    color: var(--color-h1);
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.video-creador-nombre:hover {
+    color: var(--color-acento-fuerte);
+}
+
+.video-creador-meta {
+    font-size: 13px;
+    color: var(--color-texto-suave);
+}
+
+/* Seguir al creador: control circular "+" que cambia a "✓" al seguir. */
+.video-follow {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-acento-fuerte);
+    background: var(--color-acento-fuerte);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.video-follow svg {
+    width: 15px;
+    height: 15px;
+}
+
+.video-follow:hover {
+    background: var(--color-texto-suave);
+    border-color: var(--color-texto-suave);
+}
+
+.video-follow--activo {
+    background: transparent;
+    color: var(--color-acento-fuerte);
+}
+
+.video-follow--activo:hover {
+    background: var(--color-fondo2);
+}
+
+.video-follow:focus-visible {
+    outline: 2px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+/* ── Voto de semejanza (escritorio) ── */
+.video-voto {
+    position: relative;
+    flex: none;
+    text-align: right;
+}
+
+.video-voto-titulo {
+    display: block;
+    font-size: 13px;
+    color: var(--color-texto-suave);
+    margin-bottom: 8px;
+}
+
+.video-voto-botones {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.video-voto-boton {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+/* Globo de ayuda al pasar el cursor (spec §6; solo punteros finos) */
+@media (hover: hover) and (pointer: fine) {
+    .video-voto-boton::after {
+        content: attr(data-tip);
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        z-index: 30;
+        max-width: 240px;
+        box-sizing: border-box;
+        background: var(--color-fondo);
+        color: var(--color-p);
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.4;
+        text-align: left;
+        border: 1px solid var(--color-fondo3);
+        border-radius: 8px;
+        padding: 6px 10px;
+        box-shadow: 0 8px 20px var(--color-sombra);
+        white-space: normal;
+        opacity: 0;
+        transform: translateY(-4px);
+        pointer-events: none;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .video-voto-boton:hover::after {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.video-voto-boton svg {
+    width: 18px;
+    height: 18px;
+}
+
+.video-voto-boton--favor {
+    background: var(--color-acento-fuerte);
+    color: #fff;
+    border: 0;
+}
+
+.video-voto-boton--favor:hover {
+    background: var(--color-texto-suave);
+}
+
+.video-voto-boton--contra {
+    background: transparent;
+    color: #b3425f;
+    border: 1.5px solid #b3425f;
+}
+
+.video-voto-boton--contra:hover {
+    background: rgba(179, 66, 95, 0.08);
+}
+
+.video-voto-boton--votado {
+    transform: scale(0.94);
+    opacity: 0.8;
+}
+
+/* Popover de "voto en contra" */
+.video-voto-popover {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 40;
+    width: 280px;
+    box-sizing: border-box;
+    background: var(--color-tarjeta);
+    border: 1.5px solid var(--color-fondo3);
+    border-radius: 16px;
+    box-shadow: 0 12px 32px var(--color-sombra);
+    padding: 14px;
+    text-align: left;
+    animation: video-popover-in 0.18s ease;
+}
+
+.video-voto-popover-cerrar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--color-texto-suave);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.video-voto-popover-cerrar svg {
+    width: 16px;
+    height: 16px;
+}
+
+.video-razones-titulo {
+    margin: 0 0 10px;
+    padding-right: 24px;
+    font-size: 13px;
+    color: var(--color-texto-suave);
+}
+
+.video-razones-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: 4px;
+}
+
+.video-razon {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--color-p);
+    padding: 8px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.video-razon:hover {
+    background: var(--color-fondo);
+}
+
+.video-razon input {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: var(--color-acento-fuerte);
+}
+
+.video-razon-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.video-razon-item .video-razon {
+    padding-left: 4px;
+}
+
+.video-razon-estilo {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 2px 0 8px 30px;
+    padding: 8px 10px;
+    border: 1px solid var(--color-fondo3);
+    border-radius: 8px;
+    background: var(--color-fondo);
+    color: var(--color-p);
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.video-razon-estilo:focus-visible {
+    outline: 2px solid var(--color-acento-fuerte);
+    outline-offset: 1px;
+}
+
+.video-voto-popover-pie {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+/* ── Descripción, etiquetas y cultura (panel derecho) ── */
+.video-descripcion-vista,
+.video-descripcion-texto {
+    color: var(--color-p);
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.video-descripcion-vista {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin: 0 0 14px;
+}
+
+.video-descripcion-vista--abierta,
+.video-descripcion-texto--abierta {
+    -webkit-line-clamp: unset;
+}
+
+.video-link-leermas {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-acento-fuerte);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.video-etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 14px;
+}
+
+.video-etiqueta {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+    background: var(--color-fondo2);
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
+.video-cultura-fila {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.video-chip-menu {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+    background: var(--color-fondo2);
+    border-radius: 999px;
+    padding: 6px 12px;
+}
+
+.video-chip-menu svg {
+    width: 13px;
+    height: 13px;
+}
+
+/* ── Fila de estadísticas ── */
+.video-stats {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 2px 0 18px;
+}
+
+.video-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+
+.video-stat svg {
+    width: 18px;
+    height: 18px;
+}
+
+.video-stat:hover {
+    color: var(--color-acento-fuerte);
+}
+
+.video-stats .video-stat:first-child,
+.video-stats .video-stat:nth-child(2) {
+    color: var(--color-acento-fuerte);
+}
+
+.video-stat--activa {
+    color: var(--color-acento2) !important;
+}
+
+.video-stat--activa svg {
+    fill: var(--color-acento2);
+}
+
+.video-divisor {
+    height: 1px;
+    border: 0;
+    background: var(--color-fondo3);
+    margin: 0 0 20px;
+}
+
+/* ── Contenido de pestañas ── */
+.video-titulo-seccion {
+    color: var(--color-h1);
+    font-size: 17px;
+    font-weight: 500;
+    margin: 0 0 12px;
+}
+
+.video-titulo-seccion--pasos {
+    font-size: 15px;
+    margin-top: 22px;
+}
+
+/* Descripción y pasos */
+.video-pasos-panel .video-descripcion-texto {
+    margin: 0 0 6px;
+}
+
+.video-pasos-lista {
+    margin: 0;
+    padding-left: 1.3em;
+    list-style: decimal;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.video-pasos-lista li::marker {
+    color: var(--color-acento-fuerte);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.video-paso-tipo {
+    display: block;
+    color: var(--color-h1);
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.video-paso-contenido {
+    color: var(--color-p);
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.video-pasos-vacio {
+    color: var(--color-texto-suave);
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Galería */
+.video-galeria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.video-galeria-item {
+    border: 0;
+    padding: 0;
+    background: none;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: zoom-in;
+}
+
+.video-galeria-item img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+}
+
+/* Estados vacío */
+.video-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    padding: 40px 16px;
+}
+
+.video-vacio--galeria {
+    padding: 32px 0;
+}
+
+.video-vacio-icono {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--color-fondo2);
+    color: var(--color-acento-fuerte);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-vacio-icono svg {
+    width: 28px;
+    height: 28px;
+}
+
+.video-vacio-titulo {
+    color: var(--color-h1);
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.video-vacio-texto {
+    color: var(--color-p);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 420px;
+}
+
+.video-vacio-pagina {
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-fondo);
+    padding: 24px;
+}
+
+.video-vacio-btn {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    background: var(--color-acento-fuerte);
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.video-vacio-btn:hover {
+    background: var(--color-texto-suave);
+}
+
+.video-vacio-volver {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-acento-fuerte);
+    text-decoration: none;
+}
+
+/* ── Comentarios ── */
+.video-comentario-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.video-comentario-form .video-input {
+    flex: 1;
+}
+
+.video-sin-comentarios {
+    padding: 24px 0;
+    text-align: center;
+    color: var(--color-texto-suave);
+    font-size: 14px;
+}
+
+.video-comentarios-lista {
+    display: flex;
+    flex-direction: column;
+}
+
+.video-comentario {
+    display: flex;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-fondo2);
+}
+
+.video-comentario-cuerpo {
+    flex: 1;
+    min-width: 0;
+}
+
+.video-comentario-cabecera {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.video-comentario-autor {
+    color: var(--color-h1);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.video-comentario-autor:hover {
+    color: var(--color-acento-fuerte);
+}
+
+.video-comentario-relativo {
+    font-size: 12px;
+    color: var(--color-texto-suave);
+}
+
+.video-comentario-like {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+    background: none;
+    border: 0;
+    padding: 2px 4px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+
+.video-comentario-like svg {
+    width: 15px;
+    height: 15px;
+}
+
+.video-comentario-like:hover {
+    color: var(--color-acento-fuerte);
+}
+
+.video-comentario-like--activo {
+    color: var(--color-acento2);
+}
+
+.video-comentario-like--activo svg {
+    fill: var(--color-acento2);
+}
+
+.video-comentario-texto {
+    margin: 4px 0 0;
+    color: var(--color-p);
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.video-comentario-responder {
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--color-acento-fuerte);
+    background: none;
+    border: 0;
+    padding: 4px 0;
+    margin-top: 4px;
+    cursor: pointer;
+}
+
+.video-comentario--respuesta {
+    margin-left: 36px;
+    border-bottom: 0;
+    padding-bottom: 4px;
+}
+
+.video-respuesta-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.video-respuesta-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* ── Avatares ── */
+.video-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    border-radius: 50%;
+    background: var(--color-fondo2);
+    color: var(--color-acento-fuerte);
+    font-weight: 500;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.video-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-avatar--32 {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+}
+
+.video-avatar--36 {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+}
+
+.video-avatar--40 {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+
+.video-avatar--44 {
+    width: 44px;
+    height: 44px;
+    font-size: 15px;
+}
+
+/* ── Botones e inputs compartidos ── */
+.video-btn-primario {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    background: var(--color-acento-fuerte);
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.video-btn-primario:hover:not(:disabled) {
+    background: var(--color-texto-suave);
+}
+
+.video-btn-primario:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.video-btn-secundario {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+    background: none;
+    border: 1px solid var(--color-fondo3);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.video-btn-secundario:hover {
+    border-color: var(--color-acento-fuerte);
+    color: var(--color-acento-fuerte);
+}
+
+.video-input {
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--color-p);
+    background: var(--color-fondo);
+    border: 1.5px solid var(--color-fondo3);
+    border-radius: 12px;
+    padding: 9px 12px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.video-input::placeholder {
+    color: var(--color-texto-suave);
+    opacity: 0.8;
+}
+
+.video-input--area {
+    resize: vertical;
+    min-height: 84px;
+    line-height: 1.5;
+}
+
+/* ── Configuración (solo autor) ── */
+.video-config-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.video-config-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.video-config-cabecera .video-titulo-seccion {
+    margin: 0;
+}
+
+.video-papelera {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: #b3425f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.video-papelera svg {
+    width: 20px;
+    height: 20px;
+}
+
+.video-papelera:hover:not(:disabled) {
+    background: rgba(179, 66, 95, 0.08);
+}
+
+.video-papelera:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.video-config-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.video-config-campo label,
+.video-config-etiqueta {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+}
+
+.video-contador {
+    align-self: flex-end;
+    font-size: 12px;
+    color: var(--color-texto-suave);
+    font-variant-numeric: tabular-nums;
+}
+
+.video-config-selects {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.video-config-selects--apilados {
+    grid-template-columns: 1fr;
+}
+
+.video-select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--color-p);
+    background: var(--color-fondo);
+    border: 1.5px solid var(--color-fondo3);
+    border-radius: 12px;
+    padding: 9px 12px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.video-etiquetas-editor {
+    display: flex;
+    gap: 8px;
+}
+
+.video-etiquetas-editor .video-input {
+    flex: 1;
+}
+
+.video-btn-etiqueta {
+    flex: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+    background: none;
+    border: 1.5px solid var(--color-fondo3);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.video-btn-etiqueta:hover:not(:disabled) {
+    border-color: var(--color-acento-fuerte);
+    color: var(--color-acento-fuerte);
+}
+
+.video-btn-etiqueta--activa {
+    background: var(--color-acento-fuerte);
+    border-color: var(--color-acento-fuerte);
+    color: #fff;
+}
+
+.video-btn-etiqueta--activa:hover:not(:disabled) {
+    background: var(--color-texto-suave);
+    color: #fff;
+}
+
+.video-btn-etiqueta:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.video-etiquetas-listado {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.video-etiqueta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+    background: var(--color-fondo2);
+    border-radius: 999px;
+    padding: 6px 6px 6px 12px;
+}
+
+.video-etiqueta-borrar {
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--color-texto-suave);
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.video-etiqueta-borrar:hover {
+    background: var(--color-fondo3);
+    color: var(--color-h1);
+}
+
+.video-etiqueta-chip:hover .video-etiqueta-borrar,
+.video-etiqueta-chip:focus-within .video-etiqueta-borrar,
+.video-etiqueta-chip--hoja .video-etiqueta-borrar {
+    opacity: 1;
+}
+
+.video-etiquetas-sin {
+    font-size: 13px;
+    color: var(--color-texto-suave);
+    margin: 0;
+}
+
+.video-config-guardar {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ── Lightbox ── */
+.video-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(47, 38, 56, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: video-fade 0.18s ease;
+}
+
+.video-lightbox {
+    position: relative;
+    max-width: 720px;
+    width: 100%;
+}
+
+.video-lightbox img {
+    display: block;
+    width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+.video-lightbox-cerrar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(47, 38, 56, 0.6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.video-lightbox-cerrar svg {
+    width: 18px;
+    height: 18px;
+}
+
+.video-lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(47, 38, 56, 0.6);
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.video-lightbox-nav--prev {
+    left: 8px;
+}
+
+.video-lightbox-nav--next {
+    right: 8px;
+}
+
+.video-lightbox-contador {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(47, 38, 56, 0.6);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+/* ══ LAYOUT MÓVIL (formato TikTok, ≤768px) ══ ───────────────────────── */
+
+.video-movil-reproductor {
+    position: absolute;
+    inset: 0;
+}
+
+.video-movil-reproductor video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #2f2638;
+}
+
+.video-movil-reproductor::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 36%;
+    background: linear-gradient(0deg, rgba(47, 38, 56, 0.75), transparent);
+    pointer-events: none;
+}
+
+/* Play central / estrella de doble toque */
+.video-movil-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(47, 38, 56, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: video-play-fade 0.6s ease;
+}
+
+.video-movil-play svg {
+    width: 26px;
+    height: 26px;
+    margin-left: 4px;
+}
+
+.video-movil-estrella {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    pointer-events: none;
+    animation: video-estrella 0.6s ease forwards;
+}
+
+.video-movil-estrella svg {
+    width: 84px;
+    height: 84px;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+/* Barra superior (cerrar + menú) */
+.video-movil-barra-superior {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(env(safe-area-inset-top) + 12px) 14px 0;
+    pointer-events: none;
+}
+
+.video-movil-barra-superior button {
+    pointer-events: auto;
+}
+
+.video-movil-cerrar {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--color-h1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.video-movil-cerrar svg {
+    width: 18px;
+    height: 18px;
+}
+
+.video-movil-menu {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(47, 38, 56, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.video-movil-menu svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Columna de acciones (derecha) */
+.video-movil-columna {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+}
+
+.video-movil-accion {
+    min-width: 42px;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 0;
+    background: none;
+    color: #fff;
+    cursor: pointer;
+}
+
+.video-movil-accion-icono svg {
+    width: 24px;
+    height: 24px;
+}
+
+.video-movil-accion-dato {
+    font-size: 11.5px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.video-movil-accion--activa .video-movil-accion-icono svg {
+    fill: var(--color-acento);
+    stroke: var(--color-acento);
+}
+
+/* Avatar + botón seguir */
+.video-movil-avatar {
+    position: relative;
+    margin-top: 10px;
+}
+
+.video-movil-seguir {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--color-acento-fuerte);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.video-movil-seguir svg {
+    width: 12px;
+    height: 12px;
+}
+
+.video-movil-seguir--activo svg {
+    width: 13px;
+    height: 13px;
+}
+
+.video-movil-seguir:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+/* Información del autor (abajo izquierda) */
+.video-movil-info {
+    position: absolute;
+    left: 14px;
+    right: 72px;
+    bottom: calc(env(safe-area-inset-bottom) + 30px);
+    z-index: 7;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #fff;
+}
+
+.video-movil-autor {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.video-movil-nombre {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    text-decoration: none;
+}
+
+.video-movil-nombre:hover {
+    text-decoration: underline;
+}
+
+.video-movil-descripcion {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-iconos);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.65);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+.video-movil-descripcion--abierta {
+    -webkit-line-clamp: unset;
+}
+
+.video-movil-etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.video-movil-etiqueta {
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    padding: 3px 9px;
+}
+
+.video-movil-cultura {
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.video-movil-info .video-link-leermas {
+    color: #fff;
+}
+
+/* Altavoz */
+.video-movil-altavoz {
+    position: absolute;
+    right: 14px;
+    bottom: calc(env(safe-area-inset-bottom) + 66px);
+    z-index: 9;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(47, 38, 56, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.video-movil-altavoz svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Barra de progreso */
+.video-progreso {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: env(safe-area-inset-bottom);
+    z-index: 12;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.24);
+    cursor: pointer;
+    transition: height 0.12s ease;
+}
+
+.video-progreso--tocando {
+    height: 8px;
+}
+
+.video-progreso-avance {
+    height: 100%;
+    background: var(--color-acento);
+}
+
+/* ── Hojas inferiores (bottom sheets) ── */
+.video-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    background: rgba(47, 38, 56, 0.4);
+    display: flex;
+    align-items: flex-end;
+    animation: video-fade 0.18s ease;
+}
+
+.video-sheet {
+    width: 100%;
+    height: 50%;
+    max-height: 90%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-fondo);
+    border: 1px solid var(--color-fondo3);
+    border-bottom: 0;
+    border-radius: 24px 24px 0 0;
+    animation: video-subir 0.22s ease;
+}
+
+.video-sheet--alta {
+    height: 88%;
+}
+
+.video-sheet-manija {
+    flex: none;
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-fondo3);
+    margin: 8px auto 4px;
+}
+
+.video-sheet-cabecera {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-fondo2);
+}
+
+.video-sheet-titulo {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-h1);
+    margin: 0;
+}
+
+.video-sheet-cerrar {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--color-texto-suave);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.video-sheet-cerrar svg {
+    width: 18px;
+    height: 18px;
+}
+
+.video-sheet-contenido {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 16px;
+}
+
+/* En la hoja de comentarios el campo queda abajo, fijo */
+.video-sheet-contenido .video-comentarios-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.video-sheet-contenido .video-comentario-form {
+    order: 2;
+    flex: none;
+    margin: 14px 0 0;
+}
+
+.video-sheet-contenido .video-comentarios-lista,
+.video-sheet-contenido .video-sin-comentarios {
+    order: 1;
+}
+
+/* Menú de opciones */
+.video-menu-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.video-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-h1);
+    background: none;
+    border: 0;
+    text-align: left;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.video-menu-item:hover {
+    background: var(--color-fondo2);
+}
+
+.video-menu-item svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Hoja de voto de semejanza */
+.video-voto-hoja {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.video-voto-hoja-texto {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-texto-suave);
+}
+
+.video-voto-hoja-opciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.video-voto-grande {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 14px;
+    padding: 13px;
+    cursor: pointer;
+}
+
+.video-voto-grande svg {
+    width: 18px;
+    height: 18px;
+}
+
+.video-voto-grande--favor {
+    background: var(--color-acento-fuerte);
+    color: #fff;
+    border: 0;
+}
+
+.video-voto-grande--contra {
+    background: none;
+    color: #b3425f;
+    border: 1.5px solid #b3425f;
+}
+
+.video-voto-hoja-enviar {
+    width: 100%;
+    margin-top: 4px;
+}
+
+/* Guardar de configuración a ancho completo dentro de la hoja */
+.video-sheet-contenido .video-config-guardar {
+    justify-content: stretch;
+}
+
+.video-sheet-contenido .video-config-guardar .video-btn-primario {
+    width: 100%;
+}
+
+/* ── Skeleton de carga ── */
+.video-skeleton {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+}
+
+.video-skeleton-player {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    aspect-ratio: 9 / 16;
+    border-radius: 20px;
+    background: linear-gradient(90deg, rgba(201, 184, 222, 0.18) 25%, rgba(201, 184, 222, 0.32) 50%, rgba(201, 184, 222, 0.18) 75%);
+    background-size: 200% 100%;
+    animation: video-shimmer 1.3s ease infinite;
+}
+
+.video-skeleton-line {
+    height: 14px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-fondo2) 25%, var(--color-fondo3) 50%, var(--color-fondo2) 75%);
+    background-size: 200% 100%;
+    animation: video-shimmer 1.3s ease infinite;
+}
+
+.video-skeleton-line--corta {
+    width: 55%;
+}
+
+/* ══ Animaciones ══ ───────────────────────────────────────────────────── */
+@keyframes video-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes video-popover-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes video-subir {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+}
+
+@keyframes video-play-fade {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes video-estrella {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+    30%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); }
+}
+
+@keyframes video-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ══ Accesibilidad ══ ─────────────────────────────────────────────────── */
+.video-cine-der :is(button, a, select, input, textarea):focus-visible,
+.video-sheet :is(button, a, select, input, textarea):focus-visible,
+.video-overlay :is(button):focus-visible,
+.video-vacio-pagina :is(button, a):focus-visible,
+.video-movil .video-movil-bar:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.video-movil :is(button):focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .video-nav-flotante {
+        padding: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .video-sheet,
+    .video-sheet-overlay,
+    .video-overlay,
+    .video-cine-play,
+    .video-movil-play,
+    .video-movil-estrella,
+    .video-voto-popover,
+    .video-skeleton-player,
+    .video-skeleton-line {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ── Estadísticas (gráficas "de los requerimientos", solo autor) ── */
+.video-estadisticas {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.video-estadisticas .video-titulo-seccion {
+    margin: 0;
+}
+
+.video-estadisticas-vacio {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    color: var(--color-p);
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.video-estadisticas-resumen {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.video-estadisticas-fila {
+    display: grid;
+    grid-template-columns: 96px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.video-estadisticas-fila-etiqueta {
+    color: var(--color-p);
+    font-weight: 500;
+}
+
+.video-estadisticas-fila-barra {
+    background: var(--color-fondo2);
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+    display: block;
+}
+
+.video-estadisticas-fila-valor {
+    color: var(--color-h1);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.video-estadisticas-seg {
+    display: block;
+    background-color: var(--color-acento-fuerte);
+    border-radius: 3px;
+}
+
+.video-estadisticas-seg--vistas {
+    background-color: var(--color-acento-fuerte);
+}
+
+.video-estadisticas-seg--likes {
+    background-color: var(--color-burbuja);
+}
+
+.video-estadisticas-seg--guardados {
+    background-color: var(--color-elementos);
+}
+
+.video-estadisticas-seg--compartidos {
+    background-color: var(--color-texto-suave);
+}
+
+.video-estadisticas-seg--comentarios {
+    background-color: var(--color-h1);
+}
+
+.video-estadisticas-seg--votos {
+    background-color: #2f2638;
+}
+
+.video-estadisticas-seg--favor {
+    background-color: var(--color-acento-fuerte);
+}
+
+.video-estadisticas-semejanza {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--color-p);
+    padding: 12px 0;
+    border-top: 1px solid var(--color-fondo2);
+    border-bottom: 1px solid var(--color-fondo2);
+}
+
+.video-estadisticas-semejanza strong {
+    font-weight: 500;
+    color: var(--color-h1);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+}
+
+.video-estadisticas-semejanza small {
+    color: var(--color-texto-suave);
+    font-size: 12px;
+}
+
+.video-estadisticas-tendencia-titulo {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-p);
+}
+
+.video-estadisticas-tendencia {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 140px;
+}
+
+.video-estadisticas-dia {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    height: 100%;
+}
+
+.video-estadisticas-columna {
+    width: 60%;
+    max-width: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border-radius: 4px 4px 2px 2px;
+    overflow: hidden;
+    background: var(--color-fondo2);
+}
+
+.video-estadisticas-dia-etiqueta {
+    font-size: 10px;
+    color: var(--color-texto-suave);
+    text-transform: capitalize;
+}
+
+.video-estadisticas-leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    font-size: 12px;
+    color: var(--color-p);
+}
+
+.video-estadisticas-leyenda-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.video-estadisticas-leyenda-item i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}

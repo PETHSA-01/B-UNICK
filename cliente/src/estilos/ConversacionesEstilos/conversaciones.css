@@ -1,0 +1,1201 @@
+/* ── Página Conversaciones (RQFN126-141, rediseño 2026-10-01) ── */
+.conv-page {
+    min-height: 100vh;
+    background: var(--color-fondo);
+}
+
+/* ── Contenido con columna de lectura ── */
+.conv-contenedor {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ── Franja 3: crear + búsqueda + filtros + pestañas ── */
+.conv-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.conv-crear-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-acento-fuerte);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    padding: 10px 18px;
+    height: 44px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.18s ease;
+}
+
+.conv-crear-btn:hover {
+    background: var(--color-texto-suave);
+}
+
+.conv-crear-btn:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.conv-crear-btn span {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Búsqueda en píldora (radio 10px, fondo claro con borde) */
+.conv-buscar {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.conv-buscar svg {
+    position: absolute;
+    left: 14px;
+    width: 20px;
+    height: 20px;
+    color: var(--color-texto-suave);
+    pointer-events: none;
+}
+
+.conv-buscar input {
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--color-fondo3);
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    border-radius: 10px;
+    padding: 0 44px 0 46px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.conv-buscar input:focus-visible {
+    border-color: var(--color-acento-fuerte);
+    background: var(--color-tarjeta);
+    outline: none;
+}
+
+.conv-buscar input::placeholder {
+    color: var(--color-texto-suave);
+}
+
+.conv-buscar-limpiar {
+    position: absolute;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: var(--color-texto-suave);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.conv-buscar-limpiar:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 1px;
+}
+
+.conv-filtros-toggle {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-fondo3);
+    border-radius: 50%;
+    background: var(--color-fondo);
+    color: var(--color-texto-suave);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.conv-filtros-toggle svg {
+    width: 24px;
+    height: 24px;
+}
+
+.conv-filtros-toggle:hover {
+    border-color: var(--color-acento-fuerte);
+    color: var(--color-acento-fuerte);
+}
+
+.conv-filtros-toggle--activa {
+    background: var(--color-fondo2);
+    border-color: var(--color-acento-fuerte);
+    color: var(--color-acento-fuerte);
+}
+
+.conv-filtros-toggle:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+/* ── Pestañas de ordenamiento tipos Reddit (Recientes/Populares/…) ── */
+.conv-orden {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.conv-orden-tab {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-texto-suave);
+    padding: 8px 12px;
+    cursor: pointer;
+    position: relative;
+    border-radius: 6px;
+    transition: color 0.18s ease;
+}
+
+.conv-orden-tab:hover {
+    color: var(--color-h1);
+}
+
+.conv-orden-tab--activa {
+    color: var(--color-acento-fuerte);
+    font-weight: 500;
+}
+
+.conv-orden-tab--activa::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 2px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-acento-fuerte);
+}
+
+.conv-orden-tab:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+/* Línea contadora "Mostrando X de Y conversaciones" */
+.conv-conteo {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--color-texto-suave);
+}
+
+@media (max-width: 768px) {
+    .conv-orden-tab {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+}
+
+/* ── Aviso de filtros activos (patrón Maquillajes) ── */
+.conv-avisos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.conv-marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.conv-marca::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-acento-fuerte);
+    flex: none;
+}
+
+.conv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--color-fondo3);
+    background: var(--color-fondo);
+    color: var(--color-p);
+    border-radius: 999px;
+    padding: 5px 6px 5px 12px;
+    font-size: 12.5px;
+    font-weight: 500;
+}
+
+.conv-chip button {
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-fondo2);
+    color: var(--color-texto-suave);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.conv-chip button:hover {
+    background: var(--color-acento-fuerte);
+    color: #fff;
+}
+
+.conv-chip button:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 1px;
+}
+
+/* ── Contenido: lista + panel de filtros ── */
+.conv-contenido {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.conv-contenido--filtros {
+    grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.conv-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+/* ── Tarjeta de conversación (estilo foro/Reddit) ── */
+.conv-card {
+    position: relative;
+    background: var(--color-tarjeta);
+    border: 1px solid var(--color-fondo3);
+    border-left: 3px solid var(--conv-cultura, var(--color-fondo3));
+    border-radius: 16px;
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    overflow: hidden;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.conv-card:hover {
+    border-left-color: color-mix(in srgb, var(--conv-cultura, var(--color-fondo3)) 88%, #14101c);
+    box-shadow: 0 4px 16px rgba(83, 60, 94, 0.12);
+}
+
+.conv-card:focus-within {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+/* Columna de votos (like) */
+.conv-card-voto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 0 10px;
+    border-right: 1px solid var(--color-fondo2);
+    background: var(--color-fondo);
+}
+
+.conv-card-flecha {
+    appearance: none;
+    border: none;
+    background: transparent;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: var(--color-fondo3);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+
+.conv-card-flecha svg {
+    width: 18px;
+    height: 18px;
+    fill: transparent;
+}
+
+.conv-card-flecha:hover {
+    color: var(--color-fondo3);
+    background: var(--color-fondo3);
+}
+
+.conv-card-flecha--activa {
+    color: var(--color-acento-fuerte);
+}
+
+.conv-card-flecha--activa svg {
+    fill: currentColor;
+}
+
+.conv-card-flecha:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 1px;
+}
+
+.conv-card-likes {
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-h1);
+}
+
+/* Contenido */
+.conv-card-contenido {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 18px 12px;
+}
+
+.conv-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.conv-card-meta-avatar {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--color-fondo2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.conv-card-meta-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.conv-card-meta-autor {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-h1);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.conv-card-meta-autor:hover {
+    text-decoration: underline;
+}
+
+.conv-card-meta-autor:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.conv-card-meta-sep,
+.conv-card-meta-fecha {
+    font-size: 13px;
+    color: var(--color-texto-suave);
+    white-space: nowrap;
+}
+
+.conv-card-chips {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+}
+
+.conv-card-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.conv-card-chip--tema {
+    background: var(--color-fondo2);
+    color: var(--color-texto-suave);
+}
+
+.conv-card-chip--cultura {
+    background: color-mix(in srgb, var(--conv-cultura, var(--color-fondo3)) 14%, #fff);
+    color: color-mix(in srgb, var(--conv-cultura, var(--color-fondo3)) 70%, #14101c);
+}
+
+.conv-card-dot {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.conv-card-titulo {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--color-h1);
+}
+
+.conv-card-titulo a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.conv-card-titulo a:hover {
+    color: var(--color-acento-fuerte);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+}
+
+.conv-card-titulo a:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.conv-card-cuerpo {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.conv-card-preview {
+    margin: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-p);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.conv-card-thumb {
+    flex: none;
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-fondo2);
+    border: 1px solid var(--color-fondo3);
+}
+
+.conv-card-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.conv-card-pie {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-fondo2);
+}
+
+.conv-card-metrica {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+}
+
+.conv-card-metrica svg {
+    width: 16px;
+    height: 16px;
+}
+
+.conv-card-intervinientes {
+    display: inline-flex;
+    align-items: center;
+}
+
+.conv-card-interv {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--color-tarjeta);
+    background: var(--color-fondo2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: -6px;
+}
+
+.conv-card-interv:first-child {
+    margin-left: 0;
+}
+
+.conv-card-interv img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.conv-card-interv-mas {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-fondo2);
+    color: var(--color-texto-suave);
+    font-size: 9px;
+    font-weight: 500;
+    margin-left: -6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--color-tarjeta);
+}
+
+.conv-card-ultima {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--color-texto-suave);
+    white-space: nowrap;
+}
+
+/* ── Panel de filtros (derecha sticky en escritorio) ── */
+.conv-panel {
+    position: sticky;
+    top: 16px;
+    background: var(--color-fondo);
+    border: 1px solid var(--color-fondo3);
+    border-radius: 16px;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.conv-panel-titulo {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.conv-panel-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.conv-panel-grupo legend {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+    padding: 0;
+    margin-bottom: 2px;
+}
+
+.conv-panel-opcion {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-p);
+    cursor: pointer;
+}
+
+.conv-panel-opcion input {
+    accent-color: var(--color-acento-fuerte);
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.conv-panel-opcion input:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 1px;
+}
+
+.conv-panel-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.conv-panel-label {
+    font-size: 12.5px;
+    color: var(--color-texto-suave);
+}
+
+.conv-panel-fecha {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.conv-panel-fecha svg {
+    position: absolute;
+    right: 10px;
+    width: 16px;
+    height: 16px;
+    color: var(--color-texto-suave);
+    pointer-events: none;
+}
+
+.conv-panel-fecha input {
+    width: 100%;
+    border: 1px solid var(--color-fondo3);
+    border-radius: 10px;
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px 30px 8px 10px;
+    outline: none;
+}
+
+.conv-panel-fecha input:focus-visible {
+    border-color: var(--color-acento-fuerte);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-acento-fuerte) 25%, transparent);
+}
+
+.conv-panel-select {
+    width: 100%;
+    border: 1px solid var(--color-fondo3);
+    border-radius: 10px;
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px 10px;
+    outline: none;
+    cursor: pointer;
+}
+
+.conv-panel-select:focus-visible {
+    border-color: var(--color-acento-fuerte);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-acento-fuerte) 25%, transparent);
+}
+
+.conv-panel-acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.conv-panel-aplicar {
+    border: none;
+    border-radius: 999px;
+    background: var(--color-acento-fuerte);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.18s ease;
+}
+
+.conv-panel-aplicar:hover {
+    background: var(--color-texto-suave);
+}
+
+.conv-panel-aplicar:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.conv-panel-limpiar {
+    border: none;
+    background: none;
+    color: var(--color-texto-suave);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 8px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.conv-panel-limpiar:hover {
+    color: var(--color-h1);
+}
+
+.conv-panel-limpiar:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+.conv-panel-backdrop {
+    display: none;
+}
+
+/* ── Estados vacíos, error, skeletons ── */
+.conv-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 64px 24px;
+    text-align: center;
+    max-width: 46ch;
+    margin: 0 auto;
+}
+
+.conv-vacio-icono {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--color-fondo2);
+    color: var(--color-acento-fuerte);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.conv-vacio-icono svg {
+    width: 28px;
+    height: 28px;
+}
+
+.conv-vacio-titulo {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.conv-vacio-texto {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--color-texto-suave);
+}
+
+.conv-vacio-btn {
+    margin-top: 6px;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-acento-fuerte);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 9px 18px;
+    cursor: pointer;
+}
+
+.conv-vacio-btn:hover {
+    background: var(--color-texto-suave);
+}
+
+.conv-vacio-btn:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.conv-skeleton {
+    height: 170px;
+    border-radius: 16px;
+    background: linear-gradient(100deg, var(--color-fondo2) 40%, #eee 50%, var(--color-fondo2) 60%);
+    background-size: 200% 100%;
+    animation: conv-shimmer 1.2s infinite;
+}
+
+@keyframes conv-shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+
+.conv-sentinela {
+    height: 1px;
+}
+
+.conv-fin {
+    align-self: center;
+    margin: 4px 0 0;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: var(--color-fondo2);
+    color: var(--color-texto-suave);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* ── Modal de creación (/conversaciones/nueva) ── */
+.conv-nueva-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: rgba(47, 38, 56, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.conv-nueva {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--color-fondo);
+    border-radius: 20px;
+    padding: 26px 26px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 24px 48px -20px rgba(83, 60, 94, 0.4);
+}
+
+.conv-nueva-cerrar {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--color-texto-suave);
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.conv-nueva-cerrar svg {
+    width: 18px;
+    height: 18px;
+}
+
+.conv-nueva-cerrar:focus-visible {
+    outline: 2px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.conv-nueva-titulo {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.conv-nueva-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+}
+
+.conv-nueva-campo label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+}
+
+.conv-select {
+    border: 1px solid var(--color-fondo3);
+    border-radius: 999px;
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 6px 12px;
+    outline: none;
+    cursor: pointer;
+}
+
+.conv-select:focus-visible {
+    border-color: var(--color-acento-fuerte);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-acento-fuerte) 25%, transparent);
+}
+
+.conv-select:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.conv-select--ancho {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.conv-nueva-input {
+    border: 1px solid var(--color-fondo3);
+    border-radius: 10px;
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    font-family: inherit;
+    font-size: 15px;
+    padding: 9px 12px;
+    outline: none;
+}
+
+.conv-nueva-input:focus-visible,
+.conv-nueva-textarea:focus-visible {
+    border-color: var(--color-acento-fuerte);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-acento-fuerte) 25%, transparent);
+}
+
+.conv-nueva-textarea {
+    border: 1px solid var(--color-fondo3);
+    border-radius: 10px;
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 10px 12px;
+    min-height: 120px;
+    resize: vertical;
+    outline: none;
+}
+
+.conv-nueva-contador {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    font-size: 12px;
+    color: var(--color-texto-suave);
+}
+
+.conv-nueva-doble {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.conv-nueva-label-solo {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-texto-suave);
+}
+
+.conv-nueva-subir {
+    align-self: flex-start;
+    border: 1px solid var(--color-acento-fuerte);
+    background: transparent;
+    color: var(--color-acento-fuerte);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.conv-nueva-subir:hover {
+    background: var(--color-acento-fuerte);
+    color: #fff;
+}
+
+.conv-nueva-subir:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.conv-nueva-miniaturas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 10px;
+}
+
+.conv-nueva-miniatura {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--color-fondo2);
+}
+
+.conv-nueva-miniatura img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.conv-nueva-miniatura-x {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(47, 38, 56, 0.75);
+    color: #fff;
+    font-size: 11px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.conv-crear-btn--ancho {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 16px;
+}
+
+.conv-crear-btn--ancho:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .conv-contenido--filtros {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .conv-page {
+        padding-bottom: 8px;
+    }
+    .conv-contenedor {
+        padding: 20px 12px 8px;
+        gap: 14px;
+    }
+    .conv-toolbar {
+        flex-wrap: wrap;
+    }
+    .conv-toolbar .conv-buscar {
+        order: 3;
+        flex-basis: 100%;
+    }
+    .conv-crear-btn {
+        flex: 1 1 auto;
+    }
+    .conv-card {
+        grid-template-columns: 44px minmax(0, 1fr);
+    }
+    .conv-card-flecha svg {
+        width: 16px;
+        height: 16px;
+    }
+    .conv-card-meta {
+        flex-wrap: wrap;
+        row-gap: 4px;
+    }
+    .conv-card-chips {
+        margin-left: 0;
+    }
+    .conv-card-thumb {
+        width: 56px;
+        height: 56px;
+    }
+    .conv-nueva-doble {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .conv-card-contenido {
+        padding: 12px 12px 10px;
+    }
+    .conv-card-thumb {
+        display: none;
+    }
+    .conv-card-ultima {
+        display: none;
+    }
+}
+
+/* Hoja inferior de filtros en móvil (≤768px) */
+@media (max-width: 768px) {
+    .conv-panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 84px;
+        top: auto;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -16px 32px -16px rgba(83, 60, 94, 0.4);
+        z-index: 45;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
+    .conv-panel-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(47, 38, 56, 0.45);
+        z-index: 44;
+        border: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .conv-skeleton {
+        animation: none;
+    }
+    .conv-card {
+        transition: none;
+        transform: none;
+    }
+}

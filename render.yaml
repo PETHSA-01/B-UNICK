@@ -1,0 +1,89 @@
+# Blueprint de Render para B-unick.
+#
+# Arquitectura (según la propuesta del proyecto): el frontend y el backend se
+# despliegan JUNTOS en un único servicio web de Render, que compila el cliente
+# con Vite y lo sirve con Express desde el mismo origen (`/api`). La base de
+# datos MySQL vive en Railway y se conecta por su host/puerto públicos.
+#
+# Uso: en Render → New → Blueprint → conecta este repositorio. Render leerá este
+# archivo y pedirá los valores de las variables marcadas con `sync: false`.
+#
+# Después de crear el servicio, completa en el dashboard los secretos
+# (credenciales de Railway, JWT, Cloudinary, Sightengine y Gmail) y actualiza
+# FRONTEND_URL/BACKEND_URL con la URL pública que Render asigne.
+
+services:
+  - type: web
+    name: b-unick
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    # Compila el cliente (Vite) e instala las dependencias del servidor. El
+    # resultado queda en `cliente/dist`, que Express sirve en el mismo origen.
+    buildCommand: npm --prefix servidor install && npm --prefix cliente install && npm --prefix cliente run build
+    startCommand: node servidor/index.js
+    healthCheckPath: /api/videos/filtros
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      # --- Base de datos (MySQL de Railway) ---
+      - key: MYSQLDB_HOST
+        sync: false
+      - key: MYSQLDB_PORT
+        sync: false
+      - key: MYSQLDB_USER
+        sync: false
+      - key: MYSQLDB_CONTRASENA
+        sync: false
+      - key: MYSQLDB_DB
+        value: bunyk_db
+      - key: MYSQLDB_SSL
+        value: "true"
+      - key: RESET_DB
+        value: "false"
+      # --- URLs públicas (se completan tras el primer deploy) ---
+      - key: FRONTEND_URL
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      # --- JWT ---
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_EMAIL_SECRET
+        sync: false
+      # --- Correo (Gmail API OAuth2) ---
+      - key: GMAIL_CLIENT_ID
+        sync: false
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: MAIL_FROM_NAME
+        value: B-unick
+      # --- Cloudinary (backend: foto de perfil) ---
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      # --- Cloudinary (frontend, build-time: Upload Widget unsigned) ---
+      - key: VITE_CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: VITE_CLOUDINARY_UPLOAD_PRESET
+        sync: false
+      # --- Sightengine (moderación) ---
+      - key: SIGHTENGINE_API_USER
+        sync: false
+      - key: SIGHTENGINE_API_SECRET
+        sync: false
+      - key: SIGHTENGINE_MODELOS
+        value: nudity-2.1,weapon,offensive,self-harm,gore-2.0,alcohol,violence

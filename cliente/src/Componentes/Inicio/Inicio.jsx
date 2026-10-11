@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
 import { PreferenciasFormulario } from '../Registro/PreferenciasFormulario'
+import { Maquillajes } from '../Maquillajes/Maquillajes'
 
 export const Inicio = () => {
   const { isAuthenticated, user, refreshUser } = useAuth()
@@ -12,7 +13,7 @@ export const Inicio = () => {
     // Si la sesión cambió y ahora hay un usuario, permitir que el formulario
     // de preferencias vuelva a considerarse (solo se muestra una vez por sesión
     // mientras tengaPreferencias sea false; el cierre manual lo descarta).
-    setCerradoPreferencias(false)
+    Promise.resolve().then(() => setCerradoPreferencias(false))
   }, [isAuthenticated, user?.tienePreferencias])
 
   // RQFN11-13: mostrar el formulario si hay sesión, aún sin preferencias,
@@ -47,9 +48,9 @@ export const Inicio = () => {
 
   return (
     <>
-      <div className="inicio-contenido">
-        <h1>B-unick</h1>
-        <p>¿Qué tan única puedes ser?</p>
+      {/* Feed de maquillajes como contenido principal del inicio */}
+      <div className="maquillajes-fondo">
+        <Maquillajes />
       </div>
 
       {mostrarPreferencias && (

@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { useParams, useNavigate } from 'react-router'
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router'
 import { useAuth } from '../../context/AuthContext'
+import { useTema } from '../../context/TemaContext'
 import api from '../../api/axios'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
+import { VideoCard } from '../Maquillajes/Maquillajes'
 import '../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import '../../estilos/PerfilEstilos/perfil.css'
+import '../../estilos/MaquillajesEstilos/maquillajes.css'
 
 const TITULO_TOAST = 'Becky te ha mandado un mensaje'
+const LIMITE_TAB = 30
 
 const iniciales = (nombre = '') =>
   nombre
@@ -17,6 +21,12 @@ const iniciales = (nombre = '') =>
     .slice(0, 2)
     .map((p) => p.charAt(0).toUpperCase())
     .join('')
+
+// ¿La pestaña muestra la galería real de videos? Guardados y Vistas solo
+// son reales en el perfil propio (los ajenos no exponen sus guardados ni
+// su historial de videos vistos).
+const esTabDeVideos = (clave, esMio) =>
+  clave === 'publicaciones' || ((clave === 'guardados' || clave === 'vistas') && esMio)
 
 const IconoBase = ({ children }) => (
   <svg
@@ -132,7 +142,7 @@ const TEXTOS_VACIOS = {
           etiqueta: 'Ver conversaciones',
           ruta: '/conversaciones'
         }
-      : { titulo: 'Nada aquí' }
+      : { titulo: 'Sin conversaciones', texto: 'Este usuario todavía no ha iniciado ninguna conversación.' }
 }
 
 const EstadoVacio = ({ clave, esMio }) => {
@@ -157,35 +167,117 @@ const EstadoVacio = ({ clave, esMio }) => {
   )
 }
 
+const ConversacionCard = ({ conv }) => {
+  const miniatura = conv.galeria?.[0] || null
+  return (
+    <li className="perfil-conv-item">
+      <Link to={`/conversaciones/${conv.id}`} className="perfil-conv-enlace">
+        <span className="perfil-conv-thumb">
+          {miniatura ? (
+            <img src={miniatura} alt="" loading="lazy" />
+          ) : (
+            <IconoChat />
+          )}
+        </span>
+        <span className="perfil-conv-cuerpo">
+          <span className="perfil-conv-tema">{conv.tema}</span>
+          <span className="perfil-conv-titulo">{conv.titulo}</span>
+          <span className="perfil-conv-meta">
+            <span className="perfil-conv-cultura">
+              {conv.cultura?.nombre}
+              {conv.subcultura?.nombre ? ` · ${conv.subcultura.nombre}` : ''}
+            </span>
+            <span className="perfil-conv-metricas">
+              {conv.cantidadComentarios ?? 0} comentarios · {conv.likes ?? 0} likes · {conv.vistas ?? 0} vistas
+            </span>
+          </span>
+        </span>
+      </Link>
+    </li>
+  )
+}
+
+const InputPassword = ({ etiqueta, valor, alCambiar, visible, alternarVisible, autoComplete }) => (
+  <div className="input-wrapper">
+    <input
+      className="textoinput"
+      type={visible ? 'text' : 'password'}
+      value={valor}
+      onChange={(e) => alCambiar(e.target.value)}
+      placeholder={etiqueta}
+      autoComplete={autoComplete}
+      aria-label={etiqueta}
+    />
+    <button
+      type="button"
+      className="ojo-btn"
+      onClick={alternarVisible}
+      aria-label={visible ? `Ocultar ${etiqueta}` : `Mostrar ${etiqueta}`}
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    </button>
+  </div>
+)
+
 export const Perfil = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user, isAuthenticated, loading, refreshUser, logout } = useAuth()
+  const { tema, alternarTema } = useTema()
 
   const notificationsRef = useRef(null)
 
   const esMio = !id || (user && String(user.id) === String(id))
 
+  // El historial de videos vistos es privado: solo se muestra al dueño de
+  // la cuenta (los perfiles ajenos no lo exponen).
+  const pestanasVisibles = esMio
+    ? PESTANAS
+    : PESTANAS.filter((p) => p.clave !== 'vistas')
+
   const [cargando, setCargando] = useState(true)
   const [perfil, setPerfil] = useState(null)
   const [errorCarga, setErrorCarga] = useState(null)
 
-  const [modalEditar, setModalEditar] = useState(false)
-  const [modalContrasena, setModalContrasena] = useState(false)
+  const [configAbierta, setConfigAbierta] = useState(false)
   const [modalLista, setModalLista] = useState(null)
   const [listaDatos, setListaDatos] = useState([])
   const [cargandoLista, setCargandoLista] = useState(false)
 
   const [editNombre, setEditNombre] = useState('')
   const [editDescripcion, setEditDescripcion] = useState('')
-  const [editFotoPreview, setEditFotoPreview] = useState(null)
-  const [editFotoNueva, setEditFotoNueva] = useState(false)
-  const [guardandoEdicion, setGuardandoEdicion] = useState(false)
+  const [fotoPreview, setFotoPreview] = useState(null)
+  const [fotoNueva, setFotoNueva] = useState(false)
+  const [guardandoNombre, setGuardandoNombre] = useState(false)
+  const [guardandoDescripcion, setGuardandoDescripcion] = useState(false)
+  const [guardandoFoto, setGuardandoFoto] = useState(false)
 
   const [passActual, setPassActual] = useState('')
   const [passNueva, setPassNueva] = useState('')
   const [passConfirmar, setPassConfirmar] = useState('')
+  const [mostrarPassActual, setMostrarPassActual] = useState(false)
+  const [mostrarPassNueva, setMostrarPassNueva] = useState(false)
+  const [mostrarPassConfirmar, setMostrarPassConfirmar] = useState(false)
   const [guardandoPass, setGuardandoPass] = useState(false)
+
+  const [correoNuevo, setCorreoNuevo] = useState('')
+  const [passCorreo, setPassCorreo] = useState('')
+  const [mostrarPassCorreo, setMostrarPassCorreo] = useState(false)
+  const [guardandoCorreo, setGuardandoCorreo] = useState(false)
+  const [correoEnviado, setCorreoEnviado] = useState(false)
 
   const [yaSigo, setYaSigo] = useState(false)
   const [togglingFollow, setTogglingFollow] = useState(false)
@@ -198,18 +290,182 @@ export const Perfil = () => {
   const tabsRef = useRef({})
 
   const moverPestana = (e) => {
-    const indice = PESTANAS.findIndex((p) => p.clave === tabActiva)
+    const indice = pestanasVisibles.findIndex((p) => p.clave === tabActiva)
     let nuevo
-    if (e.key === 'ArrowRight') nuevo = (indice + 1) % PESTANAS.length
-    else if (e.key === 'ArrowLeft') nuevo = (indice - 1 + PESTANAS.length) % PESTANAS.length
+    if (e.key === 'ArrowRight') nuevo = (indice + 1) % pestanasVisibles.length
+    else if (e.key === 'ArrowLeft') nuevo = (indice - 1 + pestanasVisibles.length) % pestanasVisibles.length
     else if (e.key === 'Home') nuevo = 0
-    else if (e.key === 'End') nuevo = PESTANAS.length - 1
+    else if (e.key === 'End') nuevo = pestanasVisibles.length - 1
     else return
     e.preventDefault()
-    const siguiente = PESTANAS[nuevo].clave
+    const siguiente = pestanasVisibles[nuevo].clave
     setTabActiva(siguiente)
     tabsRef.current[siguiente]?.focus()
   }
+
+  // Galería real de videos (Publicaciones / Guardados): usa el mismo
+  // VideoCard del inicio (masonry + scroll infinito de 30 en 30).
+  const videosTabRef = useRef({ publicaciones: [], guardados: [], vistas: [] })
+  const [videosTabMeta, setVideosTabMeta] = useState({})
+  const [tabCargando, setTabCargando] = useState({})
+  const [tabError, setTabError] = useState({})
+  const sentinelRef = useRef(null)
+  const tabSeqRef = useRef({})
+
+  const cargarVideosTab = useCallback(async (clave, pagina) => {
+    if (!esTabDeVideos(clave, esMio)) return
+    const sec = (tabSeqRef.current[clave] || 0) + 1
+    tabSeqRef.current[clave] = sec
+    setTabCargando((prev) => ({ ...prev, [clave]: true }))
+    try {
+      const endpoint =
+        clave === 'guardados'
+          ? '/perfil/guardados'
+          : clave === 'vistas'
+            ? '/perfil/vistos'
+            : id
+              ? `/usuarios/${id}/videos`
+              : '/perfil/videos'
+      const res = await api.get(endpoint, { params: { pagina, limite: LIMITE_TAB } })
+      if (tabSeqRef.current[clave] !== sec) return
+      const lista = res.data?.videos || []
+      setVideosTabMeta((prev) => ({
+        ...prev,
+        [clave]: { total: res.data.total, hasMas: res.data.hasMore, pagina: res.data.pagina }
+      }))
+      videosTabRef.current[clave] =
+        pagina > 1
+          ? [...videosTabRef.current[clave], ...lista]
+          : lista
+      setTabError((prev) => ({ ...prev, [clave]: null }))
+    } catch (e) {
+      if (tabSeqRef.current[clave] !== sec) return
+      setTabError((prev) => ({ ...prev, [clave]: e.response?.data?.error || 'No se pudieron cargar los videos.' }))
+    } finally {
+      if (tabSeqRef.current[clave] === sec) {
+        setTabCargando((prev) => ({ ...prev, [clave]: false }))
+      }
+    }
+  }, [id, esMio])
+
+  useEffect(() => {
+    if (esTabDeVideos(tabActiva, esMio) && videosTabMeta[tabActiva] === undefined) {
+      cargarVideosTab(tabActiva, 1)
+    }
+  }, [tabActiva, esMio, cargarVideosTab, videosTabMeta])
+
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const clave = tabActiva
+        const meta = videosTabMeta[clave]
+        if (
+          entries[0].isIntersecting &&
+          meta?.hasMas &&
+          !tabCargando[clave] &&
+          videosTabRef.current[clave]?.length > 0
+        ) {
+          cargarVideosTab(clave, (meta.pagina || 1) + 1)
+        }
+      },
+      { rootMargin: '600px 0px' }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [tabActiva, videosTabMeta, tabCargando, cargarVideosTab])
+
+  // Conversaciones iniciadas (pestaña Chats): lista real con miniaturas,
+  // propia (`/perfil/conversaciones`) y ajena (`/usuarios/:id/conversaciones`).
+  const convListaRef = useRef([])
+  const [convTabMeta, setConvTabMeta] = useState({})
+  const [convCargando, setConvCargando] = useState({})
+  const [convError, setConvError] = useState({})
+  const convSentinelRef = useRef(null)
+  const convSeqRef = useRef({})
+
+  const cargarConvTab = useCallback(async (pagina) => {
+    const clave = 'chats'
+    const sec = (convSeqRef.current[clave] || 0) + 1
+    convSeqRef.current[clave] = sec
+    setConvCargando((prev) => ({ ...prev, [clave]: true }))
+    try {
+      const endpoint = esMio
+        ? '/perfil/conversaciones'
+        : `/usuarios/${id}/conversaciones`
+      const res = await api.get(endpoint, { params: { pagina, limite: LIMITE_TAB } })
+      if (convSeqRef.current[clave] !== sec) return
+      const lista = res.data?.conversaciones || []
+      setConvTabMeta((prev) => ({
+        ...prev,
+        [clave]: { total: res.data.total, hasMas: res.data.hasMore, pagina: res.data.pagina }
+      }))
+      convListaRef.current = pagina > 1 ? [...convListaRef.current, ...lista] : lista
+      setConvError((prev) => ({ ...prev, [clave]: null }))
+    } catch (e) {
+      if (convSeqRef.current[clave] !== sec) return
+      setConvError((prev) => ({
+        ...prev,
+        [clave]:
+          e.response?.data?.error ||
+          (e.response ? `Error del servidor (${e.response.status}).` : 'No se pudieron cargar las conversaciones.')
+      }))
+    } finally {
+      if (convSeqRef.current[clave] === sec) {
+        setConvCargando((prev) => ({ ...prev, [clave]: false }))
+      }
+    }
+  }, [esMio, id])
+
+  useEffect(() => {
+    if (tabActiva === 'chats' && convTabMeta.chats === undefined) {
+      cargarConvTab(1)
+    }
+  }, [tabActiva, convTabMeta, cargarConvTab])
+
+  useEffect(() => {
+    const el = convSentinelRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const meta = convTabMeta.chats
+        if (
+          entries[0].isIntersecting &&
+          meta?.hasMas &&
+          !convCargando.chats &&
+          convListaRef.current.length > 0
+        ) {
+          cargarConvTab((meta.pagina || 1) + 1)
+        }
+      },
+      { rootMargin: '600px 0px' }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [tabActiva, convTabMeta, convCargando, cargarConvTab])
+
+  // Al cambiar de perfil (propio ↔ ajeno) se descarta la caché de galerías
+  // para no mezclar los videos del usuario anterior.
+  useEffect(() => {
+    videosTabRef.current = { publicaciones: [], guardados: [], vistas: [] }
+    setVideosTabMeta({})
+    setTabError({})
+    setTabCargando({})
+    convListaRef.current = []
+    setConvTabMeta({})
+    setConvError({})
+    setConvCargando({})
+  }, [id])
+
+  // Los historiales de videos vistos solo existen en el perfil propio: si
+  // la pestaña activa es 'vistas' pero el perfil es ajeno, se vuelve a la
+  // primera pestaña visible (Publicaciones).
+  useEffect(() => {
+    if (!esMio && tabActiva === 'vistas') {
+      setTabActiva('publicaciones')
+    }
+  }, [esMio, tabActiva])
 
   useEffect(() => {
     const cerrarMenu = (e) => {
@@ -279,6 +535,35 @@ export const Perfil = () => {
     obtener()
   }, [loading, isAuthenticated, esMio, id, navigate])
 
+  // Resultado del flujo de cambio de correo (GET /verificar-cambio-correo redirige a /perfil).
+  useEffect(() => {
+    if (loading || !isAuthenticated) return
+    const confirmado = searchParams.get('correoConfirmado')
+    const error = searchParams.get('correoError')
+    if (confirmado === '1') {
+      avisar(
+        'Correo electrónico confirmado: ya usas tu nueva dirección. ¡Gracias, cariño!',
+        'success'
+      )
+      setSearchParams({}, { replace: true })
+      return
+    }
+    if (error) {
+      const mensajes = {
+        token_missing: 'El enlace de confirmación es inválido. Solicita uno nuevo.',
+        token_invalid_type: 'El enlace de confirmación es inválido. Solicita uno nuevo.',
+        token_invalid: 'El enlace de confirmación es inválido. Solicita uno nuevo.',
+        token_expired: 'El enlace de confirmación caducó. Solicita uno nuevo.',
+        token_invalid_or_expired: 'El enlace de confirmación no es válido o caducó. Solicita uno nuevo.',
+        email_taken: 'Ese correo ya está registrado, así que no se aplicó el cambio.',
+        user_not_found: 'No encontramos tu cuenta.',
+        server_error: 'No se pudo cambiar el correo. Intenta de nuevo.'
+      }
+      avisar(mensajes[error] || 'No se pudo cambiar el correo. Intenta de nuevo.')
+      setSearchParams({}, { replace: true })
+    }
+  }, [loading, isAuthenticated, searchParams, setSearchParams, avisar])
+
   const handleLogout = async () => {
     if (cerrandoSesion) return
     setCerrandoSesion(true)
@@ -305,12 +590,15 @@ export const Perfil = () => {
     }
   }
 
-  const abrirEditar = () => {
+  const abrirConfig = () => {
     setEditNombre(perfil?.username || '')
     setEditDescripcion(perfil?.descripcion || '')
-    setEditFotoPreview(null)
-    setEditFotoNueva(false)
-    setModalEditar(true)
+    setFotoPreview(null)
+    setFotoNueva(false)
+    setCorreoNuevo('')
+    setPassCorreo('')
+    setCorreoEnviado(false)
+    setConfigAbierta(true)
   }
 
   const manejarFoto = (e) => {
@@ -325,14 +613,14 @@ export const Perfil = () => {
       canvas.height = Math.max(1, Math.round(img.height * escala))
       const ctx = canvas.getContext('2d')
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-      setEditFotoPreview(canvas.toDataURL('image/jpeg', 0.85))
-      setEditFotoNueva(true)
+      setFotoPreview(canvas.toDataURL('image/jpeg', 0.85))
+      setFotoNueva(true)
     }
     img.src = URL.createObjectURL(archivo)
   }
 
-  const guardarEdicion = async () => {
-    if (guardandoEdicion) return
+  const guardarNombre = async () => {
+    if (guardandoNombre) return
     const nombre = editNombre.trim()
     if (!nombre) {
       avisar('Cariño, tu nombre de usuario no puede estar vacío.')
@@ -342,28 +630,53 @@ export const Perfil = () => {
       avisar('El nombre de usuario debe tener entre 3 y 50 caracteres.')
       return
     }
-    if (editDescripcion.trim().length > 200) {
+    setGuardandoNombre(true)
+    try {
+      await api.put('/perfil', { username: nombre })
+      await refreshUser()
+      await cargarPerfil()
+      avisar('Nombre de usuario actualizado.', 'success')
+    } catch (e) {
+      avisar(e.response?.data?.error || 'No se pudo guardar el nombre.')
+    } finally {
+      setGuardandoNombre(false)
+    }
+  }
+
+  const guardarDescripcion = async () => {
+    if (guardandoDescripcion) return
+    const descripcion = editDescripcion.trim()
+    if (descripcion.length > 200) {
       avisar('La descripción no puede exceder 200 caracteres.')
       return
     }
-
-    setGuardandoEdicion(true)
+    setGuardandoDescripcion(true)
     try {
-      if (editFotoNueva && editFotoPreview) {
-        await api.put('/perfil/foto', { imagen: editFotoPreview })
-      }
-      await api.put('/perfil', {
-        username: nombre,
-        descripcion: editDescripcion.trim()
-      })
+      await api.put('/perfil', { descripcion })
       await refreshUser()
       await cargarPerfil()
-      setModalEditar(false)
-      avisar('Perfil actualizado, ¡lucirá genial!', 'success')
+      avisar('Descripción actualizada.', 'success')
     } catch (e) {
-      avisar(e.response?.data?.error || 'No se pudo guardar el perfil.')
+      avisar(e.response?.data?.error || 'No se pudo guardar la descripción.')
     } finally {
-      setGuardandoEdicion(false)
+      setGuardandoDescripcion(false)
+    }
+  }
+
+  const guardarFotoPerfil = async () => {
+    if (guardandoFoto || !fotoNueva || !fotoPreview) return
+    setGuardandoFoto(true)
+    try {
+      await api.put('/perfil/foto', { imagen: fotoPreview })
+      await refreshUser()
+      await cargarPerfil()
+      setFotoNueva(false)
+      setFotoPreview(null)
+      avisar('Foto de perfil actualizada, ¡qué bonita te ves!', 'success')
+    } catch (e) {
+      avisar(e.response?.data?.error || 'No se pudo subir la foto.')
+    } finally {
+      setGuardandoFoto(false)
     }
   }
 
@@ -380,7 +693,6 @@ export const Perfil = () => {
         nuevaContrasena: passNueva,
         confirmarContrasena: passConfirmar
       })
-      setModalContrasena(false)
       setPassActual('')
       setPassNueva('')
       setPassConfirmar('')
@@ -389,6 +701,39 @@ export const Perfil = () => {
       avisar(e.response?.data?.error || 'No se pudo cambiar la contraseña.')
     } finally {
       setGuardandoPass(false)
+    }
+  }
+
+  const guardarCorreo = async () => {
+    if (guardandoCorreo) return
+    const nuevo = correoNuevo.trim().toLowerCase()
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!nuevo || !emailRegex.test(nuevo)) {
+      avisar('Escribe un correo electrónico válido.')
+      return
+    }
+    if (!passCorreo) {
+      avisar('Necesitamos tu contraseña para confirmar el cambio.')
+      return
+    }
+    setGuardandoCorreo(true)
+    try {
+      const respuesta = await api.post('/perfil/correo', {
+        nuevoCorreo: nuevo,
+        contrasena: passCorreo
+      })
+      setCorreoEnviado(true)
+      setCorreoNuevo('')
+      setPassCorreo('')
+      avisar(
+        respuesta.data?.message ||
+          'Te enviamos un enlace de confirmación al nuevo correo. Tu dirección cambiará al confirmarlo.',
+        'success'
+      )
+    } catch (e) {
+      avisar(e.response?.data?.error || 'No se pudo iniciar el cambio de correo.')
+    } finally {
+      setGuardandoCorreo(false)
     }
   }
 
@@ -438,8 +783,104 @@ export const Perfil = () => {
     <div className="perfil-avatar perfil-avatar--fallback">{iniciales(perfil.username)}</div>
   )
 
-  const fotoEditar =
-    editFotoPreview || (esMio && perfil.fotoPerfil) || null
+  const fotoPanel =
+    fotoPreview || (esMio && perfil.fotoPerfil) || null
+
+  const renderContenidoTab = () => {
+    if (tabActiva === 'chats') {
+      const convs = convListaRef.current
+      const meta = convTabMeta.chats
+      const errorTab = convError.chats
+      if (errorTab && convs.length === 0) {
+        return (
+          <div className="perfil-tab-error">
+            <p>{errorTab}</p>
+            <button
+              type="button"
+              className="perfil-btn perfil-btn--primary"
+              onClick={() => {
+                setConvTabMeta((prev) => ({ ...prev, chats: undefined }))
+                setConvError((prev) => ({ ...prev, chats: null }))
+              }}
+            >
+              Reintentar
+            </button>
+          </div>
+        )
+      }
+      if (meta === undefined || (convCargando.chats && convs.length === 0)) {
+        return <div className="perfil-tab-cargando" role="status">Cargando...</div>
+      }
+      if (convs.length === 0) {
+        return <EstadoVacio clave={tabActiva} esMio={esMio} />
+      }
+      return (
+        <div className="perfil-tab-conversaciones">
+          <ul className="perfil-conv-lista">
+            {convs.map((c) => <ConversacionCard key={c.id} conv={c} />)}
+          </ul>
+          <div ref={convSentinelRef} className="maquillajes-observer" aria-hidden="true" />
+          {convCargando.chats && convs.length > 0 && (
+            <p className="maquillajes-fin">Cargando más…</p>
+          )}
+          {!convCargando.chats && meta && meta.hasMas === false && (
+            <p className="maquillajes-fin">
+              {meta.total === 1
+                ? 'Solo hay 1 conversación.'
+                : `Eso es todo por ahora (${meta.total} conversaciones).`}
+            </p>
+          )}
+        </div>
+      )
+    }
+    if (!esTabDeVideos(tabActiva, esMio)) {
+      return <EstadoVacio clave={tabActiva} esMio={esMio} />
+    }
+    const videos = videosTabRef.current[tabActiva] || []
+    const meta = videosTabMeta[tabActiva]
+    const errorTab = tabError[tabActiva]
+    if (errorTab && videos.length === 0) {
+      return (
+        <div className="perfil-tab-error">
+          <p>{errorTab}</p>
+          <button
+            type="button"
+            className="perfil-btn perfil-btn--primary"
+            onClick={() => {
+              setVideosTabMeta((prev) => ({ ...prev, [tabActiva]: undefined }))
+              setTabError((prev) => ({ ...prev, [tabActiva]: null }))
+            }}
+          >
+            Reintentar
+          </button>
+        </div>
+      )
+    }
+    if (meta === undefined || (tabCargando[tabActiva] && videos.length === 0)) {
+      return <div className="perfil-tab-cargando" role="status">Cargando...</div>
+    }
+    if (videos.length === 0) {
+      return <EstadoVacio clave={tabActiva} esMio={esMio} />
+    }
+    return (
+      <div className="perfil-tab-videos">
+        <div className="maquillajes-masonry">
+          {videos.map((v) => (
+            <VideoCard key={v.id} video={v} activo={false} />
+          ))}
+        </div>
+        <div ref={sentinelRef} className="maquillajes-observer" aria-hidden="true" />
+        {tabCargando[tabActiva] && videos.length > 0 && (
+          <p className="maquillajes-fin">Cargando más…</p>
+        )}
+        {!tabCargando[tabActiva] && meta && meta.hasMas === false && (
+          <p className="maquillajes-fin">
+            {meta.total === 1 ? 'Solo hay 1 video.' : `Eso es todo por ahora (${meta.total} videos).`}
+          </p>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="perfil-pagina">
@@ -466,21 +907,10 @@ export const Perfil = () => {
                   className="perfil-gear-item"
                   onClick={() => {
                     setMenuAbierto(false)
-                    abrirEditar()
+                    abrirConfig()
                   }}
                 >
-                  Editar perfil
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="perfil-gear-item"
-                  onClick={() => {
-                    setMenuAbierto(false)
-                    setModalContrasena(true)
-                  }}
-                >
-                  Cambiar contraseña
+                  Configuración
                 </button>
                 <button
                   type="button"
@@ -559,8 +989,9 @@ export const Perfil = () => {
       role="tablist"
       aria-label="Secciones del perfil"
       onKeyDown={moverPestana}
+      style={{ '--perfil-tabs-n': pestanasVisibles.length }}
     >
-      {PESTANAS.map(({ clave, nombre, Icono }) => (
+      {pestanasVisibles.map(({ clave, nombre, Icono }) => (
         <button
           key={clave}
           type="button"
@@ -588,93 +1019,265 @@ export const Perfil = () => {
       id={`panel-${tabActiva}`}
       aria-labelledby={`tab-${tabActiva}`}
     >
-      <EstadoVacio clave={tabActiva} esMio={esMio} />
+      {renderContenidoTab()}
     </div>
 
-      {modalEditar && (
-        <div className="fondo">
-          <div className="contenedor perfil-card-modal">
-            <button type="button" className="close-btn" onClick={() => setModalEditar(false)}>✕</button>
-            <h2 className="perfil-modal-titulo">Editar perfil</h2>
-            <label className="perfil-foto-label">
-              {fotoEditar ? (
-                <img className="perfil-foto-preview" src={fotoEditar} alt="Vista previa" />
-              ) : (
-                <div className="perfil-avatar perfil-avatar--fallback perfil-avatar--grande">
-                  {iniciales(editNombre || perfil.username)}
-                </div>
-              )}
-              <span className="perfil-foto-label-texto">Cambiar foto</span>
-              <input type="file" accept="image/*" onChange={manejarFoto} hidden />
-            </label>
-            <input
-              className="textoinput"
-              value={editNombre}
-              onChange={(e) => setEditNombre(e.target.value)}
-              placeholder="Nombre de usuario"
-              maxLength={50}
-            />
-            <textarea
-              className="perfil-textarea"
-              value={editDescripcion}
-              onChange={(e) => setEditDescripcion(e.target.value)}
-              placeholder="Cuéntanos de ti (máx. 200 caracteres)"
-              maxLength={200}
-              rows={3}
-            />
-            <button
-              type="button"
-              className="btn-submit"
-              onClick={guardarEdicion}
-              disabled={guardandoEdicion}
-            >
-              {guardandoEdicion ? 'Guardando...' : 'Guardar cambios'}
-            </button>
-          </div>
-        </div>
-      )}
+      {configAbierta && (
+        <div className="config-overlay" onClick={() => setConfigAbierta(false)}>
+          <div className="config-panel" onClick={(e) => e.stopPropagation()}>
+            <header className="config-header">
+              <div className="config-header-texto">
+                <h2 className="config-titulo">Configuración</h2>
+                <p className="config-subtitulo">
+                  Administra la información pública de tu perfil y los datos de acceso a tu cuenta.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="config-cerrar"
+                aria-label="Cerrar configuración"
+                onClick={() => setConfigAbierta(false)}
+              >
+                <IconoBase>
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </IconoBase>
+              </button>
+            </header>
 
-      {modalContrasena && (
-        <div className="fondo">
-          <div className="contenedor perfil-card-modal">
-            <button
-              type="button"
-              className="close-btn"
-              onClick={() => setModalContrasena(false)}
-            >✕</button>
-            <h2 className="perfil-modal-titulo">Cambiar contraseña</h2>
-            <input
-              className="textoinput"
-              type="password"
-              value={passActual}
-              onChange={(e) => setPassActual(e.target.value)}
-              placeholder="Contraseña actual"
-              autoComplete="current-password"
-            />
-            <input
-              className="textoinput"
-              type="password"
-              value={passNueva}
-              onChange={(e) => setPassNueva(e.target.value)}
-              placeholder="Nueva contraseña"
-              autoComplete="new-password"
-            />
-            <input
-              className="textoinput"
-              type="password"
-              value={passConfirmar}
-              onChange={(e) => setPassConfirmar(e.target.value)}
-              placeholder="Confirmar nueva contraseña"
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              className="btn-submit"
-              onClick={guardarContrasena}
-              disabled={guardandoPass}
-            >
-              {guardandoPass ? 'Guardando...' : 'Guardar contraseña'}
-            </button>
+            <div className="config-apartado config-apartado--foto">
+              <div className="config-apartado-info">
+                <h4>Foto de perfil</h4>
+                <p>Se muestra en tu perfil, tus publicaciones y tus comentarios.</p>
+              </div>
+              <div className="config-apartado-control">
+                <span className="config-avatar">
+                  {fotoPanel ? (
+                    <img src={fotoPanel} alt="Vista previa de tu foto de perfil" />
+                  ) : (
+                    iniciales(editNombre || perfil.username)
+                  )}
+                </span>
+                <div className="config-avatar-acciones">
+                  <label className="config-btn config-btn--primario">
+                    Cambiar foto de perfil
+                    <input type="file" accept="image/*" onChange={manejarFoto} hidden />
+                  </label>
+                  {fotoNueva && (
+                    <button
+                      type="button"
+                      className="config-btn config-btn--secundario"
+                      onClick={guardarFotoPerfil}
+                      disabled={guardandoFoto}
+                    >
+                      {guardandoFoto ? 'Guardando...' : 'Guardar foto'}
+                    </button>
+                  )}
+                  <span className="config-avatar-ayuda">JPG o PNG. Se ajusta automáticamente.</span>
+                </div>
+              </div>
+            </div>
+
+            <section className="config-seccion">
+              <h3 className="config-seccion-titulo">
+                <span className="config-dot" />
+                Perfil
+              </h3>
+
+              <div className="config-apartado">
+                <div className="config-apartado-info">
+                  <h4>Nombre de usuario</h4>
+                  <p>Es el nombre con el que las demás personas te identifican en la plataforma.</p>
+                </div>
+                <div className="config-apartado-control">
+                  <span className="config-field-label">Nombre de usuario</span>
+                  <input
+                    className="config-input"
+                    value={editNombre}
+                    onChange={(e) => setEditNombre(e.target.value)}
+                    maxLength={50}
+                  />
+                  <button
+                    type="button"
+                    className="config-btn config-btn--primario"
+                    onClick={guardarNombre}
+                    disabled={guardandoNombre}
+                  >
+                    {guardandoNombre ? 'Guardando...' : 'Cambiar nombre de usuario'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="config-apartado">
+                <div className="config-apartado-info">
+                  <h4>Descripción</h4>
+                  <p>Una breve presentación que aparece en tu perfil. Máximo 200 caracteres.</p>
+                </div>
+                <div className="config-apartado-control">
+                  <span className="config-field-label">Descripción</span>
+                  <textarea
+                    className="config-textarea"
+                    value={editDescripcion}
+                    onChange={(e) => setEditDescripcion(e.target.value)}
+                    maxLength={200}
+                    rows={3}
+                  />
+                  <span className="config-contador">{editDescripcion.trim().length}/200</span>
+                  <button
+                    type="button"
+                    className="config-btn config-btn--primario"
+                    onClick={guardarDescripcion}
+                    disabled={guardandoDescripcion}
+                  >
+                    {guardandoDescripcion ? 'Guardando...' : 'Cambiar descripción'}
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section className="config-seccion">
+              <h3 className="config-seccion-titulo">
+                <span className="config-dot" />
+                Configuración del usuario
+              </h3>
+
+              <div className="config-apartado">
+                <div className="config-apartado-info">
+                  <h4>Contraseña</h4>
+                  <p>
+                    Elige una contraseña nueva para tu cuenta. Al cambiarla, cerramos tus otras
+                    sesiones activas.
+                  </p>
+                </div>
+                <div className="config-apartado-control">
+                  <InputPassword
+                    etiqueta="Contraseña actual"
+                    valor={passActual}
+                    alCambiar={setPassActual}
+                    visible={mostrarPassActual}
+                    alternarVisible={() => setMostrarPassActual((v) => !v)}
+                    autoComplete="current-password"
+                  />
+                  <InputPassword
+                    etiqueta="Contraseña nueva"
+                    valor={passNueva}
+                    alCambiar={setPassNueva}
+                    visible={mostrarPassNueva}
+                    alternarVisible={() => setMostrarPassNueva((v) => !v)}
+                    autoComplete="new-password"
+                  />
+                  <InputPassword
+                    etiqueta="Confirmar contraseña nueva"
+                    valor={passConfirmar}
+                    alCambiar={setPassConfirmar}
+                    visible={mostrarPassConfirmar}
+                    alternarVisible={() => setMostrarPassConfirmar((v) => !v)}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="config-btn config-btn--primario"
+                    onClick={guardarContrasena}
+                    disabled={guardandoPass}
+                  >
+                    {guardandoPass ? 'Guardando...' : 'Cambiar contraseña'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="config-apartado">
+                <div className="config-apartado-info">
+                  <h4>Correo electrónico</h4>
+                  <p>
+                    Tu correo es necesario para iniciar sesión y recuperar tu cuenta. Si lo cambias,
+                    te enviamos un enlace de confirmación a la nueva dirección.
+                  </p>
+                </div>
+                <div className="config-apartado-control">
+                  {correoEnviado ? (
+                    <p className="config-bloqueado-nota">
+                      ¡Ya casi! Revisa tu nuevo correo y toca el enlace que te enviamos para
+                      confirmar el cambio.
+                    </p>
+                  ) : (
+                    <>
+                      <span className="config-field-label">Correo actual</span>
+                      <input className="config-input" value={perfil.email || ''} disabled readOnly />
+                      <span className="config-field-label">Nuevo correo</span>
+                      <input
+                        className="config-input"
+                        type="email"
+                        value={correoNuevo}
+                        onChange={(e) => setCorreoNuevo(e.target.value)}
+                        placeholder="tunuevo@correo.com"
+                      />
+                      <span className="config-field-label">Contraseña para confirmar</span>
+                      <InputPassword
+                        etiqueta="Contraseña para confirmar"
+                        valor={passCorreo}
+                        alCambiar={setPassCorreo}
+                        visible={mostrarPassCorreo}
+                        alternarVisible={() => setMostrarPassCorreo((v) => !v)}
+                        autoComplete="current-password"
+                      />
+                      <button
+                        type="button"
+                        className="config-btn config-btn--primario"
+                        onClick={guardarCorreo}
+                        disabled={guardandoCorreo}
+                      >
+                        {guardandoCorreo ? 'Enviando...' : 'Cambiar correo electrónico'}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <section className="config-seccion">
+              <h3 className="config-seccion-titulo">
+                <span className="config-dot" />
+                Apariencia
+              </h3>
+
+              <div className="config-apartado">
+                <div className="config-apartado-info">
+                  <h4>Modo oscuro</h4>
+                  <p>
+                    Cambia entre el tema claro y el oscuro para toda la plataforma. Tu elección se
+                    guarda en este navegador.
+                  </p>
+                </div>
+                <div className="config-apartado-control">
+                  <div className="perfil-tema-fila">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={tema === 'oscuro'}
+                      aria-label="Modo oscuro"
+                      className={
+                        'perfil-tema-switch' + (tema === 'oscuro' ? ' perfil-tema-switch--activo' : '')
+                      }
+                      onClick={alternarTema}
+                    >
+                      <span className="perfil-tema-thumb" />
+                    </button>
+                    <span className="perfil-tema-estado">
+                      {tema === 'oscuro' ? 'Oscuro' : 'Claro'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div className="config-footer">
+              <button
+                type="button"
+                className="config-btn config-btn--secundario"
+                onClick={() => setConfigAbierta(false)}
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { firmarToken, verificarToken } = require('../helpers/jwt');
-const { enviarCorreo, escaparHtml } = require('../helpers/correo');
+const { enviarCorreo, describirErrorCorreo, escaparHtml } = require('../helpers/correo');
 const verificarAcceso = require('../middleware/verificarToken');
 const { resolverFotoPerfil } = require('../helpers/imagenes');
 const { limitadorLogin, limitadorCorreo, limitadorRegistro } = require('../middleware/limitadores');
@@ -12,11 +12,13 @@ const MAX_EMAIL = 254;
 const MAX_USERNAME = 30;
 const MIN_USERNAME = 3;
 const MAX_PASSWORD = 100;
+// Caracteres peligrosos en HTML/correos/emails (los mismos que el frontend
+// ya rechaza) y caracteres de control.
 const CARACTERES_NO_PERMITIDOS = /[<>"'`;\\\r\n\t]/;
 
 // Valida los datos de registro. Devuelve un mensaje de error o null si todo
 // está bien. El frontend ya aplica reglas equivalentes; esto evita que un
-// cliente hecho a mano las salte (y la inyección de HTML en los correos).
+// cliente hecho a mano los salte (y la inyección de HTML en los correos).
 function validarDatosRegistro({ email, password, username, edad, caracteristicas }) {
     const correoLimpio = String(email).trim().toLowerCase();
     if (correoLimpio.length > MAX_EMAIL || !EMAIL_REGEX.test(correoLimpio)) {
@@ -91,7 +93,7 @@ router.post('/preregistro', limitadorRegistro, async (req, res) => {
         password,
         username,
         ojos,
-        nariz, 
+        nariz,
         labios,
         cara,
         colorPiel,
@@ -129,7 +131,7 @@ router.post('/preregistro', limitadorRegistro, async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        const [existingUser] = await connection.execute('SELECT id FROM usuarios WHERE correo = ?', [correoLimpio]);  
+        const [existingUser] = await connection.execute('SELECT id FROM usuarios WHERE correo = ?', [correoLimpio]);
         if (existingUser.length > 0) {
             await connection.rollback();
             return res.status(409).json({ error: 'El correo ya se encuentra registrado' });
@@ -204,7 +206,7 @@ router.post('/preregistro', limitadorRegistro, async (req, res) => {
             `
             });
         } catch (emailError) {
-            console.error('Correo de verificación no enviado:', emailError.message);
+            console.error('Correo de verificación no enviado:', describirErrorCorreo(emailError));
         }
 
         res.json({ 
@@ -290,6 +292,76 @@ router.get('/verificar-correo', async (req, res) => {
         // Error inesperado del servidor
         console.error('Error verificando correo:', error.message);
         return res.redirect(`${frontendUrl}/verificar-correo?error=server_error`);
+    }
+});
+
+// GET /verificar-cambio-correo - Confirma el cambio de correo desde el enlace enviado
+// Proceso: 1) Valida JWT 'cambio_correo' 2) Verifica token en BD 3) Aplica el cambio
+// (correo = correo nuevo del payload, correo_verificado = 1) 4) Marca token usado
+// 5) Redirige al frontend (/perfil?correoConfirmado=1)
+router.get('/verificar-cambio-correo', async (req, res) => {
+    const { token } = req.query;
+    const pool = req.pool;
+    const frontendUrl = process.env.FRONTEND_URL;
+
+    if (!token) {
+        return res.redirect(`${frontendUrl}/perfil?correoError=token_missing`);
+    }
+
+    try {
+        const decoded = verificarToken(token, 'email');
+
+        if (decoded.tipo !== 'cambio_correo') {
+            return res.redirect(`${frontendUrl}/perfil?correoError=invalid_token_type`);
+        }
+
+        const { userId, email: nuevoCorreo } = decoded;
+
+        const [tokenRows] = await pool.execute(
+            `SELECT * FROM tokens WHERE token = ? AND usuario_id = ? AND tipo = 'cambio_correo' AND usado = 0 AND fecha_expiracion > NOW()`,
+            [token, userId]
+        );
+
+        if (tokenRows.length === 0) {
+            return res.redirect(`${frontendUrl}/perfil?correoError=token_invalid_or_expired`);
+        }
+
+        // El correo nuevo no debe haber sido tomado entre la solicitud y la confirmación.
+        const [chocados] = await pool.execute(
+            'SELECT id FROM usuarios WHERE correo = ? AND id <> ? LIMIT 1',
+            [nuevoCorreo, userId]
+        );
+        if (chocados.length > 0) {
+            return res.redirect(`${frontendUrl}/perfil?correoError=email_taken`);
+        }
+
+        const [users] = await pool.execute(
+            'SELECT id FROM usuarios WHERE id = ? LIMIT 1',
+            [userId]
+        );
+        if (users.length === 0) {
+            return res.redirect(`${frontendUrl}/perfil?correoError=user_not_found`);
+        }
+
+        await pool.execute(
+            'UPDATE usuarios SET correo = ?, correo_verificado = 1 WHERE id = ?',
+            [nuevoCorreo, userId]
+        );
+        await pool.execute(
+            'UPDATE tokens SET usado = 1 WHERE token = ?',
+            [token]
+        );
+
+        res.redirect(`${frontendUrl}/perfil?correoConfirmado=1`);
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.redirect(`${frontendUrl}/perfil?correoError=token_expired`);
+        }
+        if (error.name === 'JsonWebTokenError') {
+            return res.redirect(`${frontendUrl}/perfil?correoError=token_invalid`);
+        }
+        console.error('Error verificando cambio de correo:', error.message);
+        return res.redirect(`${frontendUrl}/perfil?correoError=server_error`);
     }
 });
 
@@ -616,7 +688,7 @@ router.post('/olvido-contrasena', limitadorCorreo, async (req, res) => {
             `
                 });
             } catch (emailError) {
-                console.error('Correo de restablecimiento no enviado:', emailError.message);
+                console.error('Correo de restablecimiento no enviado:', describirErrorCorreo(emailError));
             }
         }
 
@@ -679,8 +751,9 @@ router.post('/recuperar-contrasena', limitadorLogin, async (req, res) => {
                 `UPDATE tokens SET usado = 1 WHERE token = ?`,
                 [token]
             );
-            // Revoca las sesiones activas: al cambiar la contraseña, cualquier
-            // refresh token previo deja de ser válido.
+            // Al restablecer la contraseña se cierran todas las sesiones
+            // activas (igual que en el cambio de contraseña del Perfil): si
+            // alguien tenía un refresh token robado, deja de servir.
             await connection.execute(
                 `DELETE FROM tokens WHERE usuario_id = ? AND tipo = 'refresh'`,
                 [decoded.userId]
@@ -748,7 +821,7 @@ router.post('/reenviar-verificacion', limitadorCorreo, async (req, res) => {
             `
                 });
             } catch (emailError) {
-                console.error('Correo de verificación reenviado falló:', emailError.message);
+                console.error('Correo de verificación reenviado falló:', describirErrorCorreo(emailError));
             }
         }
 

@@ -3,6 +3,10 @@ const bcrypt = require('bcryptjs');
 const verificarAcceso = require('../middleware/verificarToken');
 const { subirImagen } = require('../helpers/cloudinary');
 const { resolverFotoPerfil, mapearUsuarioConFoto } = require('../helpers/imagenes');
+const { firmarToken } = require('../helpers/jwt');
+const { enviarCorreo, describirErrorCorreo, escaparHtml } = require('../helpers/correo');
+const { armarVideo } = require('../helpers/videos');
+const { COLUMNAS_VIDEO, JOINS_VIDEO } = require('./routes-videos');
 
 const router = express.Router();
 
@@ -272,6 +276,101 @@ router.post('/perfil/contrasena', verificarAcceso, async (req, res) => {
 });
 
 // -------------------------------------------------------------------
+// POST /perfil/correo - Solicitar cambio de correo (flujo de 2 pasos)
+// Valida contraseña + unicidad, crea token 'cambio_correo' y envía por
+// correo el enlace de confirmación al nuevo destino. El cambio se aplica
+// solo cuando se confirma desde GET /verificar-cambio-correo.
+// -------------------------------------------------------------------
+router.post('/perfil/correo', verificarAcceso, async (req, res) => {
+    const userId = req.user.id;
+    const { nuevoCorreo, contrasena } = req.body;
+    const pool = req.pool;
+
+    if (!nuevoCorreo || !contrasena) {
+        return res.status(400).json({ error: 'El nuevo correo y tu contraseña son requeridos' });
+    }
+
+    const correoTrim = String(nuevoCorreo).trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correoTrim)) {
+        return res.status(400).json({ error: 'Escribe un correo electrónico válido' });
+    }
+
+    try {
+        const [users] = await pool.execute(
+            'SELECT contrasena_hash, correo, nombre_usuario FROM usuarios WHERE id = ? LIMIT 1',
+            [userId]
+        );
+        if (users.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        if (correoTrim === users[0].correo) {
+            return res.status(400).json({ error: 'El correo nuevo es el mismo que ya usas' });
+        }
+
+        const valida = await bcrypt.compare(contrasena, users[0].contrasena_hash);
+        if (!valida) {
+            return res.status(400).json({ error: 'La contraseña es incorrecta' });
+        }
+
+        const [chocados] = await pool.execute(
+            'SELECT id FROM usuarios WHERE correo = ? LIMIT 1',
+            [correoTrim]
+        );
+        if (chocados.length > 0) {
+            return res.status(409).json({ error: 'Ese correo ya está registrado' });
+        }
+
+        const token = firmarToken(
+            { userId, email: correoTrim, tipo: 'cambio_correo' },
+            'email',
+            '24h'
+        );
+        const fechaExpiracion = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        await pool.execute(
+            `INSERT INTO tokens (usuario_id, token, tipo, fecha_expiracion) VALUES (?, ?, 'cambio_correo', ?)`,
+            [userId, token, fechaExpiracion]
+        );
+
+        const confirmUrl = `${process.env.BACKEND_URL}/api/verificar-cambio-correo?token=${token}`;
+
+        try {
+            await enviarCorreo({
+                to: correoTrim,
+                subject: 'Confirma tu nuevo correo - B-unick',
+                html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2>¡Hola, ${escaparHtml(users[0].nombre_usuario)}!</h2>
+                    <p>Recibimos una solicitud para cambiar el correo de tu cuenta B-unick a esta dirección. Haz clic en el enlace para confirmar el cambio:</p>
+                    <p style="text-align: center; margin: 30px 0;">
+                        <a href="${confirmUrl}" style="background-color: #9b82b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                            Confirmar mi correo
+                        </a>
+                    </p>
+                    <p style="word-break: break-all; color: #666;">${confirmUrl}</p>
+                    <p>Este enlace expira en 24 horas.</p>
+                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+                    <p style="color: #999; font-size: 12px;">Si no solicitaste este cambio, puedes ignorar este correo: tu dirección actual no se modificará.</p>
+                </div>
+            `
+            });
+        } catch (emailError) {
+            console.error('Correo de cambio no enviado:', describirErrorCorreo(emailError));
+        }
+
+        res.json({
+            success: true,
+            message: 'Te enviamos un enlace de confirmación al nuevo correo. Tu dirección cambiará al confirmarlo.'
+        });
+    } catch (error) {
+        console.error('Error en /perfil/correo:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// -------------------------------------------------------------------
 // PUT /perfil/foto - Subir foto de perfil (base64/dataURL -> Cloudinary)
 // -------------------------------------------------------------------
 router.put('/perfil/foto', verificarAcceso, async (req, res) => {
@@ -485,6 +584,156 @@ router.get('/usuarios/:id/siguiendo', verificarAcceso, async (req, res) => {
         });
     } catch (error) {
         console.error('Error en /usuarios/:id/siguiendo:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// -------------------------------------------------------------------
+// Videos del perfil (propio y ajeno) y guardados (propio). Reutilizan
+// COLUMNAS_VIDEO/JOINS_VIDEO del router de videos para devolver objetos
+// de video idénticos al feed (armarVideo), pero con ORDER BY propio
+// (fecha de publicación / fecha de guardado) y SIN el boost de
+// preferencias del feed, que desordenaría la galería del perfil.
+// -------------------------------------------------------------------
+function obtenerPaginacion(req) {
+    const limite = Math.min(Math.max(parseInt(req.query.limite, 10) || 30, 1), 60);
+    const pagina = Math.max(parseInt(req.query.pagina, 10) || 1, 1);
+    return { limite, pagina, offset: (pagina - 1) * limite };
+}
+
+async function listarVideosPerfil(pool, where, params, req) {
+    const { limite, pagina, offset } = obtenerPaginacion(req);
+    const [totalRows] = await pool.execute(
+        `SELECT COUNT(*) AS total ${JOINS_VIDEO} ${where}`,
+        params
+    );
+    const total = Number(totalRows[0].total);
+    const [rows] = await pool.execute(
+        `SELECT ${COLUMNAS_VIDEO} ${JOINS_VIDEO} ${where}
+         ORDER BY v.fecha_publicacion DESC, v.id DESC LIMIT ? OFFSET ?`,
+        [...params, limite, offset]
+    );
+    const videos = rows.map((fila) => armarVideo(fila));
+    return { videos, total, pagina, limite, hasMore: offset + videos.length < total };
+}
+
+router.get('/perfil/videos', verificarAcceso, async (req, res) => {
+    const userId = req.user.id;
+    const pool = req.pool;
+    try {
+        const data = await listarVideosPerfil(pool, 'WHERE v.usuario_id = ?', [userId], req);
+        res.json({ success: true, ...data });
+    } catch (error) {
+        console.error('Error en /perfil/videos:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+router.get('/usuarios/:id/videos', verificarAcceso, async (req, res) => {
+    const { id } = req.params;
+    const pool = req.pool;
+
+    if (!/^\d+$/.test(id)) {
+        return res.status(400).json({ error: 'Identificador inválido' });
+    }
+    const targetId = parseInt(id, 10);
+    try {
+        const user = await buscarPerfilAjeno(pool, targetId);
+        if (!user || user.correo_verificado === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        const data = await listarVideosPerfil(pool, 'WHERE v.usuario_id = ?', [targetId], req);
+        res.json({ success: true, ...data });
+    } catch (error) {
+        console.error('Error en /usuarios/:id/videos:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+router.get('/perfil/guardados', verificarAcceso, async (req, res) => {
+    const userId = req.user.id;
+    const pool = req.pool;
+    try {
+        const { limite, pagina, offset } = obtenerPaginacion(req);
+        const [totalRows] = await pool.execute(
+            `SELECT COUNT(*) AS total ${JOINS_VIDEO} JOIN videos_guardados vg ON vg.video_id = v.id
+             WHERE vg.usuario_id = ?`,
+            [userId]
+        );
+        const total = Number(totalRows[0].total);
+        const [rows] = await pool.execute(
+            `SELECT ${COLUMNAS_VIDEO} ${JOINS_VIDEO} JOIN videos_guardados vg ON vg.video_id = v.id
+             WHERE vg.usuario_id = ? ORDER BY vg.fecha_guardado DESC, v.id DESC LIMIT ? OFFSET ?`,
+            [userId, limite, offset]
+        );
+        const videos = rows.map((fila) => armarVideo(fila));
+        res.json({ success: true, videos, total, pagina, limite, hasMore: offset + videos.length < total });
+    } catch (error) {
+        console.error('Error en /perfil/guardados:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Historial de videos vistos (propio): misma galería del feed (armarVideo),
+// pero ordenada por fecha de vista (videos_vistos.fecha_visto), de más
+// reciente a más antigua. El evento evt_limpiar_videos_vistos purga cada
+// dos semanas, así que este historial solo conserva los últimos 14 días.
+// Características físicas registradas del propio usuario (RQFN121-125): las
+// usa el formulario Crear para precargar "Usar Características Personales".
+// /api/me no las expone (solo id/username/foto/…), por eso este endpoint.
+router.get('/perfil/caracteristicas', verificarAcceso, async (req, res) => {
+    const userId = req.user.id;
+    const pool = req.pool;
+    try {
+        const [rows] = await pool.execute(
+            `SELECT cf.forma_ojos, cf.tipo_nariz, cf.tipo_labios, cf.tipo_rostro,
+                    cf.color_piel, cf.tipo_piel, u.edad
+             FROM usuarios u
+             JOIN caracteristicas_fisicas cf ON cf.id = u.caracteristicas_id
+             WHERE u.id = ? LIMIT 1`,
+            [userId]
+        );
+        if (rows.length === 0) {
+            return res.json({ success: true, caracteristicas: null });
+        }
+        const fila = rows[0];
+        res.json({
+            success: true,
+            caracteristicas: {
+                forma_ojos: fila.forma_ojos,
+                tipo_nariz: fila.tipo_nariz,
+                tipo_labios: fila.tipo_labios,
+                tipo_rostro: fila.tipo_rostro,
+                color_piel: fila.color_piel,
+                tipo_piel: fila.tipo_piel,
+                edad: fila.edad
+            }
+        });
+    } catch (error) {
+        console.error('Error en /perfil/caracteristicas:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+router.get('/perfil/vistos', verificarAcceso, async (req, res) => {
+    const userId = req.user.id;
+    const pool = req.pool;
+    try {
+        const { limite, pagina, offset } = obtenerPaginacion(req);
+        const [totalRows] = await pool.execute(
+            'SELECT COUNT(*) AS total FROM videos_vistos WHERE usuario_id = ?',
+            [userId]
+        );
+        const total = Number(totalRows[0].total);
+        const [rows] = await pool.execute(
+            `SELECT ${COLUMNAS_VIDEO} ${JOINS_VIDEO} JOIN videos_vistos vv ON vv.video_id = v.id
+             WHERE vv.usuario_id = ? ORDER BY vv.fecha_visto DESC, v.id DESC LIMIT ? OFFSET ?`,
+            [userId, limite, offset]
+        );
+        const videos = rows.map((fila) => armarVideo(fila));
+        res.json({ success: true, videos, total, pagina, limite, hasMore: offset + videos.length < total });
+    } catch (error) {
+        console.error('Error en /perfil/vistos:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });

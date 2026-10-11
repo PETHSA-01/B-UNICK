@@ -4,10 +4,15 @@
   "description": "",
   "type": "commonjs",
   "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "correo:prueba": "node scripts/enviar-correo-prueba.js",
+    "moderacion:prueba": "node scripts/moderacion-prueba.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

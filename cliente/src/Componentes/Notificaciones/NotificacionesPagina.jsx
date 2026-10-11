@@ -59,8 +59,10 @@ function renderizarMensaje(notif) {
 // ---------------------------------------------------------------------
 // Acciones por tipo de notificación. Por contrato (§19.2) el enum es fijo:
 // nuevo_seguidor, nuevo_contenido_seguido, nuevo_like, like_comentario,
-// nuevo_comentario, semejanza_baja. Hoy solo se escribe nuevo_seguidor;
-// el resto se renderiza genérico y queda listo para cuando existan.
+// nuevo_comentario, semejanza_baja. Los seis tienen trigger en el backend:
+// los cinco primeros los escribe la acción correspondiente y semejanza_baja
+// `POST /videos/:id/voto` cuando el video del dueño baja del 40% de
+// semejanza (RQFN71/RQFN72), sin actor y con el avatar de Becky.
 // ---------------------------------------------------------------------
 function construirAcciones(notif, navigate, onClose) {
   const ir = (ruta) => () => {
@@ -94,7 +96,7 @@ function construirAcciones(notif, navigate, onClose) {
     return [
       {
         etiqueta: 'Cambiar categoría',
-        onClick: ir(notif.video_id ? `/video/${notif.video_id}` : '/maquillajes')
+        onClick: ir(notif.video_id ? `/video/${notif.video_id}` : '/')
       },
       { etiqueta: 'Wiki', onClick: ir('/wiki') }
     ]

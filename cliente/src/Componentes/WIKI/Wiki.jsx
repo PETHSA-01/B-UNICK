@@ -219,7 +219,7 @@ export const Wiki = () => {
   // ── Vista subcultura: artículo completo ──
   if (cultura && subcultura) {
     const usarEstilo = () =>
-      navigate(`/maquillajes?cultura=${cultura.id}&subcultura=${subcultura.id}`)
+      navigate(`/?cultura=${cultura.id}&subcultura=${subcultura.id}`)
 
     const ficha = subcultura.ficha || {}
     const secciones = [

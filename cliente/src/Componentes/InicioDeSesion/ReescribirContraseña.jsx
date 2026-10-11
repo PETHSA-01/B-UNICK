@@ -10,6 +10,8 @@ export const ReescribirContraseña = ({ onClose }) => {
   const [confirmarContrasena, setConfirmarContrasena] = useState('')
   const [visible, setVisible] = useState(true)
   const [cargando, setCargando] = useState(false)
+  const [mostrarContrasena, setMostrarContrasena] = useState(false)
+  const [mostrarConfirmar, setMostrarConfirmar] = useState(false)
   const notificationsRef = useRef(null)
   const navigate = useNavigate()
 
@@ -135,21 +137,37 @@ export const ReescribirContraseña = ({ onClose }) => {
                 </p>
             </div>
 
-            <input
-              type="password"
-              placeholder="Contraseña nueva"
-              className="textoinput"
-              value={contrasena}
-              onChange={(e) => setContrasena(e.target.value)}
-            />
+            <div className="input-wrapper">
+              <input
+                type={mostrarContrasena ? 'text' : 'password'}
+                placeholder="Contraseña nueva"
+                className="textoinput"
+                value={contrasena}
+                onChange={(e) => setContrasena(e.target.value)}
+              />
+              <button type="button" className="ojo-btn" onClick={() => setMostrarContrasena((v) => !v)} aria-label={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
 
-            <input
-              type="password"
-              placeholder="Confirmar contraseña nueva"
-              className="textoinput"
-              value={confirmarContrasena}
-              onChange={(e) => setConfirmarContrasena(e.target.value)}
-            />
+            <div className="input-wrapper">
+              <input
+                type={mostrarConfirmar ? 'text' : 'password'}
+                placeholder="Confirmar contraseña nueva"
+                className="textoinput"
+                value={confirmarContrasena}
+                onChange={(e) => setConfirmarContrasena(e.target.value)}
+              />
+              <button type="button" className="ojo-btn" onClick={() => setMostrarConfirmar((v) => !v)} aria-label={mostrarConfirmar ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
 
             <button type="submit" className="btn-submit" disabled={cargando}>{cargando ? 'Guardando...' : 'Iniciar Sesión'}</button>
 

@@ -1,24 +1,17 @@
 import React from 'react'
-import { Outlet, useLocation } from 'react-router'
+import { Outlet } from 'react-router'
 import { BarraLateral } from '../Componentes/elementos_pequeños/BarraLateral'
 import './AppLayout.css'
 
-export const AppLayout = () => {
-  const location = useLocation()
-
-  // Hide sidebar on verification route
-  if (location.pathname === '/verificar-correo') {
-    return <Outlet />
-  }
-
-  return (
-    <>
-      <BarraLateral />
-      <main className="app-main">
-        <Outlet />
-      </main>
-    </>
-  )
-}
+// RQFN35: la barra lateral aparece en todas las páginas salvo en la vista de
+// video individual (/video/:id, que se registra fuera de este layout).
+export const AppLayout = () => (
+  <>
+    <BarraLateral />
+    <main className="app-main">
+      <Outlet />
+    </main>
+  </>
+)
 
 export default AppLayout

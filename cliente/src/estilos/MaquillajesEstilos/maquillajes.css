@@ -1,20 +1,588 @@
-/* ── Página Maquillajes (placeholder) ── */
+/* ── Página Maquillajes (RQFN79-99) ── */
+
+/* Fondo de página completo, igual que el feed de Conversaciones */
+.maquillajes-fondo {
+    background: var(--color-fondo);
+    min-height: 100vh;
+}
+
 .maquillajes-page {
-    max-width: 940px;
+    max-width: 1180px;
     margin: 0 auto;
     padding: 28px 20px 40px;
     display: flex;
     flex-direction: column;
-    gap: 26px;
+    gap: 20px;
 }
 
-.maquillajes-header {
+/* ── Barra de apartados (RQFN88) ── */
+.maquillajes-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-fondo3);
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.maquillajes-tabs-grupo {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.maquillajes-tab {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--color-texto-suave);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 400;
+    font-family: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.18s ease;
+}
+
+.maquillajes-tab:hover {
+    color: var(--color-h1);
+}
+
+.maquillajes-tab--activa {
+    color: var(--color-acento-fuerte);
+    font-weight: 500;
+}
+
+.maquillajes-tab--activa::after,
+.maquillajes-mis--activa::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 2px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-acento-fuerte);
+}
+
+.maquillajes-tab:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.maquillajes-tab:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.maquillajes-mis {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.maquillajes-mis--activa {
+    color: var(--color-acento-fuerte);
+    font-weight: 500;
+}
+
+.maquillajes-mis--activa:hover {
+    color: var(--color-acento-fuerte);
+}
+
+/* ── Controles: orden ── */
+.maquillajes-controles {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.maquillajes-orden {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    max-width: 640px;
+    gap: 4px;
+    font-size: 12.5px;
+    color: var(--color-texto-suave);
 }
 
+.maquillajes-orden select {
+    border: 1px solid var(--color-fondo3);
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    border-radius: 10px;
+    padding: 0 12px;
+    height: 44px;
+    font-size: 14px;
+    font-family: inherit;
+    min-width: 220px;
+}
+
+.maquillajes-orden select:focus-visible,
+.maquillajes-filtro select:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+/* ── Búsqueda (barra completa hasta arriba, RQFN87) ── */
+.maquillajes-buscar {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.maquillajes-buscar svg {
+    position: absolute;
+    left: 15px;
+    width: 16px;
+    height: 16px;
+    color: var(--color-texto-suave);
+    pointer-events: none;
+}
+
+.maquillajes-buscar input {
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--color-fondo3);
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    border-radius: 10px;
+    padding: 0 40px 0 42px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.maquillajes-buscar input:focus-visible {
+    border-color: var(--color-acento-fuerte);
+    background: var(--color-tarjeta);
+    outline: none;
+}
+
+.maquillajes-buscar input::placeholder {
+    color: var(--color-texto-suave);
+}
+
+.maquillajes-buscar-limpiar {
+    position: absolute;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--color-texto-suave);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.maquillajes-buscar-limpiar:hover {
+    background: var(--color-fondo2);
+}
+
+/* ── Avisos: marca de filtros personalizados y chip de estilo ── */
+.maquillajes-avisos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.maquillajes-marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--color-fondo2);
+    border: 1px solid var(--color-acento-fuerte);
+    color: var(--color-acento-fuerte);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.maquillajes-marca::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-acento-fuerte);
+}
+
+.maquillajes-marca--coincidencia {
+    background: var(--color-fondo);
+    border-color: var(--color-burbuja);
+    color: var(--color-p);
+}
+
+.maquillajes-marca--coincidencia::before {
+    background: var(--color-burbuja);
+}
+
+.maquillajes-marca--sincoincidencia {
+    background: var(--color-fondo);
+    border-color: var(--color-texto-suave);
+    color: var(--color-texto-suave);
+}
+
+.maquillajes-marca--sincoincidencia::before {
+    background: var(--color-texto-suave);
+}
+
+.maquillajes-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-fondo);
+    border: 1px solid var(--color-acento-fuerte);
+    color: var(--color-texto-suave);
+    border-radius: 999px;
+    padding: 5px 8px 5px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.maquillajes-chip button {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    color: var(--color-texto-suave);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+.maquillajes-chip button:hover {
+    background: var(--color-fondo2);
+}
+
+/* ── Panel de filtros (colapsable) ── */
+.maquillajes-filtros {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.maquillajes-filtros-toggle {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--color-fondo3);
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.18s ease;
+}
+
+.maquillajes-filtros-toggle svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-texto-suave);
+}
+
+.maquillajes-filtros-toggle:disabled svg {
+    color: var(--color-fondo3);
+}
+
+.maquillajes-filtros-contador {
+    background: var(--color-acento-fuerte);
+    color: var(--color-fondo);
+    border-radius: 999px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11.5px;
+    font-weight: 500;
+}
+
+.maquillajes-filtros-toggle:hover {
+    border-color: var(--color-acento-fuerte);
+}
+
+.maquillajes-filtros-toggle:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+.maquillajes-filtros-panel {
+    border: 1px solid var(--color-fondo3);
+    border-radius: 16px;
+    background: var(--color-fondo);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.maquillajes-filtros-nota {
+    margin: 0;
+    max-width: 62ch;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--color-p);
+}
+
+.maquillajes-filtros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.maquillajes-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12.5px;
+    color: var(--color-texto-suave);
+}
+
+.maquillajes-filtro select {
+    border: 1px solid var(--color-fondo3);
+    background: var(--color-fondo);
+    color: var(--color-h1);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.maquillajes-filtros-limpiar {
+    align-self: flex-start;
+    background: transparent;
+    border: 1px solid var(--color-fondo3);
+    color: var(--color-acento-fuerte);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.maquillajes-filtros-limpiar:hover {
+    border-color: var(--color-acento-fuerte);
+}
+
+/* ── Feed tipo Pinterest (RQFN90/94/96/98) ── */
+.maquillajes-masonry {
+    columns: 4 200px;
+    column-gap: 14px;
+}
+
+/* ── Apartados de coincidencia física (fallback de "Mis características") ── */
+.maquillajes-apartados {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.maquillajes-apartado-titulo {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-h1);
+    margin: 0 0 2px;
+}
+
+.maquillajes-apartado-count {
+    font-size: 13px;
+    color: var(--color-texto-suave);
+    margin: 0 0 12px;
+}
+
+.maquillajes-card {
+    position: relative;
+    display: block;
+    break-inside: avoid;
+    margin-bottom: 14px;
+    aspect-ratio: var(--card-aspect, 1);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--color-tarjeta);
+    border: 1px solid var(--color-fondo3);
+}
+
+.maquillajes-card-media {
+    position: absolute;
+    inset: 0;
+}
+
+.maquillajes-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.18s ease;
+}
+
+.maquillajes-card-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.maquillajes-card--play .maquillajes-card-img {
+    opacity: 0;
+}
+
+.maquillajes-card--play .maquillajes-card-video {
+    opacity: 1;
+}
+
+.maquillajes-card--play .maquillajes-card-estilo,
+.maquillajes-card--play .maquillajes-card-semejanza,
+.maquillajes-card--play .maquillajes-card-info {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.maquillajes-card-capa {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(47, 38, 56, 0.6), rgba(47, 38, 56, 0.15) 40%, rgba(47, 38, 56, 0));
+    pointer-events: none;
+}
+
+.maquillajes-card-estilo {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--color-acento-fuerte);
+    color: #fff;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    max-width: calc(100% - 120px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.maquillajes-card-semejanza {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #fff;
+    color: var(--color-acento-fuerte);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.maquillajes-card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+}
+
+.maquillajes-card--play .maquillajes-card-link {
+    inset: 0 0 40px 0;
+}
+
+.maquillajes-card-link:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -4px;
+    border-radius: 14px;
+}
+
+.maquillajes-card-info {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    background: linear-gradient(to top, rgba(47, 38, 56, 0.55), rgba(47, 38, 56, 0));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
+.maquillajes-card-creador {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: #fff;
+    min-width: 0;
+}
+
+.maquillajes-card-creador:hover .maquillajes-card-nombre {
+    text-decoration: underline;
+}
+
+.maquillajes-card-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.maquillajes-card-nombre {
+    font-size: 12.5px;
+    font-weight: 500;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.maquillajes-card-likes {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.maquillajes-card-likes svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Estados ── */
 .maquillajes-vacio {
     display: flex;
     flex-direction: column;
@@ -57,28 +625,123 @@
 }
 
 .maquillajes-vacio-btn {
+    display: inline-flex;
+    align-items: center;
     background: var(--color-acento-fuerte);
     color: #fff;
+    border: none;
     border-radius: 999px;
     padding: 10px 20px;
     font-size: 14px;
     font-weight: 500;
+    font-family: inherit;
     text-decoration: none;
+    cursor: pointer;
     transition: background 0.2s ease;
 }
 
 .maquillajes-vacio-btn:hover {
-    background: #5a4178;
+    background: var(--color-texto-suave);
 }
 
 .maquillajes-vacio-btn:focus-visible {
     outline: 3px solid var(--color-acento-fuerte);
     outline-offset: 3px;
-    border-radius: 999px;
+}
+
+.maquillajes-observer {
+    height: 1px;
+}
+
+.maquillajes-fin {
+    margin: 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--color-texto-suave);
+    padding: 8px 0 2px;
+}
+
+/* Esqueletos de carga */
+.maquillajes-masonry--carga .maquillajes-skeleton {
+    break-inside: avoid;
+    margin-bottom: 14px;
+    aspect-ratio: 1;
+    border-radius: 14px;
+    background: linear-gradient(120deg, var(--color-fondo2) 40%, var(--color-fondo3) 50%, var(--color-fondo2) 60%);
+    background-size: 200% 100%;
+    animation: maquillajes-esqueleto 1.4s infinite;
+}
+
+.maquillajes-skeleton:nth-child(2n) {
+    aspect-ratio: 4 / 5;
+}
+
+.maquillajes-skeleton:nth-child(3n) {
+    aspect-ratio: 3 / 4;
+}
+
+.maquillajes-skeleton:nth-child(5n) {
+    aspect-ratio: 2 / 3;
+}
+
+@keyframes maquillajes-esqueleto {
+    to {
+        background-position: -200% 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .maquillajes-page {
+        padding: 20px 14px 32px;
+    }
+
+    .maquillajes-tabs {
+        gap: 6px;
+    }
+
+    .maquillajes-tabs-grupo,
+    .maquillajes-mis {
+        flex-shrink: 0;
+    }
+
+    .maquillajes-mis {
+        order: -1;
+    }
+
+    .maquillajes-masonry {
+        columns: 2 140px;
+        column-gap: 10px;
+    }
+
+    .maquillajes-card {
+        margin-bottom: 10px;
+        border-radius: 10px;
+    }
+
+    .maquillajes-card-nombre {
+        max-width: 90px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .maquillajes-vacio-btn {
+    .maquillajes-tab,
+    .maquillajes-filtros-toggle,
+    .maquillajes-vacio-btn,
+    .maquillajes-card-img,
+    .maquillajes-card-video {
         transition: none;
+    }
+
+    .maquillajes-card--play .maquillajes-card-img {
+        opacity: 1;
+    }
+
+    .maquillajes-card--play .maquillajes-card-video {
+        opacity: 0;
+    }
+
+    .maquillajes-masonry--carga .maquillajes-skeleton {
+        animation: none;
+        background: var(--color-fondo2);
     }
 }
