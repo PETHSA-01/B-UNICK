@@ -2,15 +2,59 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { firmarToken, verificarToken } = require('../helpers/jwt');
-const { enviarCorreo } = require('../helpers/correo');
+const { enviarCorreo, escaparHtml } = require('../helpers/correo');
 const verificarAcceso = require('../middleware/verificarToken');
 const { resolverFotoPerfil } = require('../helpers/imagenes');
+const { limitadorLogin, limitadorCorreo, limitadorRegistro } = require('../middleware/limitadores');
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_EMAIL = 254;
+const MAX_USERNAME = 30;
+const MIN_USERNAME = 3;
+const MAX_PASSWORD = 100;
+const CARACTERES_NO_PERMITIDOS = /[<>"'`;\\\r\n\t]/;
+
+// Valida los datos de registro. Devuelve un mensaje de error o null si todo
+// está bien. El frontend ya aplica reglas equivalentes; esto evita que un
+// cliente hecho a mano las salte (y la inyección de HTML en los correos).
+function validarDatosRegistro({ email, password, username, edad, caracteristicas }) {
+    const correoLimpio = String(email).trim().toLowerCase();
+    if (correoLimpio.length > MAX_EMAIL || !EMAIL_REGEX.test(correoLimpio)) {
+        return 'El correo electrónico no es válido';
+    }
+
+    const nombreLimpio = String(username).trim();
+    if (nombreLimpio.length < MIN_USERNAME || nombreLimpio.length > MAX_USERNAME) {
+        return `El nombre de usuario debe tener entre ${MIN_USERNAME} y ${MAX_USERNAME} caracteres`;
+    }
+    if (CARACTERES_NO_PERMITIDOS.test(nombreLimpio)) {
+        return 'El nombre de usuario contiene caracteres no permitidos';
+    }
+
+    if (String(password).length < 8 || String(password).length > MAX_PASSWORD) {
+        return 'La contraseña debe tener al menos 8 caracteres';
+    }
+
+    const edadNum = Number(edad);
+    if (!Number.isInteger(edadNum) || edadNum < 13 || edadNum > 120) {
+        return 'La edad no es válida';
+    }
+
+    for (const valor of Object.values(caracteristicas)) {
+        const texto = String(valor ?? '').trim();
+        if (!texto || texto.length > 60) {
+            return 'Las características físicas no son válidas';
+        }
+    }
+
+    return null;
+}
 
 router.get('/', (req, res) => {
     res.send('Hello World!');
 })
 
-router.post('/validacionregistro', async (req, res) => {
+router.post('/validacionregistro', limitadorRegistro, async (req, res) => {
     const { email, username } = req.body;
     const pool = req.pool;
 
@@ -41,7 +85,7 @@ router.post('/validacionregistro', async (req, res) => {
     }
 });
 
-router.post('/preregistro', async (req, res) => {
+router.post('/preregistro', limitadorRegistro, async (req, res) => {
     const {
         email,
         password,
@@ -64,17 +108,34 @@ router.post('/preregistro', async (req, res) => {
         return res.status(400).json({ error: 'Todas las características físicas y la edad son requeridas' });
     }
 
+    const errorValidacion = validarDatosRegistro({
+        email,
+        password,
+        username,
+        edad,
+        caracteristicas: { ojos, nariz, labios, cara, colorPiel, tipoPiel }
+    });
+    if (errorValidacion) {
+        return res.status(400).json({ error: errorValidacion });
+    }
+
+    // Valores normalizados que se guardan en BD (el resto de comprobaciones
+    // de disponibilidad usan estos mismos).
+    const correoLimpio = String(email).trim().toLowerCase();
+    const usernameLimpio = String(username).trim();
+    const edadNum = Number(edad);
+
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
-        const [existingUser] = await connection.execute('SELECT id FROM usuarios WHERE correo = ?', [email]);  
+        const [existingUser] = await connection.execute('SELECT id FROM usuarios WHERE correo = ?', [correoLimpio]);  
         if (existingUser.length > 0) {
             await connection.rollback();
             return res.status(409).json({ error: 'El correo ya se encuentra registrado' });
         }
 
-        const [existingUsername] = await connection.execute('SELECT id FROM usuarios WHERE nombre_usuario = ?', [username]);
+        const [existingUsername] = await connection.execute('SELECT id FROM usuarios WHERE nombre_usuario = ?', [usernameLimpio]);
         if (existingUsername.length > 0) {
             await connection.rollback();
             return res.status(409).json({ error: 'El nombre de usuario ya está en uso' });
@@ -100,12 +161,12 @@ router.post('/preregistro', async (req, res) => {
         const [usuarioResult] = await connection.execute(
             `INSERT INTO usuarios (correo, contrasena_hash, nombre_usuario, caracteristicas_id, edad, correo_verificado)
              VALUES (?, ?, ?, ?, ?, 0)`,
-            [email, passwordHash, username, caracteristicasId, edad]
+            [correoLimpio, passwordHash, usernameLimpio, caracteristicasId, edadNum]
         );
         const usuarioId = usuarioResult.insertId;
 
         const token = firmarToken(
-            { userId: usuarioId, email: email, tipo: 'verificacion_correo' },
+            { userId: usuarioId, email: correoLimpio, tipo: 'verificacion_correo' },
             'email',
             '24h'
         );
@@ -123,11 +184,11 @@ router.post('/preregistro', async (req, res) => {
 
         try {
             await enviarCorreo({
-                to: email,
+                to: correoLimpio,
                 subject: 'Verifica tu correo electrónico - B-unick',
                 html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2>¡Bienvenido a B-unick, ${username}!</h2>
+                    <h2>¡Bienvenido a B-unick, ${escaparHtml(usernameLimpio)}!</h2>
                     <p>Gracias por registrarte, cariño. Para completar tu registro, por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:</p>
                     <p style="text-align: center; margin: 30px 0;">
                         <a href="${verificationUrl}" style="background-color: #9b82b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
@@ -234,7 +295,7 @@ router.get('/verificar-correo', async (req, res) => {
 
 // POST /login - Autentica usuario por correo o nombre de usuario, verifica contraseña,
 //               revisa verificación de email y setea cookies httpOnly
-router.post('/login', async (req, res) => {
+router.post('/login', limitadorLogin, async (req, res) => {
     const { identificador, password } = req.body;
     const pool = req.pool;
 
@@ -508,7 +569,7 @@ router.post('/logout', async (req, res) => {
 });
 
 // POST /olvido-contrasena - Genera token de restablecimiento y envía correo. Respuesta neutral.
-router.post('/olvido-contrasena', async (req, res) => {
+router.post('/olvido-contrasena', limitadorCorreo, async (req, res) => {
     const { email } = req.body;
     const pool = req.pool;
 
@@ -540,7 +601,7 @@ router.post('/olvido-contrasena', async (req, res) => {
                     subject: 'Restablece tu contraseña - B-unick',
                     html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2>¡Hola, ${user.nombre_usuario}!</h2>
+                    <h2>¡Hola, ${escaparHtml(user.nombre_usuario)}!</h2>
                     <p>Recibimos una solicitud para restablecer tu contraseña. Haz clic en el siguiente enlace:</p>
                     <p style="text-align: center; margin: 30px 0;">
                         <a href="${resetUrl}" style="background-color: #9b82b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
@@ -570,7 +631,7 @@ router.post('/olvido-contrasena', async (req, res) => {
 });
 
 // POST /recuperar-contrasena - Valida token de restablecimiento y actualiza la contraseña
-router.post('/recuperar-contrasena', async (req, res) => {
+router.post('/recuperar-contrasena', limitadorLogin, async (req, res) => {
     const { token, nuevaContrasena } = req.body;
     const pool = req.pool;
 
@@ -618,6 +679,12 @@ router.post('/recuperar-contrasena', async (req, res) => {
                 `UPDATE tokens SET usado = 1 WHERE token = ?`,
                 [token]
             );
+            // Revoca las sesiones activas: al cambiar la contraseña, cualquier
+            // refresh token previo deja de ser válido.
+            await connection.execute(
+                `DELETE FROM tokens WHERE usuario_id = ? AND tipo = 'refresh'`,
+                [decoded.userId]
+            );
             await connection.commit();
         } catch (dbError) {
             await connection.rollback();
@@ -634,7 +701,7 @@ router.post('/recuperar-contrasena', async (req, res) => {
 });
 
 // POST /reenviar-verificacion - Reenvía el correo de verificación. Respuesta neutral.
-router.post('/reenviar-verificacion', async (req, res) => {
+router.post('/reenviar-verificacion', limitadorCorreo, async (req, res) => {
     const { email } = req.body;
     const pool = req.pool;
 
@@ -666,7 +733,7 @@ router.post('/reenviar-verificacion', async (req, res) => {
                     subject: 'Verifica tu correo electrónico - B-unick',
                     html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2>¡Hola de nuevo, ${user.nombre_usuario}!</h2>
+                    <h2>¡Hola de nuevo, ${escaparHtml(user.nombre_usuario)}!</h2>
                     <p>Hemos recibido tu solicitud para reenviar el enlace de verificación. Haz clic en el enlace:</p>
                     <p style="text-align: center; margin: 30px 0;">
                         <a href="${verificationUrl}" style="background-color: #9b82b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">

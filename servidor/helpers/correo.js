@@ -22,7 +22,20 @@ async function enviarCorreo({ to, subject, html }) {
     });
 }
 
+// Escapa caracteres con significado en HTML antes de interpolar valores
+// dinámicos (p. ej. el nombre de usuario) en el cuerpo de un correo.
+function escaparHtml(valor) {
+    if (valor === null || valor === undefined) return '';
+    return String(valor)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 module.exports = {
     crearTransporter,
-    enviarCorreo
+    enviarCorreo,
+    escaparHtml
 };
