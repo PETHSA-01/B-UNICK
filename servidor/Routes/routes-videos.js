@@ -441,11 +441,13 @@ router.get('/videos', async (req, res) => {
             }
         }
 
-        const [rows] = await pool.execute(`${selectSQL} LIMIT ? OFFSET ?`, [
-            ...selectParams,
-            limite,
-            offset
-        ]);
+        // LIMIT/OFFSET inline (enteros ya validados): mysql2 envía los números
+        // JS como MYSQL_TYPE_DOUBLE y MySQL 8.0.22+ lo rechaza en LIMIT con
+        // ER_WRONG_ARGUMENTS (1210); MariaDB lo toleraba. Ver AGENTS.md §13.
+        const [rows] = await pool.execute(
+            `${selectSQL} LIMIT ${limite} OFFSET ${offset}`,
+            selectParams
+        );
 
         const videos = rows.map((fila) => {
             const video = armarVideo(fila);

@@ -608,10 +608,11 @@ async function listarVideosPerfil(pool, where, params, req) {
         params
     );
     const total = Number(totalRows[0].total);
+    // LIMIT/OFFSET inline (enteros ya validados): ver nota en routes-videos.js (ER_WRONG_ARGUMENTS/MySQL 8.0.22+).
     const [rows] = await pool.execute(
         `SELECT ${COLUMNAS_VIDEO} ${JOINS_VIDEO} ${where}
-         ORDER BY v.fecha_publicacion DESC, v.id DESC LIMIT ? OFFSET ?`,
-        [...params, limite, offset]
+         ORDER BY v.fecha_publicacion DESC, v.id DESC LIMIT ${limite} OFFSET ${offset}`,
+        params
     );
     const videos = rows.map((fila) => armarVideo(fila));
     return { videos, total, pagina, limite, hasMore: offset + videos.length < total };
@@ -663,8 +664,8 @@ router.get('/perfil/guardados', verificarAcceso, async (req, res) => {
         const total = Number(totalRows[0].total);
         const [rows] = await pool.execute(
             `SELECT ${COLUMNAS_VIDEO} ${JOINS_VIDEO} JOIN videos_guardados vg ON vg.video_id = v.id
-             WHERE vg.usuario_id = ? ORDER BY vg.fecha_guardado DESC, v.id DESC LIMIT ? OFFSET ?`,
-            [userId, limite, offset]
+             WHERE vg.usuario_id = ? ORDER BY vg.fecha_guardado DESC, v.id DESC LIMIT ${limite} OFFSET ${offset}`,
+            [userId]
         );
         const videos = rows.map((fila) => armarVideo(fila));
         res.json({ success: true, videos, total, pagina, limite, hasMore: offset + videos.length < total });
@@ -727,8 +728,8 @@ router.get('/perfil/vistos', verificarAcceso, async (req, res) => {
         const total = Number(totalRows[0].total);
         const [rows] = await pool.execute(
             `SELECT ${COLUMNAS_VIDEO} ${JOINS_VIDEO} JOIN videos_vistos vv ON vv.video_id = v.id
-             WHERE vv.usuario_id = ? ORDER BY vv.fecha_visto DESC, v.id DESC LIMIT ? OFFSET ?`,
-            [userId, limite, offset]
+             WHERE vv.usuario_id = ? ORDER BY vv.fecha_visto DESC, v.id DESC LIMIT ${limite} OFFSET ${offset}`,
+            [userId]
         );
         const videos = rows.map((fila) => armarVideo(fila));
         res.json({ success: true, videos, total, pagina, limite, hasMore: offset + videos.length < total });

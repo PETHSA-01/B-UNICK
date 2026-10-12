@@ -72,10 +72,11 @@ async function listarConversacionesDe(pool, usuarioId, pagina, limite) {
     );
     const total = Number(totalRows[0].total);
 
+    // LIMIT/OFFSET inline (enteros ya validados): ver nota en routes-videos.js (ER_WRONG_ARGUMENTS/MySQL 8.0.22+).
     const [rows] = await pool.execute(
         `SELECT ${COLUMNAS_CONVERSACION} ${JOINS_CONVERSACION}
-         WHERE c.usuario_id = ? ORDER BY c.fecha_publicacion DESC, c.id DESC LIMIT ? OFFSET ?`,
-        [usuarioId, limite, offset]
+         WHERE c.usuario_id = ? ORDER BY c.fecha_publicacion DESC, c.id DESC LIMIT ${limite} OFFSET ${offset}`,
+        [usuarioId]
     );
 
     const conversaciones = rows.map((fila) => armarConversacion(fila));
@@ -208,8 +209,8 @@ router.get('/conversaciones', async (req, res) => {
         const offset = (pagina - 1) * limite;
 
         const [rows] = await pool.execute(
-            `SELECT ${COLUMNAS_CONVERSACION} ${joins} ${whereTexto} ${ordenSQL} LIMIT ? OFFSET ?`,
-            [...paramsJoin, ...params, limite, offset]
+            `SELECT ${COLUMNAS_CONVERSACION} ${joins} ${whereTexto} ${ordenSQL} LIMIT ${limite} OFFSET ${offset}`,
+            [...paramsJoin, ...params]
         );
 
         const conversaciones = rows.map((fila) => armarConversacion(fila));
