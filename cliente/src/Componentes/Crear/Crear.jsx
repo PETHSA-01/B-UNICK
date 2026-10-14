@@ -211,6 +211,7 @@ export const Crear = () => {
         multiple: false,
         maxFiles: 1,
         clientAllowedFormats: ['mp4'],
+        maxFileSize: 50 * 1024 * 1024,
         folder: 'bunyk/videos',
         language: 'es',
         text: { es: { or: 'o', back: 'Volver' } }
@@ -247,6 +248,8 @@ export const Crear = () => {
         multiple: true,
         maxFiles: restantes,
         clientAllowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
+        minImageFileSize: 100 * 1024,
+        maxImageFileSize: 10 * 1024 * 1024,
         folder: 'bunyk/galeria',
         language: 'es'
       },

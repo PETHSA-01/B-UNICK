@@ -411,16 +411,20 @@ router.post('/conversaciones', verificarAcceso, async (req, res) => {
         }
 
         const tituloFinal = String(titulo || '').trim();
-        if (!tituloFinal) {
-            return res.status(400).json({ error: 'El título es obligatorio.' });
+        if (tituloFinal.length < 5) {
+            return res.status(400).json({
+                error: 'El título debe tener al menos 5 caracteres.'
+            });
         }
         if (tituloFinal.length > 80) {
             return res.status(400).json({ error: 'El título no puede superar 80 caracteres.' });
         }
 
         const textoFinal = String(texto || '').trim();
-        if (!textoFinal) {
-            return res.status(400).json({ error: 'El texto es obligatorio.' });
+        if (textoFinal.length < 15) {
+            return res.status(400).json({
+                error: 'El texto debe tener al menos 15 caracteres.'
+            });
         }
         if (textoFinal.length > 500) {
             return res.status(400).json({ error: 'El texto no puede superar 500 caracteres.' });
@@ -729,12 +733,14 @@ router.post('/conversaciones/:id/comentarios', verificarAcceso, async (req, res)
             return res.status(400).json({ error: 'Identificador de conversación inválido.' });
         }
         const limpio = String(texto || '').trim();
-        if (limpio.length === 0) {
-            return res.status(400).json({ error: 'El comentario no puede estar vacío.' });
-        }
-        if (limpio.length > 250) {
+        if (limpio.length <= 1) {
             return res.status(400).json({
-                error: 'El comentario no puede superar 250 caracteres.'
+                error: 'El comentario debe tener más de 1 carácter.'
+            });
+        }
+        if (limpio.length > 200) {
+            return res.status(400).json({
+                error: 'El comentario no puede superar 200 caracteres.'
             });
         }
         const [convRows] = await pool.execute(
@@ -913,8 +919,8 @@ router.post('/conversaciones/:id/denuncias', verificarAcceso, async (req, res) =
         if (ids.some((m) => !Number.isInteger(m) || m <= 0)) {
             return res.status(400).json({ error: 'Motivo de denuncia inválido.' });
         }
-        if (ids.length > 10) {
-            return res.status(400).json({ error: 'Demasiados motivos de denuncia.' });
+        if (ids.length > 3) {
+            return res.status(400).json({ error: 'Máximo 3 motivos por denuncia.' });
         }
 
         const [convRows] = await pool.execute(

@@ -657,8 +657,8 @@ router.post('/olvido-contrasena', limitadorCorreo, async (req, res) => {
 
         if (users.length > 0 && users[0].correo_verificado === 1) {
             const user = users[0];
-            const token = firmarToken({ userId: user.id, email, tipo: 'restablecer' }, 'email', '1h');
-            const fechaExpiracion = new Date(Date.now() + 60 * 60 * 1000);
+            const token = firmarToken({ userId: user.id, email, tipo: 'restablecer' }, 'email', '24h');
+            const fechaExpiracion = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
             await pool.execute(
                 `INSERT INTO tokens (usuario_id, token, tipo, fecha_expiracion) VALUES (?, ?, 'restablecer', ?)`,
@@ -681,7 +681,7 @@ router.post('/olvido-contrasena', limitadorCorreo, async (req, res) => {
                         </a>
                     </p>
                     <p style="word-break: break-all; color: #666;">${resetUrl}</p>
-                    <p>Este enlace expira en 1 hora.</p>
+                    <p>Este enlace expira en 24 horas.</p>
                     <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
                     <p style="color: #999; font-size: 12px;">Si no solicitaste este cambio, puedes ignorar este correo.</p>
                 </div>

@@ -1179,10 +1179,8 @@ DO
   DELETE FROM `tokens`
   WHERE `fecha_expiracion` < NOW() OR `usado` = 1;
 
--- 3) Limpiar el historial de videos vistos cada dos semanas (retención del
---    módulo de estadísticas: el historial y la tendencia diaria solo
---    conservan los últimos 14 días; al volver a ver un video tras la purga
---    su vista vuelve a contar).
+-- 3) Limpiar el historial de videos vistos (retención de 30 días, RQNFN36:
+--    al volver a ver un video tras la purga su vista vuelve a contar).
 DROP EVENT IF EXISTS `evt_limpiar_videos_vistos`;
 CREATE EVENT `evt_limpiar_videos_vistos`
 ON SCHEDULE EVERY 24 HOUR
@@ -1191,4 +1189,16 @@ ON COMPLETION PRESERVE
 ENABLE
 DO
   DELETE FROM `videos_vistos`
-  WHERE `fecha_visto` <= (NOW() - INTERVAL 14 DAY);
+  WHERE `fecha_visto` <= (NOW() - INTERVAL 1 MONTH);
+
+-- 4) Limpiar notificaciones viejas (retención de 3 meses, RQNFN27: el
+--    contador de no leídas y el drawer solo conservan lo reciente).
+DROP EVENT IF EXISTS `evt_limpiar_notificaciones_viejas`;
+CREATE EVENT `evt_limpiar_notificaciones_viejas`
+ON SCHEDULE EVERY 1 DAY
+STARTS CURRENT_TIMESTAMP
+ON COMPLETION PRESERVE
+ENABLE
+DO
+  DELETE FROM `notificaciones`
+  WHERE `fecha_creacion` <= (NOW() - INTERVAL 3 MONTH);

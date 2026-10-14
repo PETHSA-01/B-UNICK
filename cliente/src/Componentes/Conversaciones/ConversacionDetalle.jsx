@@ -279,6 +279,7 @@ export function ConversacionDetalle() {
   const toggleMotivo = (motivoId) => {
     setDenunciaSeleccion((prev) => {
       if (prev.includes(motivoId)) return prev.filter((m) => m !== motivoId)
+      if (prev.length >= 3) return prev
       return [...prev, motivoId]
     })
   }
@@ -420,11 +421,11 @@ export function ConversacionDetalle() {
             className="conv-det-comentar-input"
             placeholder="Escribe un comentario…"
             value={nuevoComentario}
-            maxLength={250}
+            maxLength={200}
             onChange={(e) => setNuevoComentario(e.target.value)}
             required
           />
-          <button type="submit" className="conv-det-comentar-btn" disabled={enviandoComentario || !nuevoComentario.trim()}>
+          <button type="submit" className="conv-det-comentar-btn" disabled={enviandoComentario || nuevoComentario.trim().length <= 1}>
             {enviandoComentario ? '…' : 'Comentar'}
           </button>
         </form>
@@ -468,12 +469,12 @@ export function ConversacionDetalle() {
                         className="conv-det-comentar-input"
                         placeholder={`Responder a ${c.autor.nombre}…`}
                         value={respuestaTexto}
-                        maxLength={250}
+                        maxLength={200}
                         onChange={(e) => setRespuestaTexto(e.target.value)}
                         autoFocus
                         required
                       />
-                      <button type="submit" className="conv-det-comentar-btn" disabled={enviandoRespuesta || !respuestaTexto.trim()}>
+                      <button type="submit" className="conv-det-comentar-btn" disabled={enviandoRespuesta || respuestaTexto.trim().length <= 1}>
                         {enviandoRespuesta ? '…' : 'Enviar'}
                       </button>
                     </form>
@@ -539,7 +540,7 @@ export function ConversacionDetalle() {
           <div className="conv-denuncia">
             <h2 className="conv-denuncia-titulo">Denunciar conversación</h2>
             <p className="conv-denuncia-texto">
-              ¿Qué está pasando? Elige uno o más motivos. Si la comunidad coincide, la conversación se revisa y puede eliminarse.
+              ¿Qué está pasando? Elige uno o más motivos (hasta 3). Si la comunidad coincide, la conversación se revisa y puede eliminarse.
             </p>
             <ul className="conv-denuncia-motivos">
               {motivos.map((m) => (

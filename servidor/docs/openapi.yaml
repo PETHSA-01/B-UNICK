@@ -1311,6 +1311,7 @@ paths:
                           votosContra: { type: integer }
                           votosTotal: { type: integer }
                           semejanza: { type: integer, nullable: true }
+                          diasEnElSistema: { type: integer, description: Días desde la publicación (RQNFN43/44) }
                       diario:
                         type: array
                         items:
@@ -1324,6 +1325,20 @@ paths:
                             comentarios: { type: integer }
                             votosFavor: { type: integer }
                             votosContra: { type: integer }
+                      enContraPorRazon:
+                        type: array
+                        description: |
+                          Votos en contra por cada motivo del grupo del video (RQNFN40/43/44).
+                          El porcentaje es `(votos de esa casilla * 100) / votosContra` (RQNFN43).
+                          Con 0 votos en contra devuelve una fila sintética `sinVotos: true`.
+                        items:
+                          type: object
+                          properties:
+                            id: { type: integer }
+                            descripcion: { type: string }
+                            votos: { type: integer }
+                            porcentaje: { type: integer }
+                            sinVotos: { type: boolean }
                       desde: { type: string, format: date }
                       hasta: { type: string, format: date }
         '400':
@@ -1401,8 +1416,8 @@ paths:
               properties:
                 tema: { type: string, maxLength: 40 }
                 subcultura_id: { type: integer }
-                titulo: { type: string, maxLength: 80 }
-                texto: { type: string, maxLength: 500 }
+                titulo: { type: string, minLength: 5, maxLength: 80 }
+                texto: { type: string, minLength: 15, maxLength: 500 }
                 imagenes:
                   type: array
                   maxItems: 3
@@ -1546,7 +1561,7 @@ paths:
               type: object
               required: [texto]
               properties:
-                texto: { type: string, maxLength: 250 }
+                texto: { type: string, minLength: 2, maxLength: 200 }
                 comentario_padre_id: { type: integer, nullable: true }
       responses:
         '201':
@@ -1603,7 +1618,7 @@ paths:
                 motivos:
                   type: array
                   minItems: 1
-                  maxItems: 10
+                  maxItems: 3
                   items: { type: integer }
       responses:
         '200':
@@ -1617,7 +1632,7 @@ paths:
                   eliminada: { type: boolean, description: true si cruzó el umbral de auto-eliminación }
                   message: { type: string, nullable: true }
         '400':
-          description: Sin motivos, motivo inexistente, denuncia propia o demasiados motivos
+          description: Sin motivos, motivo inexistente, denuncia propia o más de 3 motivos
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }

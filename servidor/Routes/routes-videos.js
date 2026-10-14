@@ -883,17 +883,22 @@ router.post('/videos/:id/visto', verificarAcceso, async (req, res) => {
         if (videoRows.length === 0) {
             return res.status(404).json({ error: 'Video no encontrado.' });
         }
+        // RQNFN20: cada visualización re-posiciona el video al tope de la
+        // lista "Vistas" (la PK (usuario_id, video_id) ya existe). La vista
+        // solo cuenta una vez: un re-visionado actualiza fecha_visto sin
+        // incrementar el contador ni duplicar la fila.
         const [insertado] = await pool.execute(
-            'INSERT IGNORE INTO videos_vistos (usuario_id, video_id) VALUES (?, ?)',
+            `INSERT INTO videos_vistos (usuario_id, video_id) VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE fecha_visto = NOW()`,
             [userId, id]
         );
-        if (insertado.affectedRows > 0) {
+        if (insertado.affectedRows === 1) {
             await pool.execute(
                 'UPDATE videos SET cantidad_vistas = cantidad_vistas + 1 WHERE id = ?',
                 [id]
             );
         }
-        res.json({ success: true, registrado: insertado.affectedRows > 0 });
+        res.json({ success: true, registrado: insertado.affectedRows === 1 });
     } catch (error) {
         console.error('Error en POST /videos/:id/visto:', error.message);
         res.status(500).json({ error: 'Error interno del servidor.' });
@@ -920,7 +925,8 @@ router.get('/videos/:id/estadisticas', verificarAcceso, async (req, res) => {
         const [vids] = await pool.execute(
             `SELECT v.usuario_id, v.votos_favor, v.votos_contra,
                     v.cantidad_vistas, v.cantidad_likes,
-                    v.cantidad_guardados, v.cantidad_compartidos
+                    v.cantidad_guardados, v.cantidad_compartidos,
+                    v.categoria_contenido, v.fecha_publicacion
              FROM videos v WHERE v.id = ? LIMIT 1`,
             [id]
         );
@@ -960,6 +966,48 @@ router.get('/videos/:id/estadisticas', verificarAcceso, async (req, res) => {
             dias.push(
                 `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
             );
+        }
+
+        // RQNFN44: días transcurridos desde la publicación del video.
+        const diasEnElSistema = vids[0].fecha_publicacion
+            ? Math.max(0, Math.floor((hoy - new Date(vids[0].fecha_publicacion)) / 86400000))
+            : 0;
+
+        // RQNFN40/43: listado de elementos en contra por razón. La fórmula
+        // literal del DER (R = VotosEnContraTotal*100/VotosAEsaCasilla) es
+        // indefinida con 0 votos y arroja >100%, así que se implementa la
+        // forma estándar: R = (VotosAEsaCasilla * 100) / VotosEnContraTotal.
+        const razonesGrupo = vids[0].categoria_contenido === 'Tutorial' ? 'tutorial' : 'maquillaje';
+        const [razonesRows] = await pool.execute(
+            `SELECT r.id, r.descripcion, COUNT(vv.id) AS votos
+             FROM razones_voto_contra r
+             LEFT JOIN voto_razones vr ON vr.razon_id = r.id
+             LEFT JOIN votos_video vv ON vv.id = vr.voto_id
+                    AND vv.tipo_voto = 'contra' AND vv.video_id = ?
+             WHERE r.video = ?
+             GROUP BY r.id, r.descripcion
+             ORDER BY r.id ASC`,
+            [id, razonesGrupo]
+        );
+        const enContraPorRazon = [];
+        if (votosContra === 0) {
+            enContraPorRazon.push({
+                id: 0,
+                descripcion: 'Sin votos en contra',
+                votos: 0,
+                porcentaje: 0,
+                sinVotos: true
+            });
+        } else {
+            razonesRows.forEach((r) => {
+                const votos = Number(r.votos) || 0;
+                enContraPorRazon.push({
+                    id: Number(r.id),
+                    descripcion: r.descripcion,
+                    votos,
+                    porcentaje: Math.round((votos * 100) / votosContra)
+                });
+            });
         }
 
         const Y = `WHERE video_id = ? AND fecha >= DATE_SUB(CURDATE(), INTERVAL 13 DAY)`;
@@ -1003,7 +1051,8 @@ router.get('/videos/:id/estadisticas', verificarAcceso, async (req, res) => {
             };
         });
 
-        res.json({ success: true, estadisticas: { resumen, diario, desde: dias[0], hasta: dias[dias.length - 1] } });
+        resumen.diasEnElSistema = diasEnElSistema;
+        res.json({ success: true, estadisticas: { resumen, diario, enContraPorRazon, desde: dias[0], hasta: dias[dias.length - 1] } });
     } catch (error) {
         console.error('Error en GET /videos/:id/estadisticas:', error.message);
         res.status(500).json({ error: 'Error interno del servidor.' });
@@ -1553,8 +1602,10 @@ router.put('/videos/:id', verificarAcceso, async (req, res) => {
         if (!/^\d+$/.test(id)) {
             return res.status(400).json({ error: 'Identificador de video inválido.' });
         }
+        // categoria_contenido/subcultura_id actuales para detectar el cambio
+        // real de categoría (RQNFN39: al cambiar, se borran los votos).
         const [videoRows] = await pool.execute(
-            'SELECT usuario_id, cultura_id FROM videos WHERE id = ? LIMIT 1',
+            'SELECT usuario_id, cultura_id, categoria_contenido, subcultura_id FROM videos WHERE id = ? LIMIT 1',
             [id]
         );
         if (videoRows.length === 0) {
@@ -1564,6 +1615,10 @@ router.put('/videos/:id', verificarAcceso, async (req, res) => {
             return res.status(403).json({ error: 'Solo puedes editar tu video.' });
         }
 
+        // RQNFN39: si la categoría o la subcultura cambian de verdad, los
+        // votos favor/contra y la semejanza se borran (la razón del público
+        // ya no aplica a otro encuadre).
+        let resetVotos = false;
         const campos = [];
         const valores = [];
         if (descripcion !== undefined) {
@@ -1579,6 +1634,9 @@ router.put('/videos/:id', verificarAcceso, async (req, res) => {
         if (categoria_contenido !== undefined) {
             if (!CATEGORIA_VALIDA.has(categoria_contenido)) {
                 return res.status(400).json({ error: 'Categoría inválida.' });
+            }
+            if (categoria_contenido !== videoRows[0].categoria_contenido) {
+                resetVotos = true;
             }
             campos.push('categoria_contenido = ?');
             valores.push(categoria_contenido);
@@ -1615,6 +1673,9 @@ router.put('/videos/:id', verificarAcceso, async (req, res) => {
                     return res.status(400).json({
                         error: 'La subcultura no pertenece a la cultura del video.'
                     });
+                }
+                if (Number(subRows[0].id) !== Number(videoRows[0].subcultura_id)) {
+                    resetVotos = true;
                 }
                 campos.push('subcultura_id = ?');
                 valores.push(Number(subRows[0].id));
@@ -1656,8 +1717,22 @@ router.put('/videos/:id', verificarAcceso, async (req, res) => {
         try {
             await conexion.beginTransaction();
             if (campos.length > 0) {
+                // RQNFN39: si la categoría/subcultura cambió, los votos se
+                // borran en la misma transacción (valores literales en el SQL,
+                // sin parámetros; la alineación de ? no cambia).
+                const sqlCampos = [...campos];
+                if (resetVotos) {
+                    sqlCampos.push('votos_favor = 0', 'votos_contra = 0', 'porcentaje_semejanza = NULL');
+                }
                 valores.push(id);
-                await conexion.execute(`UPDATE videos SET ${campos.join(', ')} WHERE id = ?`, valores);
+                await conexion.execute(`UPDATE videos SET ${sqlCampos.join(', ')} WHERE id = ?`, valores);
+                if (resetVotos) {
+                    await conexion.execute(
+                        'DELETE FROM voto_razones WHERE voto_id IN (SELECT id FROM votos_video WHERE video_id = ?)',
+                        [id]
+                    );
+                    await conexion.execute('DELETE FROM votos_video WHERE video_id = ?', [id]);
+                }
             }
             if (etiquetasFinal !== null) {
                 await conexion.execute('DELETE FROM etiquetas_video WHERE video_id = ?', [id]);

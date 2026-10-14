@@ -2035,6 +2035,27 @@
     background-color: var(--color-acento-fuerte);
 }
 
+.video-estadisticas-seg--contra {
+    background-color: var(--color-texto-suave);
+}
+
+.video-estadisticas-razones {
+    padding: 12px 0 4px;
+}
+
+.video-estadisticas-razones-lista {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.video-estadisticas-fila--razon {
+    font-size: 13px;
+}
+
 .video-estadisticas-semejanza {
     display: flex;
     align-items: baseline;

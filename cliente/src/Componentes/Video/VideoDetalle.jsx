@@ -1178,6 +1178,36 @@ export const VideoDetalle = () => {
           {r.semejanza === null && <small>visible al superar 1000 votos</small>}
         </div>
 
+        <div className="video-estadisticas-semejanza">
+          <span>Tiempo en el sistema</span>
+          <strong>
+            {r.diasEnElSistema === undefined || r.diasEnElSistema === null
+              ? '—'
+              : `${r.diasEnElSistema} día${r.diasEnElSistema === 1 ? '' : 's'}`}
+          </strong>
+        </div>
+
+        <div className="video-estadisticas-razones">
+          <div className="video-estadisticas-tendencia-titulo">Elementos en contra (por motivo)</div>
+          <ul className="video-estadisticas-razones-lista">
+            {(estadisticas.enContraPorRazon || []).map((ra) => (
+              <li className="video-estadisticas-fila video-estadisticas-fila--razon" key={ra.id}>
+                <span className="video-estadisticas-fila-etiqueta">{ra.descripcion}</span>
+                <span className="video-estadisticas-fila-barra">
+                  <span
+                    className="video-estadisticas-seg video-estadisticas-seg--contra"
+                    style={{ width: `${Math.min(100, Math.max(2, ra.porcentaje))}%` }}
+                  />
+                </span>
+                <span className="video-estadisticas-fila-valor">
+                  {ra.votos}
+                  {ra.porcentaje !== 0 ? ` · ${ra.porcentaje}%` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <div className="video-estadisticas-tendencia-titulo">Interacciones por día (14 días)</div>
         <div
           className="video-estadisticas-tendencia"
