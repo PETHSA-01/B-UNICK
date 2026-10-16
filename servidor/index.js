@@ -125,8 +125,9 @@ let pool;
         }
 
         // start the server
-        app.listen(port, () => {
-            console.log(`Example app listening on port http://localhost:${port}`);
+        // Render exige atar a 0.0.0.0; sin host explícito Node queda en loopback.
+        app.listen(port, '0.0.0.0', () => {
+            console.log(`Servidor escuchando en 0.0.0.0:${port}`);
         });
     } catch (error) {
         console.error('Startup error:', error);
