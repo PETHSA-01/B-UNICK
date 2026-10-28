@@ -178,7 +178,7 @@ export const BarraLateral = () => {
   const itemsInferiores = !esMovil
     ? NAV_ITEMS
     : isAuthenticated && enInicio
-      ? BOTTOM_ITEMS_MOVIL
+      ? BOTTOM_ITEMS_MOVIL.filter(item => item.key !== 'notificaciones')
       : barraSuperiorVisible || !enInicio
         ? (isAuthenticated ? BOTTOM_ITEMS_MOVIL : BOTTOM_ITEMS_MOVIL.filter(item => item.key !== 'notificaciones'))
         : (isAuthenticated ? BOTTOM_ITEMS_MOVIL_SIN_SUPERIOR : BOTTOM_ITEMS_MOVIL_SIN_SUPERIOR.filter(item => item.key !== 'notificaciones'))
