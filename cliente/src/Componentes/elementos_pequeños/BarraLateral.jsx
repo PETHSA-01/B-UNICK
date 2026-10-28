@@ -162,13 +162,12 @@ export const BarraLateral = () => {
   const esMovil = useEsMovil()
   const enInicio = location.pathname === '/'
   const progresoScroll = useProgresoScroll()
-  // La barra superior móvil vive en la home y se difumina progresivamente al
-  // deslizar (progresoScroll 0→1) hasta desaparecer; mientras tanto su
-  // contenido vuelve a la barra inferior.
+  // La barra superior móvil vive en la home. Sin sesión se difumina al
+  // deslizar; con sesión activa queda fija con las notificaciones.
   const enArriba = progresoScroll < 1
-  const barraSuperiorVisible = esMovil && enInicio && enArriba
-  // Opacidad/desplazamiento continuos: a progreso 0 está plena, a 1 ya no se ve.
-  const opacidadSuperior = 1 - progresoScroll
+  const barraSuperiorVisible = esMovil && enInicio && (isAuthenticated ? true : enArriba)
+  // Opacidad/desplazamiento continuos: con sesión queda fija (sin difuminado).
+  const opacidadSuperior = isAuthenticated && esMovil && enInicio ? 1 : 1 - progresoScroll
 
   // Ítems de la barra inferior: con la barra superior a la vista, Notificaciones
   // vive arriba y la inferior se queda con 4. Sin ella (ya scrolleado en la
@@ -178,9 +177,11 @@ export const BarraLateral = () => {
   // mantiene en 4 ítems. Información nunca aparece abajo en móvil.
   const itemsInferiores = !esMovil
     ? NAV_ITEMS
-    : barraSuperiorVisible || !enInicio
-      ? (isAuthenticated ? BOTTOM_ITEMS_MOVIL : BOTTOM_ITEMS_MOVIL.filter(item => item.key !== 'notificaciones'))
-      : (isAuthenticated ? BOTTOM_ITEMS_MOVIL_SIN_SUPERIOR : BOTTOM_ITEMS_MOVIL_SIN_SUPERIOR.filter(item => item.key !== 'notificaciones'))
+    : isAuthenticated && enInicio
+      ? BOTTOM_ITEMS_MOVIL
+      : barraSuperiorVisible || !enInicio
+        ? (isAuthenticated ? BOTTOM_ITEMS_MOVIL : BOTTOM_ITEMS_MOVIL.filter(item => item.key !== 'notificaciones'))
+        : (isAuthenticated ? BOTTOM_ITEMS_MOVIL_SIN_SUPERIOR : BOTTOM_ITEMS_MOVIL_SIN_SUPERIOR.filter(item => item.key !== 'notificaciones'))
 
   // Deduce el ítem activo desde la ruta (misma regla que el efecto de ruta).
   // Se reutiliza al cerrar notificaciones para devolver el blob al elemento
@@ -307,9 +308,10 @@ export const BarraLateral = () => {
 
   return (
     <>
-      {/* Barra superior móvil: solo en la home (≤768px). Aloja solo Información
-          a la izquierda. Las notificaciones ya no se muestran aquí. Se difumina
-          progresivamente según el scroll hasta desaparecer. */}
+      {/* Barra superior móvil: solo en la home (≤768px). Aloja Información
+          (a la izquierda) y Notificaciones —o Iniciar sesión/Registrarse sin
+          sesión— (a la derecha). La barra inferior móvil conserva 4 ítems.
+          Se difumina progresivamente según el scroll hasta desaparecer. */}
       {barraSuperiorVisible && (
         <header
           className="barra-superior-movil"
@@ -329,6 +331,32 @@ export const BarraLateral = () => {
           >
             {ICON_MAP.informacion}
           </button>
+
+          <div className="barra-superior-acciones">
+            {enInicio && barraSuperiorVisible && (
+              <>
+                {TOP_ITEMS_MOVIL.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className="barra-superior-btn"
+                    aria-label={item.label}
+                    title={item.label}
+                    aria-expanded={notificacionesAbiertas ? true : undefined}
+                    aria-controls={notificacionesAbiertas ? 'panel-notificaciones' : undefined}
+                    onClick={() => toggleNotificacionesSuperior()}
+                  >
+                    {typeof ICON_MAP[item.icon] === 'function' ? ICON_MAP[item.icon]() : ICON_MAP[item.icon]}
+                    {isAuthenticated && noLeidas > 0 && (
+                      <span className="barra-badge" aria-label={`${noLeidas} notificaciones sin leer`}>
+                        {noLeidas > 99 ? '99+' : noLeidas}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
         </header>
       )}
 
