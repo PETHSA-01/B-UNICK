@@ -122,3 +122,24 @@ button, input, textarea, select {
     }
 }
 
+/* ── Móvil: sin barras de scroll visibles ──
+   En celular el scroll sigue funcionando (gesto táctil), pero no se dibuja la
+   barra: ocupa espacio, tapa el contenido y en Android la fila de apartados
+   (scroll horizontal) muestra una barra sólida muy llamativa. El `!important`
+   es necesario para vencer el `scrollbar-width: thin` que declaran los
+   componentes con mayor especificidad. */
+@media (max-width: 768px) {
+    *,
+    *::before,
+    *::after {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    *::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+}
+

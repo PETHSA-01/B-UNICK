@@ -9,20 +9,38 @@
 .maquillajes-page {
     max-width: 1180px;
     margin: 0 auto;
-    padding: 28px 20px 40px;
+    /* 14px por lado: el hueco contra el borde de la página coincide con el hueco
+       entre columnas del masonry (--gap-masonry). */
+    padding: 28px 14px 40px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    /* El masonry usa columnas de ancho fijo: recorta cualquier sobrante de
+       redondeo para que la fila nunca desborde la pantalla. */
+    overflow-x: clip;
 }
 
-/* ── Barra de apartados (RQFN88) ── */
+/* ── Barra de apartados (RQFN88) ──
+   La fila solo dibuja su línea inferior. El contenedor scrolleable alberga, en
+   escritorio, [filtros | pestañas | espejo→derecha]; en móvil el filtro sale del
+   scroll y se ancla al borde derecho de la fila (ver media query ≤768px). */
 .maquillajes-tabs {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 10px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--color-fondo3);
+}
+
+.maquillajes-tabs-scroll {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
     overflow-x: auto;
     scrollbar-width: thin;
 }
@@ -35,20 +53,42 @@
     flex: 0 0 auto;
 }
 
+/* Cada apartado es un botón-icono; solo el activo despliega su texto. */
 .maquillajes-tab {
     appearance: none;
     border: none;
     background: transparent;
     color: var(--color-texto-suave);
-    border-radius: 6px;
-    padding: 8px 12px;
+    border-radius: 10px;
+    height: 36px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     font-size: 14px;
     font-weight: 400;
     font-family: inherit;
     white-space: nowrap;
     cursor: pointer;
     position: relative;
-    transition: color 0.18s ease;
+    flex-shrink: 0;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+
+.maquillajes-tab svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* El texto solo existe en la pestaña activa (y en móvil, ver media query). */
+.maquillajes-tab-texto {
+    display: none;
+}
+
+.maquillajes-tab--activa .maquillajes-tab-texto {
+    display: inline;
 }
 
 .maquillajes-tab:hover {
@@ -58,18 +98,6 @@
 .maquillajes-tab--activa {
     color: var(--color-acento-fuerte);
     font-weight: 500;
-}
-
-.maquillajes-tab--activa::after,
-.maquillajes-mis--activa::after {
-    content: "";
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: 2px;
-    height: 2px;
-    border-radius: 2px;
-    background: var(--color-acento-fuerte);
 }
 
 .maquillajes-tab:disabled {
@@ -87,30 +115,76 @@
     flex-shrink: 0;
 }
 
-.maquillajes-mis--activa {
-    color: var(--color-acento-fuerte);
-    font-weight: 500;
-}
-
-.maquillajes-mis--activa:hover {
-    color: var(--color-acento-fuerte);
-}
-
-/* ── Controles: orden ── */
-.maquillajes-controles {
-    display: flex;
+/* Botón-espejo que sustituye al texto "Mis características" (icono, sin tab).
+   En escritorio cierra la fila, alineado al borde derecho. */
+.maquillajes-espejo {
+    margin-left: auto;
+    flex-shrink: 0;
+    appearance: none;
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    flex-wrap: wrap;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--color-texto-suave);
+    cursor: pointer;
+    transition: color 0.18s ease, background-color 0.18s ease;
 }
 
+.maquillajes-espejo svg {
+    width: 20px;
+    height: 20px;
+}
+
+.maquillajes-espejo:hover {
+    color: var(--color-h1);
+}
+
+/* Seleccionado: el botón se sombrea con el color de acento y el icono pasa a
+   blanco, para que se distinga de un vistazo del resto de la fila. */
+.maquillajes-espejo--activa {
+    background: var(--color-acento-fuerte);
+    color: #fff;
+}
+
+.maquillajes-espejo--activa:hover {
+    background: color-mix(in srgb, var(--color-acento-fuerte) 85%, #000);
+    color: #fff;
+}
+
+.maquillajes-espejo:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.maquillajes-espejo:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+}
+
+/* ── Ordenar por (vive dentro del panel de filtros) ── */
 .maquillajes-orden {
     display: flex;
     flex-direction: column;
     gap: 4px;
     font-size: 12.5px;
     color: var(--color-texto-suave);
+}
+
+.maquillajes-orden > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.maquillajes-orden svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 .maquillajes-orden select {
@@ -271,34 +345,74 @@
     background: var(--color-fondo2);
 }
 
-/* ── Panel de filtros (colapsable) ── */
-.maquillajes-filtros {
+/* ── Cuerpo del feed + panel de filtros ──
+   El panel se muestra como columna a la izquierda del feed y lo desplaza; sin
+   borde ni fondo propio (mismo tono que la página). En móvil se apila arriba. */
+.maquillajes-cuerpo {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.maquillajes-cuerpo--con-panel {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+}
+
+.maquillajes-feed {
+    min-width: 0;
+}
+
+/* ── Panel de filtros (colapsable) ──
+   Vive en la columna izquierda del cuerpo del feed (escritorio) o arriba a ancho
+   completo (móvil). Sin borde sólido ni fondo distinto: mismo tono que la página. */
+.maquillajes-filtros-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.maquillajes-cuerpo--con-panel .maquillajes-filtros-panel {
+    position: sticky;
+    top: 20px;
+    /* La barra superior móvil mide 56px + safe-area; el panel no debe pasar del
+       alto visible, así que se acota y hace scroll interno. */
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    /* Un poco de aire a la derecha para que los controles no toquen la barra de
+       scroll interna. */
+    padding-right: 4px;
 }
 
 .maquillajes-filtros-toggle {
-    margin-left: auto;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    border: 1px solid var(--color-fondo3);
-    background: var(--color-fondo);
-    color: var(--color-h1);
-    border-radius: 999px;
-    padding: 8px 16px;
+    justify-content: center;
+    gap: 2px;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-texto-suave);
+    border-radius: 10px;
+    padding: 0;
     font-size: 14px;
     font-weight: 500;
     font-family: inherit;
     line-height: 1;
     cursor: pointer;
-    transition: border-color 0.18s ease;
+    transition: color 0.18s ease;
 }
 
 .maquillajes-filtros-toggle svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     color: var(--color-texto-suave);
 }
 
@@ -321,7 +435,7 @@
 }
 
 .maquillajes-filtros-toggle:hover {
-    border-color: var(--color-acento-fuerte);
+    color: var(--color-h1);
 }
 
 .maquillajes-filtros-toggle:focus-visible {
@@ -330,10 +444,7 @@
 }
 
 .maquillajes-filtros-panel {
-    border: 1px solid var(--color-fondo3);
-    border-radius: 16px;
-    background: var(--color-fondo);
-    padding: 16px;
+    padding: 4px 0 0;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -388,10 +499,134 @@
     border-color: var(--color-acento-fuerte);
 }
 
-/* ── Feed tipo Pinterest (RQFN90/94/96/98) ── */
+/* ── Panel de filtros superpuesto (solo móvil) ──
+   Igual que el drawer de notificaciones, pero acotado a la zona de contenido:
+   el fondo opaco del panel cubre toda la pantalla desde debajo de la barra
+   superior (56px + safe-area) hasta encima de la barra inferior (72px +
+   safe-area). Las dos barras quedan fuera y siguen visibles y usables. */
+.maquillajes-panel-contenedor {
+    position: fixed;
+    top: calc(56px + env(safe-area-inset-top));
+    left: 0;
+    right: 0;
+    /* La barra inferior mide exactamente --sidebar-mobile-height (72px) con
+       box-sizing: border-box, así que el overlay termina justo encima de ella. */
+    bottom: var(--sidebar-mobile-height);
+    z-index: 45;
+    display: flex;
+    flex-direction: column;
+}
+
+.maquillajes-panel-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(47, 38, 56, 0.55);
+    animation: maquillajes-panel-fade 0.18s ease;
+}
+
+.maquillajes-panel-superpuesto {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    background: var(--color-fondo);
+    border-radius: 0;
+    overflow: hidden;
+    animation: maquillajes-panel-in 0.18s ease-out;
+}
+
+.maquillajes-panel-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 48px;
+    padding: 0 8px 0 16px;
+    border-bottom: 1px solid var(--color-fondo2);
+    flex-shrink: 0;
+}
+
+.maquillajes-panel-titulo {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
+.maquillajes-panel-cerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    background: transparent;
+    color: var(--color-texto-suave);
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.maquillajes-panel-cerrar:hover {
+    color: var(--color-h1);
+}
+
+.maquillajes-panel-cerrar:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: -2px;
+}
+
+.maquillajes-panel-cuerpo {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 14px 16px 24px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+@keyframes maquillajes-panel-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes maquillajes-panel-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Feed tipo Pinterest: masonry balanceado en columnas (RQFN90/94/96/98) ──
+   La versión base es fluida (flex 1 1 0): las columnas se reparten el 100% del
+   ancho y rellenan el hueco libre. El feed de inicio y la galería del Perfil
+   usan la variante --fijo de más abajo, que fija el ancho de columna en
+   píxeles para que las miniaturas se vean igual en los dos sitios. */
 .maquillajes-masonry {
-    columns: 4 200px;
-    column-gap: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 14px;
+}
+
+.maquillajes-columna {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Columnas de ancho fijo (calculado en JS con --col-w): lo usan el feed de
+   inicio y la galería del Perfil. La fila no envuelve, usa exactamente N
+   columnas y el sobrante se reparte a ambos lados. */
+.maquillajes-masonry--fijo {
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+
+.maquillajes-masonry--fijo .maquillajes-columna {
+    flex: 0 0 var(--col-w, 260px);
+    max-width: var(--col-w, 260px);
 }
 
 /* ── Apartados de coincidencia física (fallback de "Mis características") ── */
@@ -417,8 +652,7 @@
 .maquillajes-card {
     position: relative;
     display: block;
-    break-inside: avoid;
-    margin-bottom: 14px;
+    width: 100%;
     aspect-ratio: var(--card-aspect, 1);
     border-radius: 16px;
     overflow: hidden;
@@ -661,9 +895,14 @@
     padding: 8px 0 2px;
 }
 
-/* Esqueletos de carga */
+/* Esqueletos de carga: mismo masonry de columnas que el feed real. */
+.maquillajes-masonry--carga {
+    flex-wrap: wrap;
+}
+
 .maquillajes-masonry--carga .maquillajes-skeleton {
-    break-inside: avoid;
+    flex: 1 1 200px;
+    min-width: 0;
     margin-bottom: 14px;
     aspect-ratio: 1;
     border-radius: 14px;
@@ -691,35 +930,112 @@
 }
 
 @media (max-width: 768px) {
+    /* Deja sitio a la barra superior móvil (fixed, 56px + safe-area) que solo
+       aparece en la home. El padding se aplica aquí porque el feed vive en /. */
+    .maquillajes-fondo {
+        padding-top: calc(56px + env(safe-area-inset-top));
+    }
+
     .maquillajes-page {
         padding: 20px 14px 32px;
     }
 
+    /* Escritorio: [filtros | pestañas | espejo→derecha].
+       Móvil: el espejo abre el flujo, las pestañas siguen en medio y el botón de
+       filtros sale del scroll para anclarse al borde derecho de la fila. */
     .maquillajes-tabs {
+        position: relative;
         gap: 6px;
+        padding-right: 38px;
+    }
+
+    .maquillajes-tabs-scroll {
+        gap: 4px;
     }
 
     .maquillajes-tabs-grupo,
-    .maquillajes-mis {
+    .maquillajes-espejo {
         flex-shrink: 0;
     }
 
-    .maquillajes-mis {
+    /* El espejo deja de alinearse a la derecha y abre el flujo de scroll. */
+    .maquillajes-espejo {
         order: -1;
+        margin-left: 0;
     }
 
-    .maquillajes-masonry {
-        columns: 2 140px;
-        column-gap: 10px;
+    /* En móvil todos los apartados muestran su texto (no hay hover). */
+    .maquillajes-tab {
+        height: 32px;
+        padding: 0 9px;
+        font-size: 13px;
+        gap: 5px;
+    }
+
+    .maquillajes-tab svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .maquillajes-tab-texto {
+        display: inline;
+    }
+
+    /* Filtros: fijos contra el borde derecho, fuera del scroll horizontal. */
+    .maquillajes-filtros-toggle {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 32px;
+        height: 32px;
+        z-index: 1;
+        background: var(--color-fondo);
+    }
+
+    /* El panel de filtros sale del flujo: en móvil se superpone (ver
+       .maquillajes-panel-contenedor), así que el cuerpo solo apila el feed. */
+    .maquillajes-cuerpo--con-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    /* Miniaturas: en celular se muestran 2 columnas y el ancho de columna se
+       recalcula aquí desde el viewport (nunca el de escritorio); el rootMargin
+       se ignora con wrap para que la fila jamás desborde la pantalla. */
+    .maquillajes-page .maquillajes-masonry {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    /* Mismo comportamiento en el móvil para la galería del Perfil (no vive
+       dentro de .maquillajes-page): 2 columnas que llenan el ancho. */
+    .maquillajes-masonry--fijo {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .maquillajes-page .maquillajes-columna,
+    .maquillajes-columna,
+    .maquillajes-masonry--fijo .maquillajes-columna {
+        flex: 0 0 calc((100% - 8px) / 2);
+        max-width: calc((100% - 8px) / 2);
+        gap: 8px;
     }
 
     .maquillajes-card {
-        margin-bottom: 10px;
         border-radius: 10px;
     }
 
     .maquillajes-card-nombre {
-        max-width: 90px;
+        max-width: 72px;
+    }
+
+    .maquillajes-card-iconos svg {
+        width: 15px;
+        height: 15px;
     }
 }
 
@@ -741,7 +1057,14 @@
     }
 
     .maquillajes-masonry--carga .maquillajes-skeleton {
+        flex: 1 1 140px;
+        margin-bottom: 10px;
         animation: none;
         background: var(--color-fondo2);
+    }
+
+    .maquillajes-panel-superpuesto,
+    .maquillajes-panel-backdrop {
+        animation: none;
     }
 }

@@ -110,7 +110,7 @@ function construirAcciones(notif, navigate, onClose) {
 // ---------------------------------------------------------------------
 const BeckyVacio = () => (
   <ul className="notif-lista">
-    <li className="notif-item">
+    <li className="notif-item" style={{ '--notif-i': 0 }}>
       <div className="notif-item-avatar">
         <img src="/logo.svg" alt="Becky" />
       </div>
@@ -250,7 +250,7 @@ export const NotificacionesPagina = ({ onClose }) => {
   } else {
     contenido = (
       <ul className="notif-lista">
-        {notificaciones.map((notif) => {
+        {notificaciones.map((notif, indice) => {
           const acciones = construirAcciones(notif, navigate, cerrar)
           const esSemejanzaBaja = notif.tipo === 'semejanza_baja'
 
@@ -288,6 +288,7 @@ export const NotificacionesPagina = ({ onClose }) => {
             <li
               key={notif.id}
               className={`notif-item${accionUnica ? ' notif-item--enlace' : ''}`}
+              style={{ '--notif-i': indice }}
               onClick={accionUnica?.onClick}
               onKeyDown={
                 accionUnica

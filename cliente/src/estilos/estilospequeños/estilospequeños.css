@@ -64,6 +64,11 @@
       flex-direction: column;
       gap: 10px;
       transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+      /* Aparición progresiva: cada toast entra con un retardo incremental
+         (--notif-i lo fija el componente) para que los avisos se sientan
+         como una cascada corta al montarse. */
+      animation: notif-toast-in 0.26s ease-out both;
+      animation-delay: calc(var(--notif-i, 0) * 40ms);
     }
 
     .notif-header {
@@ -354,6 +359,18 @@
   .barra-lateral:focus-within {
     width: 100vw;
   }
+
+  .barra-lateral .barra-lateral-btn {
+    width: 48px;
+    height: 48px;
+    max-width: 48px !important;
+  }
+
+  .barra-lateral .barra-lateral-btn--crear {
+    width: 56px;
+    height: 56px;
+    max-width: 56px !important;
+  }
 }
 
 /* ── SIGNATURE: MORPHING BLOB ── */
@@ -395,7 +412,7 @@
 
 .barra-lateral-btn:hover,
 .barra-lateral-btn:focus-visible {
-  color: var(--color-acento);
+  color: var(--color-elementos2);
   background: var(--color-fondo3);
   transform: scale(1.05);
 }
@@ -478,23 +495,70 @@
   .barra-lateral-label { display: none; }
 
   .barra-lateral-btn {
+    width: 48px;
+    height: 48px;
+    max-width: 48px !important;
+    justify-content: center !important;
+    padding-left: 0 !important;
+  }
+
+  .barra-lateral-btn--crear {
     width: 56px;
     height: 56px;
     max-width: 56px !important;
-    justify-content: center !important;
-    padding-left: 0 !important;
+    background: linear-gradient(135deg, var(--color-acento), var(--color-acento2));
+    color: #fff;
+    box-shadow: 0 10px 22px -14px var(--color-acento-fuerte);
+  }
+
+  .barra-lateral-btn--crear svg {
+    width: 28px;
+    height: 28px;
+    stroke-width: 2;
+  }
+
+  .barra-lateral-btn--crear[aria-current="page"] {
+    background: linear-gradient(135deg, var(--color-acento-fuerte), var(--color-acento-fuerte));
+    color: #fff;
+  }
+
+  .barra-lateral-btn--crear[aria-current="page"]:hover,
+  .barra-lateral-btn--crear[aria-current="page"]:focus-visible {
+    color: #fff;
+    background: linear-gradient(135deg, var(--color-acento-fuerte), var(--color-acento-fuerte));
+  }
+
+  .barra-lateral .barra-lateral-btn[aria-current="page"] {
+    color: #fff;
+    background: var(--color-acento-fuerte);
+  }
+
+  .barra-lateral .barra-lateral-btn[aria-current="page"]:hover,
+  .barra-lateral .barra-lateral-btn[aria-current="page"]:focus-visible {
+    color: #fff;
+    background: var(--color-acento-fuerte);
   }
 }
 
 /* ACTIVE STATE */
 .barra-lateral-btn[aria-current="page"] {
-  color: var(--color-acento);
-  background: var(--color-acento);
-  color: white;
+  color: #fff;
+  background: var(--color-acento-fuerte);
+}
+
+.barra-lateral-btn[aria-current="page"]:hover,
+.barra-lateral-btn[aria-current="page"]:focus-visible {
+  color: #fff;
+  background: var(--color-acento-fuerte);
+  transform: scale(1.02);
+}
+
+.barra-lateral-btn[aria-current="page"] .barra-lateral-label {
+  color: #fff;
 }
 
 /* BLOB POSITION UPDATES VIA JS (data-active-index) */
-/* DESKTOP: Vertical positions */
+/* DESKTOP: Vertical positions (barra = 6 ítems) */
 .barra-lateral[data-active-index="0"]::before { transform: translate(-50%, calc(-50% + 0px)); }
 .barra-lateral[data-active-index="1"]::before { transform: translate(-50%, calc(-50% + 64px)); }
 .barra-lateral[data-active-index="2"]::before { transform: translate(-50%, calc(-50% + 128px)); }
@@ -502,14 +566,146 @@
 .barra-lateral[data-active-index="4"]::before { transform: translate(-50%, calc(-50% + 256px)); }
 .barra-lateral[data-active-index="5"]::before { transform: translate(-50%, calc(-50% + 320px)); }
 
-/* MOBILE: Horizontal positions */
+/* MOBILE: horizontal positions. La barra inferior puede tener 4 ítems (home
+   hasta arriba, con barra superior), 5 (resto de rutas, sin Información) o 6
+   (escritorio móvil con Información si algún día se reincorpora). */
 @media (max-width: 768px) {
-  .barra-lateral[data-active-index="0"]::before { transform: translate(calc(-50% + 0px), -50%); }
-  .barra-lateral[data-active-index="1"]::before { transform: translate(calc(-50% + 16.666%), -50%); }
-  .barra-lateral[data-active-index="2"]::before { transform: translate(calc(-50% + 33.333%), -50%); }
-  .barra-lateral[data-active-index="3"]::before { transform: translate(calc(-50% + 50%), -50%); }
-  .barra-lateral[data-active-index="4"]::before { transform: translate(calc(-50% + 66.666%), -50%); }
-  .barra-lateral[data-active-index="5"]::before { transform: translate(calc(-50% + 83.333%), -50%); }
+  .barra-lateral[data-nav-count-movil="4"][data-active-index="0"]::before { transform: translate(calc(-50% + 0px), -50%); }
+  .barra-lateral[data-nav-count-movil="4"][data-active-index="1"]::before { transform: translate(calc(-50% + 25%), -50%); }
+  .barra-lateral[data-nav-count-movil="4"][data-active-index="2"]::before { transform: translate(calc(-50% + 50%), -50%); }
+  .barra-lateral[data-nav-count-movil="4"][data-active-index="3"]::before { transform: translate(calc(-50% + 75%), -50%); }
+
+  .barra-lateral[data-nav-count-movil="5"][data-active-index="0"]::before { transform: translate(calc(-50% + 0px), -50%); }
+  .barra-lateral[data-nav-count-movil="5"][data-active-index="1"]::before { transform: translate(calc(-50% + 20%), -50%); }
+  .barra-lateral[data-nav-count-movil="5"][data-active-index="2"]::before { transform: translate(calc(-50% + 40%), -50%); }
+  .barra-lateral[data-nav-count-movil="5"][data-active-index="3"]::before { transform: translate(calc(-50% + 60%), -50%); }
+  .barra-lateral[data-nav-count-movil="5"][data-active-index="4"]::before { transform: translate(calc(-50% + 80%), -50%); }
+
+  .barra-lateral[data-nav-count-movil="6"][data-active-index="0"]::before { transform: translate(calc(-50% + 0px), -50%); }
+  .barra-lateral[data-nav-count-movil="6"][data-active-index="1"]::before { transform: translate(calc(-50% + 16.666%), -50%); }
+  .barra-lateral[data-nav-count-movil="6"][data-active-index="2"]::before { transform: translate(calc(-50% + 33.333%), -50%); }
+  .barra-lateral[data-nav-count-movil="6"][data-active-index="3"]::before { transform: translate(calc(-50% + 50%), -50%); }
+  .barra-lateral[data-nav-count-movil="6"][data-active-index="4"]::before { transform: translate(calc(-50% + 66.666%), -50%); }
+  .barra-lateral[data-nav-count-movil="6"][data-active-index="5"]::before { transform: translate(calc(-50% + 83.333%), -50%); }
+}
+
+/* ── BARRA SUPERIOR MÓVIL (solo home ≤768px) ── */
+.barra-superior-movil {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .barra-superior-movil {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    height: 56px;
+    padding: 0 12px;
+    padding-top: env(safe-area-inset-top);
+    border-bottom: 1px solid var(--color-fondo3);
+    background: linear-gradient(180deg, var(--color-fondo) 0%, var(--color-fondo2) 100%);
+    box-shadow: 0 4px 18px var(--color-sombra);
+    will-change: opacity, transform;
+    /* Suaviza el paso de la opacidad/posición que calcula el JS (progreso de
+       scroll) para que el difuminado se sienta continuo y no escalonado. */
+    transition: opacity 120ms linear, transform 120ms ease-out;
+  }
+
+  .barra-superior-acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .barra-superior-btn:focus-visible {
+    outline: 3px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
+  }
+
+  .barra-superior-btn {
+    position: relative;
+    appearance: none;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--color-elementos2);
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s, transform 0.1s;
+  }
+
+  /* El icono de la barra superior se ve igual que el de la barra inferior
+     (mismo tamaño de icono, mismo grosor de trazo). */
+  .barra-superior-btn svg {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    stroke: currentColor;
+    stroke-width: var(--icon-stroke);
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .barra-superior-btn:hover,
+  .barra-superior-btn:focus-visible {
+    color: var(--color-acento);
+    background: var(--color-fondo3);
+    transform: scale(1.05);
+  }
+
+  .barra-superior-btn--activo {
+    color: white;
+    background: var(--color-acento);
+  }
+
+  .barra-superior-btn--auth {
+    /* Iniciar sesión: mismo estilo que tenía en la versión de computadora
+       (botón plano de navegación, sin fondo). */
+    background: transparent;
+    color: var(--color-elementos2);
+  }
+
+  .barra-superior-btn--auth:hover,
+  .barra-superior-btn--auth:focus-visible {
+    color: var(--color-acento);
+    background: var(--color-fondo3);
+  }
+
+  .barra-superior-btn--register {
+    /* Registrarse hereda el fondo que antes tenía Iniciar sesión. */
+    background: var(--color-fondo3);
+    color: var(--color-texto);
+  }
+
+  .barra-superior-btn--register:hover,
+  .barra-superior-btn--register:focus-visible {
+    color: var(--color-texto);
+    background: var(--color-fondo3);
+  }
+}
+
+/* REDUCED MOTION: la barra superior no anima */
+@media (prefers-reduced-motion: reduce) {
+  .barra-superior-movil {
+    transition: none !important;
+  }
+
+  .barra-superior-btn {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 /* PÁGINAS DE PERFIL: ninguna sección de navegación está activa (se resalta el avatar) */
@@ -629,12 +825,14 @@
   width: 100%;
 }
 
-.barra-lateral-auth-btn--register {
-  background: var(--color-fondo3);
-  color: var(--color-texto);
+/* Iniciar sesión en escritorio: estilo plano de navegación (sin fondo), como
+   tenía originalmente. Registrarse conserva el fondo. */
+.barra-lateral-auth-btn--login {
+  background: transparent;
+  color: var(--color-elementos2);
 }
 
-.barra-lateral-auth-btn--login {
+.barra-lateral-auth-btn--register {
   background: var(--color-fondo3);
   color: var(--color-texto);
 }
@@ -673,6 +871,15 @@
   .barra-lateral:focus-within .barra-lateral-auth-btn {
     justify-content: flex-start;
     padding-left: 20px;
+  }
+
+  /* El botón del perfil (avatar + username) no ocupa toda la barra expandida:
+     se queda al ~80% y alineado a la izquierda. */
+  .barra-lateral .barra-lateral-auth-btn--user {
+    max-width: calc(var(--sidebar-width-expanded) * 0.8);
+    margin-right: auto;
+    justify-content: flex-start;
+    padding-left: 6px;
   }
 }
 
@@ -748,8 +955,12 @@
 
 /* Estado activo del avatar (páginas de perfil) */
 .barra-lateral-btn.barra-lateral-auth-btn.barra-lateral-auth-btn--activo {
-  background: var(--color-acento);
-  color: white;
+  background: var(--color-acento-fuerte);
+  color: #fff;
+}
+
+.barra-lateral-btn.barra-lateral-auth-btn.barra-lateral-auth-btn--activo .barra-lateral-auth-label {
+  color: #fff;
 }
 
 /* ── COOKIE CONSENT TOAST ── */
@@ -838,4 +1049,25 @@
 @keyframes alerta-becky-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .alerta-becky-overlay { animation: none; }
+}
+
+/* ── Aparición progresiva de los toasts de notificación ──
+   Entrada corta desde abajo; el retardo incremental lo calcula el
+   componente con la variable --notif-i. Se usa en la tarjeta de cookies
+   y en los avisos internos (.notificacion). */
+@keyframes notif-toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  /* En móvil los toast se cuelgan del borde superior: entran desde arriba. */
+  @keyframes notif-toast-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notificacion { animation: none; }
 }

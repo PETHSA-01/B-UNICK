@@ -4,7 +4,7 @@
     padding: 28px 20px 18px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
 }
 
 .perfil-cargando,
@@ -311,7 +311,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 16px 8px 14px;
+    padding: 5px 8px 5px;
     background: none;
     border: none;
     color: var(--color-texto-suave);
@@ -618,36 +618,53 @@
 
 /* ── Lista de usuarios ── */
 .perfil-lista-modal {
-    padding: 28px 24px 24px;
+    /* 10px de padding lateral: la lista sigue abarcando el ancho disponible
+       del modal y cada fila maneja sus propios 20px de margen inline. */
+    padding: 28px 10px 24px;
     position: relative;
 }
 
 .perfil-lista-vacio {
     text-align: center;
     color: var(--color-elementos);
-    padding: 20px 0;
+    padding: 20px 20px;
     font-size: 14px;
+    /* Igual que la lista: ancho completo dentro del flex centrado del modal. */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .perfil-lista {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    /* Sin gap: cada fila dibuja sus propios filetes superior/inferior. */
+    gap: 0;
     max-height: 380px;
     overflow-y: auto;
-    padding-right: 4px;
+    /* El modal (.contenedor) es flex con align-items:center, así que sus hijos
+       se encogen al contenido: forzamos el ancho completo del modal. */
+    width: 100%;
+    margin: 0;
 }
 
 .perfil-lista-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
-    border: 1px solid var(--color-fondo3);
-    border-radius: 12px;
+    padding: 12px 0;
+    /* 20px de margen inline (desde el borde del modal), dejando que los
+       filetes superior e inferior lleguen al ancho completo del contenedor. */
+    margin: 0 20px;
+    border: none;
+    border-top: 1px solid var(--color-fondo3);
+    border-radius: 0;
     cursor: pointer;
     transition: background 0.15s ease;
+}
+
+.perfil-lista-item:last-child {
+    border-bottom: 1px solid var(--color-fondo3);
 }
 
 .perfil-lista-item:hover {
@@ -669,6 +686,8 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    /* Empuja el botón de seguir al extremo derecho de la fila. */
+    flex: 1 1 auto;
 }
 
 .perfil-lista-nombre span {
@@ -680,6 +699,51 @@
 .perfil-lista-nombre small {
     font-size: 12px;
     color: var(--color-elementos);
+}
+
+/* ── Botón "+" de seguir dentro de la lista de Seguidores ── */
+.perfil-lista-seguir {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-link);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.perfil-lista-seguir svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.5;
+}
+
+.perfil-lista-seguir:hover {
+    transform: scale(1.06);
+}
+
+/* Ya lo sigues: el botón se apaga (contorno) en vez del relleno llamativo. */
+.perfil-lista-seguir--activo {
+    background: transparent;
+    color: var(--color-link);
+    border: 1px solid var(--color-link);
+}
+
+.perfil-lista-seguir:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+}
+
+.perfil-lista-seguir:focus-visible {
+    outline: 2px solid var(--color-acento-fuerte);
+    outline-offset: 2px;
 }
 
 /* ── Responsive ── */
@@ -698,7 +762,8 @@
 
 @media (max-width: 768px) {
     .perfil-page {
-        padding: 16px 12px 48px;
+        padding: 12px 12px 12px;
+        gap: 4px;
     }
 
     .perfil-header {
@@ -727,11 +792,24 @@
     }
 
     .perfil-stats {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 24px 32px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px 12px;
         width: 100%;
         border-top: 0;
         padding-top: 0;
+    }
+
+    .perfil-stat-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .perfil-stat-num {
+        font-size: 14px;
+    }
+
+    .perfil-stat-label {
+        font-size: 12px;
     }
 
     .perfil-gear-wrap {
@@ -740,7 +818,7 @@
     }
 
     .perfil-tabs {
-        margin-top: 12px;
+        margin-top: 8px;
         padding: 0 12px;
     }
 
@@ -764,7 +842,7 @@
     }
 
     .perfil-tab {
-        padding: 12px 0 16px;
+        padding: 5px 0 5px;
     }
 }
 
@@ -773,7 +851,8 @@
     .perfil-gear,
     .perfil-gear-item,
     .perfil-tab,
-    .perfil-lista-item {
+    .perfil-lista-item,
+    .perfil-lista-seguir {
         transition: none;
     }
 }

@@ -16,6 +16,11 @@
     inset: 0;
     background: #2f2638;
     overflow: hidden;
+    /* El scroll vertical lo atiende el JS (deslizar avanza o retrocede en el
+       feed); así el navegador nunca se queda con el gesto y siempre llega el
+       touchend. El contenido de las hojas sí puede seguir scrolleando
+       (ver .video-sheet-contenido). */
+    touch-action: pan-x;
 }
 
 /* ── Panel izquierdo: video (escritorio) ── */
@@ -720,6 +725,11 @@
     gap: 12px;
 }
 
+.video-galeria-grid--hoja {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
 .video-galeria-item {
     border: 0;
     padding: 0;
@@ -734,6 +744,17 @@
     width: 100%;
     aspect-ratio: 4 / 5;
     object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .video-galeria-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .video-galeria-item {
+        border-radius: 10px;
+    }
 }
 
 /* Estados vacío */
@@ -1407,7 +1428,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: calc(env(safe-area-inset-top) + 12px) 14px 0;
+    padding: calc(env(safe-area-inset-top) + 18px) 18px 0;
     pointer-events: none;
 }
 
@@ -1416,8 +1437,8 @@
 }
 
 .video-movil-cerrar {
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
     border: 0;
     border-radius: 50%;
     background: #fff;
@@ -1429,8 +1450,8 @@
 }
 
 .video-movil-cerrar svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
 }
 
 .video-movil-menu {
@@ -1449,6 +1470,45 @@
 .video-movil-menu svg {
     width: 18px;
     height: 18px;
+}
+
+.video-movil-detalles {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    color: #f1e8f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    pointer-events: auto;
+}
+
+.video-movil-detalles svg {
+    width: 28px;
+    height: 24px;
+    stroke-width: 1;
+}
+
+.video-movil-detalles-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--color-acento);
+    color: var(--color-h1);
+    font-size: 11px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
 }
 
 /* Columna de acciones (derecha) */
@@ -1546,6 +1606,9 @@
     flex-direction: column;
     gap: 6px;
     color: #fff;
+    /* El gesto de deslizar hacia abajo avanza al siguiente video y hacia
+       arriba vuelve al anterior. */
+    touch-action: pan-x;
 }
 
 .video-movil-autor {
@@ -1658,7 +1721,13 @@
     background: rgba(47, 38, 56, 0.4);
     display: flex;
     align-items: flex-end;
-    animation: video-fade 0.18s ease;
+    animation: video-fade 0.28s ease;
+    transition: opacity 0.28s ease;
+}
+
+.video-sheet-overlay--cerrando {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .video-sheet {
@@ -1672,7 +1741,15 @@
     border: 1px solid var(--color-fondo3);
     border-bottom: 0;
     border-radius: 24px 24px 0 0;
-    animation: video-subir 0.22s ease;
+    animation: video-subir 0.28s ease;
+    transition: transform 0.28s ease, opacity 0.28s ease;
+    will-change: transform, opacity;
+}
+
+.video-sheet--cerrando {
+    animation: video-bajar 0.28s ease forwards;
+    transform: translateY(100%);
+    opacity: 0.98;
 }
 
 .video-sheet--alta {
@@ -1684,18 +1761,22 @@
     width: 40px;
     height: 4px;
     border-radius: 999px;
-    background: var(--color-fondo3);
+    background: var(--color-elementos);
     margin: 8px auto 4px;
 }
 
 .video-sheet-cabecera {
     flex: none;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 16px;
+    gap: 4px;
+    padding: 8px 16px 10px;
     border-bottom: 1px solid var(--color-fondo2);
+    /* Solo permite el gesto de arrastre horizontal del área, el vertical lo
+       captura el propio manejador de la hoja. */
+    touch-action: pan-x;
+    cursor: grab;
 }
 
 .video-sheet-titulo {
@@ -1705,29 +1786,13 @@
     margin: 0;
 }
 
-.video-sheet-cerrar {
-    width: 36px;
-    height: 36px;
-    border: 0;
-    border-radius: 50%;
-    background: none;
-    color: var(--color-texto-suave);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.video-sheet-cerrar svg {
-    width: 18px;
-    height: 18px;
-}
-
 .video-sheet-contenido {
     flex: 1;
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 16px;
+    /* Dentro de la hoja el scroll vertical sí es del navegador. */
+    touch-action: pan-y;
 }
 
 /* En la hoja de comentarios el campo queda abajo, fijo */
@@ -1773,6 +1838,17 @@
 
 .video-menu-item:hover {
     background: var(--color-fondo2);
+}
+
+/* Acciones sin destino (no hay video anterior/siguiente en el feed). */
+.video-menu-item:disabled {
+    color: var(--color-texto-suave);
+    opacity: 0.5;
+    cursor: default;
+}
+
+.video-menu-item:disabled:hover {
+    background: none;
 }
 
 .video-menu-item svg {
@@ -1888,8 +1964,13 @@
 }
 
 @keyframes video-subir {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
+    from { transform: translateY(100%); opacity: 0.98; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes video-bajar {
+    from { transform: translateY(0); opacity: 1; }
+    to   { transform: translateY(100%); opacity: 0.98; }
 }
 
 @keyframes video-play-fade {
@@ -2139,4 +2220,76 @@
     width: 10px;
     height: 10px;
     border-radius: 2px;
+}
+
+/* Hoja unificada de detalles (Descripción + Galería + Voto) */
+.video-detalles-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-top: 4px;
+}
+
+.video-detalles-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 26px;
+    background: var(--color-fondo3);
+}
+
+.video-detalles-tab {
+    flex: 1;
+    height: 48px;
+    border: 0;
+    border-radius: 22px;
+    background: transparent;
+    color: var(--color-texto-suave);
+    font-size: 15px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.video-detalles-tab svg {
+    width: 22px;
+    height: 22px;
+}
+
+.video-detalles-tab--activo {
+    background: var(--color-acento-fuerte);
+    color: #fff;
+}
+
+.video-detalles-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.video-detalles-galeria-contador {
+    font-size: 14px;
+    color: var(--color-texto-suave);
+}
+
+.video-detalles-semejanza {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    color: var(--color-p);
+}
+
+.video-detalles-cerrar {
+    height: 52px;
+    border-radius: 26px;
+    border: 2px solid var(--color-acento-fuerte);
+    background: transparent;
+    color: var(--color-texto-suave);
+    font-weight: 500;
+    cursor: pointer;
 }

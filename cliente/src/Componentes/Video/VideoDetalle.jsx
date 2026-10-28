@@ -77,27 +77,79 @@ const useEsMovil = () => {
   return esMovil
 }
 
-// Hoja inferior (bottom sheet) del layout móvil.
-const HojaInferior = ({ titulo, altura, onCerrar, children }) => (
-  <div className="video-sheet-overlay" onClick={onCerrar}>
-    <div
-      className={`video-sheet ${altura === 'alta' ? 'video-sheet--alta' : ''}`}
-      role="dialog"
-      aria-modal="true"
-      aria-label={titulo}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="video-sheet-manija" />
-      <div className="video-sheet-cabecera">
-        <h3 className="video-sheet-titulo">{titulo}</h3>
-        <button type="button" className="video-sheet-cerrar" onClick={onCerrar} aria-label="Cerrar">
-          <IconoCerrar />
-        </button>
+// Orden del feed de Maquillajes para el "siguiente video" (Feature B).
+// Maquillajes.jsx lo publica en cada carga; si no está (enlace directo),
+// el detalle lo pide a la API con los mismos parámetros por defecto.
+const CLAVE_FEED_ORDEN = 'b-unick:feed-orden'
+
+const leerOrdenFeed = () => {
+  try {
+    const crudo = sessionStorage.getItem(CLAVE_FEED_ORDEN)
+    if (!crudo) return null
+    const ids = JSON.parse(crudo)
+    return Array.isArray(ids) && ids.length > 0 ? ids.map(Number) : null
+  } catch {
+    return null
+  }
+}
+
+const guardarOrdenFeed = (ids) => {
+  try {
+    sessionStorage.setItem(CLAVE_FEED_ORDEN, JSON.stringify(ids))
+  } catch {
+    // Sin persistencia: el "siguiente" solo funciona en esta vista.
+  }
+}
+
+// Hoja inferior (bottom sheet) del layout móvil. Se cierra deslizando hacia
+// abajo desde la manija o la cabecera (además del backdrop y de ESC).
+const HojaInferior = ({ titulo, altura, onCerrar, children }) => {
+  const inicioRef = useRef(null)
+  const [cerrando, setCerrando] = useState(false)
+
+  const manejarCierre = useCallback(() => {
+    if (cerrando) return
+    setCerrando(true)
+    setTimeout(() => onCerrar(), 280)
+  }, [cerrando, onCerrar])
+
+  const manejarInicio = (e) => {
+    const t = e.touches?.[0]
+    if (t) inicioRef.current = { x: t.clientX, y: t.clientY }
+  }
+
+  const manejarFin = (e) => {
+    const inicio = inicioRef.current
+    inicioRef.current = null
+    const t = e.changedTouches?.[0]
+    if (!inicio || !t) return
+    const dy = t.clientY - inicio.y
+    const dx = Math.abs(t.clientX - inicio.x)
+    if (dy > 60 && dx < 80) manejarCierre()
+  }
+
+  return (
+    <div className={`video-sheet-overlay${cerrando ? ' video-sheet-overlay--cerrando' : ''}`} onClick={manejarCierre}>
+      <div
+        className={`video-sheet ${altura === 'alta' ? 'video-sheet--alta' : ''}${cerrando ? ' video-sheet--cerrando' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={titulo}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="video-sheet-cabecera"
+          onTouchStart={manejarInicio}
+          onTouchEnd={manejarFin}
+        >
+          <div className="video-sheet-manija" />
+          {titulo && <h3 className="video-sheet-titulo">{titulo}</h3>}
+        </div>
+        <div className="video-sheet-contenido">{children}</div>
       </div>
-      <div className="video-sheet-contenido">{children}</div>
     </div>
-  </div>
-)
+  )
+}
 
 const IconoBase = ({ children }) => (
   <svg
@@ -191,6 +243,26 @@ const IconoMenu = () => (
   </IconoBase>
 )
 
+const IconoPasosGaleria = () => (
+  <svg
+    width="28"
+    height="24"
+    viewBox="0 0 28 24"
+    fill="none"
+    stroke="#f1e8f7"
+    strokeWidth="1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="1.5" y="2.5" width="25" height="19" rx="3.5" />
+    <path d="M14 2.5v19" />
+    <circle cx="7.5" cy="8" r="1.6" />
+    <path d="M2 19l4.5-5 3 3 2.5-2.5 2 2" />
+    <path d="M17.5 8h6M17.5 12h6M17.5 16h4" />
+  </svg>
+)
+
 const IconoFlecha = () => (
   <svg
     viewBox="0 0 24 24"
@@ -203,6 +275,12 @@ const IconoFlecha = () => (
   >
     <polyline points="6 9 12 15 18 9" />
   </svg>
+)
+
+const IconoFlechaArriba = () => (
+  <IconoBase>
+    <polyline points="6 15 12 9 18 15" />
+  </IconoBase>
 )
 
 const IconoPlay = () => (
@@ -286,6 +364,7 @@ export const VideoDetalle = () => {
 
   // Hoja activa en móvil (bottom sheet). null = cerrada.
   const [hoja, setHoja] = useState(null)
+  const [pestanaDetalles, setPestanaDetalles] = useState('descripcion')
 
   // Voto de semejanza (popover escritorio / hoja móvil).
   const [votoPopover, setVotoPopover] = useState(false)
@@ -408,6 +487,84 @@ export const VideoDetalle = () => {
     window.addEventListener('keydown', manejarEscape)
     return () => window.removeEventListener('keydown', manejarEscape)
   }, [lightbox, hoja, votoPopover])
+
+  // -------------------------------------------------------------------
+  // Feature B — recorrido del feed: toma el orden de Maquillajes.jsx
+  // (sessionStorage) y, si no existe (llegaste por enlace directo), lo pide a
+  // la API con los mismos parámetros por defecto del feed. Con ese orden se
+  // puede avanzar al video siguiente y volver al anterior.
+  // -------------------------------------------------------------------
+  const [ordenFeed, setOrdenFeed] = useState(() => leerOrdenFeed())
+  const navegandoRef = useRef(false)
+
+  useEffect(() => {
+    if (ordenFeed) return
+    let activo = true
+    api
+      .get('/videos', { params: { pagina: 1, limite: 30, orden: 'semejanza' } })
+      .then((res) => {
+        if (!activo || res.status !== 200 || !res.data?.success) return
+        const ids = (res.data.videos || []).map((v) => v.id)
+        if (ids.length > 0) guardarOrdenFeed(ids)
+        setOrdenFeed(ids)
+      })
+      .catch((err) => {
+        console.warn('[VideoDetalle] no se pudo cargar el orden del feed', err?.message)
+      })
+    return () => { activo = false }
+  }, [ordenFeed])
+
+  // Desplazamiento dentro del feed: +1 avanza, -1 vuelve al anterior.
+  const irA = useCallback((delta) => {
+    if (!video || !ordenFeed || navegandoRef.current) return
+    const indice = ordenFeed.indexOf(Number(video.id))
+    if (indice === -1) return
+    const destino = ordenFeed[indice + delta]
+    if (!destino || destino === video.id) return
+    navegandoRef.current = true
+    navigate(`/video/${destino}`)
+  }, [video, ordenFeed, navigate])
+
+  const irAlSiguiente = useCallback(() => irA(1), [irA])
+  const irAlAnterior = useCallback(() => irA(-1), [irA])
+
+  // Posición del video actual dentro del orden del feed: sirve para saber si
+  // hay video anterior o siguiente (y para deshabilitar esas acciones).
+  const posicionEnFeed = useMemo(() => {
+    if (!ordenFeed || !video) return -1
+    return ordenFeed.indexOf(Number(video.id))
+  }, [ordenFeed, video])
+
+  const hayAnterior = posicionEnFeed > 0
+  const haySiguiente = posicionEnFeed !== -1 && posicionEnFeed < ordenFeed.length - 1
+
+  // El detalle es la misma ruta con otro :id: se resetea la guarda al cambiar.
+  useEffect(() => {
+    navegandoRef.current = false
+  }, [id])
+
+  // Escritorio: ArrowDown avanza al siguiente video y ArrowUp vuelve al
+  // anterior (con guardas para no interferir con inputs, modificadores ni
+  // capas abiertas).
+  useEffect(() => {
+    const manejarFlecha = (e) => {
+      if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
+      if (lightbox !== null || hoja || votoPopover) return
+      const destino = e.target
+      const etiqueta = destino?.tagName
+      if (etiqueta === 'INPUT' || etiqueta === 'TEXTAREA' || etiqueta === 'SELECT') return
+      if (destino?.isContentEditable) return
+      e.preventDefault()
+      if (e.key === 'ArrowDown') irAlSiguiente()
+      else irAlAnterior()
+    }
+    window.addEventListener('keydown', manejarFlecha)
+    return () => window.removeEventListener('keydown', manejarFlecha)
+  }, [lightbox, hoja, votoPopover, irAlSiguiente, irAlAnterior])
+
+  // Móvil: deslizar hacia abajo avanza al siguiente video del feed y hacia
+  // arriba vuelve al anterior. El gesto se atiende en el contenedor completo
+  // (ver manejarFinToque), para que funcione en toda la pantalla.
 
   const requiereSesion = () => {
     if (isAuthenticated) return true
@@ -866,7 +1023,7 @@ export const VideoDetalle = () => {
             </div>
           </div>
         )}
-        {esRespuesta && comentario.respuestas?.map((r) => renderComentario(r, false))}
+        {!esRespuesta && comentario.respuestas?.map((r) => renderComentario(r, true))}
       </div>
     </article>
   )
@@ -1257,7 +1414,7 @@ export const VideoDetalle = () => {
     return (
       <div className="video-overlay" role="dialog" aria-modal="true" aria-label="Imagen ampliada" onClick={() => setLightbox(null)}>
         <div className="video-lightbox" onClick={(e) => e.stopPropagation()}>
-          <button type="button" className="video-lightbox-cerrar" onClick={() => setLightbox(null)} aria-label="Cerrar imagen">
+          <button type="button" className="video-lightbox-cerrar" onClick={() => setLightbox(null)} aria-label="Cerrar imagen" title="Cerrar imagen">
             <IconoCerrar />
           </button>
           <img src={video.galeria[lightbox].url} alt="" />
@@ -1293,8 +1450,12 @@ export const VideoDetalle = () => {
   const timerTapRef = useRef(null)
   const estrellaTimerRef = useRef(null)
   const toqueInicioRef = useRef(null)
+  // Marca que el último gesto fue vertical (deslizar por el feed): evita que
+  // ese mismo gesto dispare también el tap de reproducir/pausar.
+  const gestoVerticalRef = useRef(false)
 
   const manejarTap = () => {
+    if (gestoVerticalRef.current) return
     const ahora = Date.now()
     if (ahora - ultimoTapRef.current < 260) {
       clearTimeout(timerTapRef.current)
@@ -1409,7 +1570,18 @@ export const VideoDetalle = () => {
     const finY = e.changedTouches[0].clientY
     const dy = finY - inicio.y
     const dx = Math.abs(finX - inicio.x)
-    if (inicio.y < window.innerHeight * 0.25 && dy > 90 && dx < 70) cerrarConSwipe()
+    if (dx >= 60 || Math.abs(dy) <= 70) return
+    // Gesto vertical: en el cuarto superior, deslizar hacia abajo cierra el
+    // video; en el resto de la pantalla, hacia abajo avanza al siguiente video
+    // del feed y hacia arriba vuelve al anterior.
+    gestoVerticalRef.current = true
+    window.setTimeout(() => { gestoVerticalRef.current = false }, 350)
+    if (inicio.y < window.innerHeight * 0.25 && dy > 90) {
+      cerrarConSwipe()
+      return
+    }
+    if (dy > 0) irAlSiguiente()
+    else irAlAnterior()
   }
 
   let contenido
@@ -1451,7 +1623,7 @@ export const VideoDetalle = () => {
     contenido = (
       <div className="video-cine">
         <section className="video-cine-izq">
-          <button type="button" className="video-cerrar" onClick={() => navigate('/')} aria-label="Volver a Maquillajes">
+          <button type="button" className="video-cerrar" onClick={() => navigate('/')} aria-label="Volver a Maquillajes" title="Volver a Maquillajes">
             <IconoCerrar />
           </button>
           <div className="video-cine-reproductor">
@@ -1626,7 +1798,7 @@ export const VideoDetalle = () => {
               </div>
               {votoPopover && (
                 <div className="video-voto-popover" role="dialog" aria-modal="true" aria-label="Motivo del voto en contra">
-                  <button type="button" className="video-voto-popover-cerrar" onClick={cerrarVoto} aria-label="Cerrar">
+                  <button type="button" className="video-voto-popover-cerrar" onClick={cerrarVoto} aria-label="Cerrar" title="Cerrar">
                     <IconoCerrar />
                   </button>
                   <p className="video-razones-titulo">¿Por qué? Elige una o más razones</p>
@@ -1713,25 +1885,29 @@ export const VideoDetalle = () => {
               onClick={toggleLike}
               aria-pressed={video.estadoPropio.like}
               aria-label={`Dar like, ${formatearNumero(video.likes)}`}
+              title={video.estadoPropio.like ? 'Quitar like' : 'Dar like'}
             >
               <IconoEstrella />
               <span>{formatearNumero(video.likes)}</span>
             </button>
-            <span className="video-stat" aria-label={`Semejanza ${video.semejanza === null ? 'sin votos suficientes' : video.semejanza + '%'}`}>
-              <IconoCheck />
-              <span>{video.semejanza === null ? '—' : `${video.semejanza}%`}</span>
-            </span>
+            {video.semejanza !== null && (
+              <span className="video-stat" aria-label={`Semejanza ${video.semejanza}%`} title={`Semejanza ${video.semejanza}%`}>
+                <IconoCheck />
+                <span>{video.semejanza}%</span>
+              </span>
+            )}
             <button
               type="button"
               className={`video-stat${video.estadoPropio.guardado ? ' video-stat--activa' : ''}`}
               onClick={toggleGuardar}
               aria-pressed={video.estadoPropio.guardado}
               aria-label={`Guardar video, ${formatearNumero(video.guardados)}`}
+              title={video.estadoPropio.guardado ? 'Quitar de guardados' : 'Guardar video'}
             >
               <IconoGuardado />
               <span>{formatearNumero(video.guardados)}</span>
             </button>
-            <button type="button" className="video-stat" onClick={compartir} aria-label={`Compartir, ${formatearNumero(video.compartidos)}`}>
+            <button type="button" className="video-stat" onClick={compartir} aria-label={`Compartir, ${formatearNumero(video.compartidos)}`} title="Compartir">
               <IconoCompartir />
               <span>{formatearNumero(video.compartidos)}</span>
             </button>
@@ -1766,13 +1942,15 @@ export const VideoDetalle = () => {
         dato: formatearNumero(video.likes),
         activo: video.estadoPropio.like
       },
-      {
-        tipo: 'semejanza',
-        etiqueta: 'Semejanza',
-        icono: 'semejanza',
-        dato: video.semejanza === null ? '—' : `${video.semejanza}%`,
-        activo: video.estadoPropio.voto !== null
-      },
+      ...(video.semejanza !== null
+        ? [{
+            tipo: 'semejanza',
+            etiqueta: 'Semejanza',
+            icono: 'semejanza',
+            dato: `${video.semejanza}%`,
+            activo: video.estadoPropio.voto !== null
+          }]
+        : []),
       {
         tipo: 'guardado',
         etiqueta: 'Guardar',
@@ -1795,6 +1973,18 @@ export const VideoDetalle = () => {
         activo: false
       }
     ]
+
+    const galeriaCount = Array.isArray(video.galeria)
+      ? video.galeria.length
+      : Array.isArray(video.imagenesGaleria)
+        ? video.imagenesGaleria.length
+        : 0
+
+    const tieneDescripcion = Boolean(video.descripcion && video.descripcion.trim())
+    const tienePasos = Array.isArray(video.pasos) && video.pasos.length > 0
+    const tieneGaleria = galeriaCount > 0
+    const tieneDescripcionTab = tieneDescripcion || tienePasos || esTutorial
+    const pestanaDetallesInicial = tieneGaleria ? 'galeria' : 'descripcion'
 
     const ejecutarAccionMovil = (tipo) => {
       if (tipo === 'like') toggleLike()
@@ -1847,17 +2037,20 @@ export const VideoDetalle = () => {
           )}
 
           <div className="video-movil-barra-superior">
-            <button type="button" className="video-movil-cerrar" onClick={() => navigate('/')} aria-label="Volver a Maquillajes">
+            <button type="button" className="video-movil-cerrar" onClick={() => navigate('/')} aria-label="Volver a Maquillajes" title="Volver a Maquillajes">
               <IconoCerrar />
             </button>
             <button
               type="button"
-              className="video-movil-menu"
-              onClick={() => setHoja('menu')}
-              aria-label="Más opciones"
+              className="video-movil-detalles"
+              onClick={(e) => { e.stopPropagation(); setHoja('detalles'); setPestanaDetalles(pestanaDetallesInicial); }}
+              aria-label={`Ver pasos y galería, ${galeriaCount} fotos`}
               aria-haspopup="dialog"
             >
-              <IconoMenu />
+              <IconoPasosGaleria />
+              {galeriaCount > 0 && (
+                <span className="video-movil-detalles-badge" aria-hidden="true">{galeriaCount}</span>
+              )}
             </button>
           </div>
 
@@ -1956,32 +2149,64 @@ export const VideoDetalle = () => {
           </div>
         </div>
 
-        {hoja === 'menu' && (
-          <HojaInferior titulo="Opciones" altura="media" onCerrar={cerrarHoja}>
-            <div className="video-menu-lista">
-              {esTutorial && (
-                <button type="button" className="video-menu-item" onClick={() => { setHoja('descripcion') }}>
-                  <IconoDoc /> Descripción y pasos
-                </button>
-              )}
-              {video.galeria.length > 0 && (
-                <button type="button" className="video-menu-item" onClick={() => { setHoja('galeria') }}>
-                  <IconoImagen /> Ver galería
-                </button>
-              )}
-              <button type="button" className="video-menu-item" onClick={abrirHojaVoto}>
-                <IconoCheck /> Voto de semejanza
-              </button>
-              {video.esDueño && (
-                <button type="button" className="video-menu-item" onClick={() => setHoja('estadisticas')}>
-                  <IconoGrafica /> Estadísticas
-                </button>
-              )}
-              {video.esDueño && (
-                <button type="button" className="video-menu-item" onClick={abrirConfiguracion}>
-                  <IconoEngranaje /> Configuración
-                </button>
-              )}
+        {hoja === 'detalles' && (
+          <HojaInferior titulo="Detalles" altura="alta" onCerrar={cerrarHoja}>
+            <div className="video-detalles-sheet">
+              <div className="video-detalles-tabs" role="tablist" aria-label="Descripción y galería">
+                {tieneDescripcionTab && (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={pestanaDetalles === 'descripcion'}
+                    className={`video-detalles-tab${pestanaDetalles === 'descripcion' ? ' video-detalles-tab--activo' : ''}`}
+                    onClick={() => setPestanaDetalles('descripcion')}
+                  >
+                    <IconoDoc /> Descripción
+                  </button>
+                )}
+                {tieneGaleria && (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={pestanaDetalles === 'galeria'}
+                    className={`video-detalles-tab${pestanaDetalles === 'galeria' ? ' video-detalles-tab--activo' : ''}`}
+                    onClick={() => setPestanaDetalles('galeria')}
+                  >
+                    <IconoImagen /> Galería
+                  </button>
+                )}
+              </div>
+              <div className="video-detalles-panel" role="tabpanel">
+                {pestanaDetalles === 'descripcion' && tieneDescripcionTab && (
+                  <>
+                    {esTutorial ? Pdescripcion({ modoHoja: true }) : (
+                      <div className="video-descripcion-hoja">
+                        {video.descripcion && <p>{video.descripcion}</p>}
+                        {Array.isArray(video.pasos) && video.pasos.length > 0 && (
+                          <div className="video-pasos-lista">
+                            {video.pasos.map((paso, idx) => (
+                              <div key={paso.id || idx} className="video-paso-item">
+                                <span className="video-paso-num">{idx + 1}</span>
+                                <div className="video-paso-info">
+                                  <p className="video-paso-titulo">{ETIQUETAS_PASO[paso.tipo] || paso.tipo}</p>
+                                  {paso.contenido && <p className="video-paso-contenido">{paso.contenido}</p>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+                {pestanaDetalles === 'galeria' && tieneGaleria && (
+                  <>
+                    <p className="video-detalles-galeria-contador">{galeriaCount} fotos de referencia</p>
+                    {Pgaleria({ modoHoja: true })}
+                  </>
+                )}
+              </div>
+              {/* Botón de cerrar eliminado */}
             </div>
           </HojaInferior>
         )}

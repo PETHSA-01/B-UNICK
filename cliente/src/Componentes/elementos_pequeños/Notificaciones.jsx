@@ -1,4 +1,4 @@
-import React, { useState, useCallback, forwardRef, useImperativeHandle } from 'react'
+import { useState, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import '../../estilos/estilospequeños/estilospequeños.css'
 
@@ -86,7 +86,7 @@ export const Notificaciones = forwardRef((props, ref) => {
   let cookieToast = null
   if (shouldShowCookieToast) {
     cookieToast = (
-      <article className="notificacion notif-cookie">
+      <article className="notificacion notif-cookie" style={{ '--notif-i': 0 }}>
         <div className="notif-header">
           <div className="notif-app">
             <div className="notif-app-icon">
@@ -125,11 +125,15 @@ export const Notificaciones = forwardRef((props, ref) => {
     <div className="notificaciones-container">
       {cookieToast}
 
-      {notifications.map((notif) => {
+      {notifications.map((notif, indice) => {
         const hasGif = Boolean(notif.showGif)
 
         return (
-        <article key={notif.id} className="notificacion">
+        <article
+          key={notif.id}
+          className="notificacion"
+          style={{ '--notif-i': indice + (cookieToast ? 1 : 0) }}
+        >
           <div className="notif-header">
             <div className="notif-app">
               <div className="notif-app-icon">

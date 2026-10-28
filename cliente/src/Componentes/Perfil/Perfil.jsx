@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router'
 import { useAuth } from '../../context/AuthContext'
@@ -6,6 +6,7 @@ import { useTema } from '../../context/TemaContext'
 import api from '../../api/axios'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
 import { VideoCard } from '../Maquillajes/Maquillajes'
+import { anchoColumnaMasonry, columnasMasonry, repartirEnColumnas } from '../Maquillajes/masonry'
 import '../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import '../../estilos/PerfilEstilos/perfil.css'
 import '../../estilos/MaquillajesEstilos/maquillajes.css'
@@ -312,6 +313,53 @@ export const Perfil = () => {
   const sentinelRef = useRef(null)
   const tabSeqRef = useRef({})
 
+  // Masonry de la galería: se reparte en columnas igual que el feed de inicio
+  // (2 columnas en celular, entre 2 y 4 en escritorio). El ancho se mide del
+  // propio contenedor para saber cuántas columnas caben y con qué ancho
+  // exacto (--col-w), de modo que las miniaturas se ven igual que en el feed.
+  const galeriaRef = useRef(null)
+  const [anchoGaleria, setAnchoGaleria] = useState(0)
+  const [anchoVentana, setAnchoVentana] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 0
+  )
+
+  useLayoutEffect(() => {
+    const el = galeriaRef.current
+    if (!el) return
+    const medir = () => {
+      const ancho = el.clientWidth
+      setAnchoGaleria((prev) => (Math.abs(prev - ancho) > 1 ? ancho : prev))
+      setAnchoVentana(window.innerWidth)
+    }
+    medir()
+    const obs = new ResizeObserver(medir)
+    obs.observe(el)
+    window.addEventListener('resize', medir)
+    return () => {
+      obs.disconnect()
+      window.removeEventListener('resize', medir)
+    }
+  }, [tabActiva])
+
+  const nColumnasGaleria = useMemo(
+    () => columnasMasonry(anchoGaleria, anchoVentana),
+    [anchoGaleria, anchoVentana]
+  )
+  // El reparto se calcula en cada render (la lista vive en un ref y se
+  // reemplaza al cargar páginas): son pocos elementos, no compensa memoizar.
+  const columnasGaleria = repartirEnColumnas(
+    videosTabRef.current[tabActiva] || [],
+    nColumnasGaleria
+  )
+  // Ancho exacto de cada columna (px): las miniaturas se ven igual que en el
+  // feed de inicio y la fila queda centrada sin huecos sobrantes.
+  const estiloColumnasGaleria = useMemo(
+    () => ({
+      '--col-w': `${anchoColumnaMasonry(nColumnasGaleria, anchoGaleria, anchoVentana)}px`
+    }),
+    [nColumnasGaleria, anchoGaleria, anchoVentana]
+  )
+
   const cargarVideosTab = useCallback(async (clave, pagina) => {
     if (!esTabDeVideos(clave, esMio)) return
     const sec = (tabSeqRef.current[clave] || 0) + 1
@@ -590,8 +638,35 @@ export const Perfil = () => {
     }
   }
 
-  const abrirConfig = () => {
-    setEditNombre(perfil?.username || '')
+  // Seguir/dejar de seguir desde la lista de SEGUIDORES (botón "+" de cada fila).
+  // Es independiente del toggleFollow del header para poder marcar un solo
+  // usuario mientras se actualiza, sin bloquear el resto de la lista.
+  const [siguiendoEnLista, setSiguiendoEnLista] = useState(null)
+
+  const alternarSeguirEnLista = async (usuario, evento) => {
+    evento?.stopPropagation()
+    if (siguiendoEnLista !== null) return
+    setSiguiendoEnLista(usuario.id)
+    try {
+      const respuesta = await api.post(`/seguir/${usuario.id}`)
+      const siguiendo = respuesta.data.siguiendo
+      setListaDatos((prev) =>
+        prev.map((u) => (u.id === usuario.id ? { ...u, yoSigo: siguiendo } : u))
+      )
+      avisar(
+        siguiendo
+          ? `Ahora sigues a ${usuario.nombre_usuario}.`
+          : `Ya no sigues a ${usuario.nombre_usuario}.`,
+        'success'
+      )
+    } catch (e) {
+      avisar(e.response?.data?.error || 'No se pudo actualizar el seguimiento.')
+    } finally {
+      setSiguiendoEnLista(null)
+    }
+  }
+
+  const abrirConfig = () => {    setEditNombre(perfil?.username || '')
     setEditDescripcion(perfil?.descripcion || '')
     setFotoPreview(null)
     setFotoNueva(false)
@@ -863,10 +938,14 @@ export const Perfil = () => {
       return <EstadoVacio clave={tabActiva} esMio={esMio} />
     }
     return (
-      <div className="perfil-tab-videos">
-        <div className="maquillajes-masonry">
-          {videos.map((v) => (
-            <VideoCard key={v.id} video={v} activo={false} />
+      <div className="perfil-tab-videos" ref={galeriaRef}>
+        <div className="maquillajes-masonry maquillajes-masonry--fijo" style={estiloColumnasGaleria}>
+          {columnasGaleria.map((columna, ci) => (
+            <div className="maquillajes-columna" key={ci}>
+              {columna.map(({ video: v, aspecto }) => (
+                <VideoCard key={v.id} video={v} aspect={aspecto} activo={false} />
+              ))}
+            </div>
           ))}
         </div>
         <div ref={sentinelRef} className="maquillajes-observer" aria-hidden="true" />
@@ -1315,6 +1394,25 @@ export const Perfil = () => {
                       <span>{u.nombre_usuario}</span>
                       {u.yoSigo && <small>Siguiendo</small>}
                     </div>
+                    {/* Botón de seguir de la lista de Seguidores: "+" redondo.
+                        No aparece en "Siguiendo" ni en la propia fila del usuario
+                        (no puede seguirse a sí mismo). */}
+                    {modalLista === 'seguidores' && user?.id !== u.id && (
+                      <button
+                        type="button"
+                        className={`perfil-lista-seguir${u.yoSigo ? ' perfil-lista-seguir--activo' : ''}`}
+                        onClick={(evento) => alternarSeguirEnLista(u, evento)}
+                        disabled={siguiendoEnLista === u.id}
+                        aria-pressed={u.yoSigo}
+                        aria-label={u.yoSigo ? `Dejar de seguir a ${u.nombre_usuario}` : `Seguir a ${u.nombre_usuario}`}
+                        title={u.yoSigo ? 'Dejar de seguir' : 'Seguir'}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

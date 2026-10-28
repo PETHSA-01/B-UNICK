@@ -180,6 +180,11 @@
   padding: 14px 20px;
   border-bottom: 1px solid var(--color-fondo2);
   transition: background 0.15s ease;
+  /* Aparición progresiva: cada fila entra con un retardo incremental
+     (--notif-i lo fija el componente). Corta para que el conjunto se sienta
+     como una cascada y no como una espera. */
+  animation: notif-item-in 0.22s ease-out both;
+  animation-delay: calc(var(--notif-i, 0) * 32ms);
 }
 
 .notif-item:hover {
@@ -313,6 +318,12 @@
   to { opacity: 1; }
 }
 
+/* Cada fila de la lista entra desde abajo con un leve desplazamiento. */
+@keyframes notif-item-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ── Móvil: pantalla completa por encima de la bottom bar ── */
 @media (max-width: 768px) {
   .notif-drawer {
@@ -352,6 +363,10 @@
 @media (prefers-reduced-motion: reduce) {
   .notif-drawer,
   .notif-drawer-backdrop {
+    animation: none;
+  }
+
+  .notif-item {
     animation: none;
   }
 }
