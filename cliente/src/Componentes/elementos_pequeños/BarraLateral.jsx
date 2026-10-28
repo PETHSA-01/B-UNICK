@@ -307,10 +307,9 @@ export const BarraLateral = () => {
 
   return (
     <>
-      {/* Barra superior móvil: solo en la home (≤768px). Aloja Información
-          (a la izquierda) y Notificaciones —o Iniciar sesión/Registrarse sin
-          sesión— (a la derecha). La barra inferior móvil conserva 4 ítems.
-          Se difumina progresivamente según el scroll hasta desaparecer. */}
+      {/* Barra superior móvil: solo en la home (≤768px). Aloja solo Información
+          a la izquierda. Las notificaciones ya no se muestran aquí. Se difumina
+          progresivamente según el scroll hasta desaparecer. */}
       {barraSuperiorVisible && (
         <header
           className="barra-superior-movil"
@@ -330,32 +329,6 @@ export const BarraLateral = () => {
           >
             {ICON_MAP.informacion}
           </button>
-
-          <div className="barra-superior-acciones">
-            {enInicio && barraSuperiorVisible && (
-              <>
-                {TOP_ITEMS_MOVIL.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className="barra-superior-btn"
-                    aria-label={item.label}
-                    title={item.label}
-                    aria-expanded={notificacionesAbiertas ? true : undefined}
-                    aria-controls={notificacionesAbiertas ? 'panel-notificaciones' : undefined}
-                    onClick={() => toggleNotificacionesSuperior()}
-                  >
-                    {typeof ICON_MAP[item.icon] === 'function' ? ICON_MAP[item.icon]() : ICON_MAP[item.icon]}
-                    {isAuthenticated && noLeidas > 0 && (
-                      <span className="barra-badge" aria-label={`${noLeidas} notificaciones sin leer`}>
-                        {noLeidas > 99 ? '99+' : noLeidas}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </>
-            )}
-          </div>
         </header>
       )}
 
