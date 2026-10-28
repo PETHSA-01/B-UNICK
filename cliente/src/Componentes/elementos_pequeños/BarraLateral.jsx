@@ -179,8 +179,8 @@ export const BarraLateral = () => {
   const itemsInferiores = !esMovil
     ? NAV_ITEMS
     : barraSuperiorVisible || !enInicio
-      ? BOTTOM_ITEMS_MOVIL
-      : BOTTOM_ITEMS_MOVIL_SIN_SUPERIOR
+      ? (isAuthenticated ? BOTTOM_ITEMS_MOVIL : BOTTOM_ITEMS_MOVIL.filter(item => item.key !== 'notificaciones'))
+      : (isAuthenticated ? BOTTOM_ITEMS_MOVIL_SIN_SUPERIOR : BOTTOM_ITEMS_MOVIL_SIN_SUPERIOR.filter(item => item.key !== 'notificaciones'))
 
   // Deduce el ítem activo desde la ruta (misma regla que el efecto de ruta).
   // Se reutiliza al cerrar notificaciones para devolver el blob al elemento
@@ -332,7 +332,7 @@ export const BarraLateral = () => {
           </button>
 
           <div className="barra-superior-acciones">
-            {isAuthenticated ? (
+            {enInicio && barraSuperiorVisible && (
               <>
                 {TOP_ITEMS_MOVIL.map((item) => (
                   <button
@@ -346,26 +346,11 @@ export const BarraLateral = () => {
                     onClick={() => toggleNotificacionesSuperior()}
                   >
                     {typeof ICON_MAP[item.icon] === 'function' ? ICON_MAP[item.icon]() : ICON_MAP[item.icon]}
-                    {noLeidas > 0 && (
+                    {isAuthenticated && noLeidas > 0 && (
                       <span className="barra-badge" aria-label={`${noLeidas} notificaciones sin leer`}>
                         {noLeidas > 99 ? '99+' : noLeidas}
                       </span>
                     )}
-                  </button>
-                ))}
-              </>
-            ) : (
-              <>
-                {AUTH_ITEMS.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className={`barra-superior-btn barra-superior-btn--auth${item.key === 'register' ? ' barra-superior-btn--register' : ''}`}
-                    onClick={() => handleAuthClick(item.mode)}
-                    aria-label={item.label}
-                    title={item.label}
-                  >
-                    {typeof ICON_MAP[item.icon] === 'function' ? ICON_MAP[item.icon]() : ICON_MAP[item.icon]}
                   </button>
                 ))}
               </>
@@ -407,12 +392,8 @@ export const BarraLateral = () => {
         </button>
       ))}
 
-      {/* Signature: Morphing blob */}
-      <div className="barra-blob" aria-hidden="true" />
-
       {/* Auth section: en escritorio muestra Iniciar sesión/Registrarse sin
-          sesión (y el perfil con sesión). En móvil sin sesión no se muestra
-          aquí: los accesos viven en la barra superior. */}
+          sesión (y el perfil con sesión). */}
       {(loading || isAuthenticated || !esMovil) && (
         <div className="barra-lateral-auth">
           {loading ? (
@@ -429,21 +410,36 @@ export const BarraLateral = () => {
               <span className="barra-lateral-label barra-lateral-auth-label">{user?.username || user?.email}</span>
             </button>
           ) : (
-            <div className="barra-lateral-auth-buttons">
-              {AUTH_ITEMS.map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={`barra-lateral-btn barra-lateral-auth-btn${item.key === 'register' ? ' barra-lateral-auth-btn--register' : ' barra-lateral-auth-btn--login'}`}
-                  onClick={() => handleAuthClick(item.mode)}
-                >
-                  {typeof ICON_MAP[item.icon] === 'function' ? ICON_MAP[item.icon]() : ICON_MAP[item.icon]}
-                  <span className="barra-lateral-label">{item.label}</span>
-                </button>
-              ))}
-            </div>
+            !esMovil && (
+              <div className="barra-lateral-auth-buttons">
+                {AUTH_ITEMS.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`barra-lateral-btn barra-lateral-auth-btn${item.key === 'register' ? ' barra-lateral-auth-btn--register' : ' barra-lateral-auth-btn--login'}`}
+                    onClick={() => handleAuthClick(item.mode)}
+                  >
+                    {typeof ICON_MAP[item.icon] === 'function' ? ICON_MAP[item.icon]() : ICON_MAP[item.icon]}
+                    <span className="barra-lateral-label">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            )
           )}
         </div>
+      )}
+
+      {esMovil && !isAuthenticated && !loading && (
+        <button
+          type="button"
+          className="barra-lateral-btn barra-lateral-auth-btn barra-lateral-auth-btn--login barra-lateral-btn-movil-login"
+          data-nav-btn
+          onClick={() => handleAuthClick('login')}
+          aria-label="Iniciar sesión"
+        >
+          {typeof ICON_MAP.login === 'function' ? ICON_MAP.login() : ICON_MAP.login}
+          <span className="barra-lateral-label">Iniciar sesión</span>
+        </button>
       )}
 
       {/* Auth Modal Overlay */}
