@@ -68,6 +68,45 @@ app.use(cors({
   credentials: true
 }))
 app.use(cookieParser())
+
+// Modo diagnóstico (BUNYK_DIAG=1): cuando Railway cierra el socket durante el
+// handshake, el arranque normal terminaba en process.exit(1) y Render entraba
+// en bucle de reinicios, sin dejar forma de diagnosticar desde el navegador.
+// Con esta bandera el proceso se queda arriba y sirve el diagnóstico por HTTP,
+// sin importar la BD. Se activa temporalmente desde el panel de Render.
+if (process.env.BUNYK_DIAG === '1') {
+    const { diagnosticar } = require('./scripts/diagnostico-db');
+    const escaparHtml = (texto) => String(texto)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    app.use(async (req, res) => {
+        const lineas = [];
+        let ok = false;
+        try {
+            ok = await diagnosticar((linea) => lineas.push(linea));
+        } catch (error) {
+            lineas.push(`Error inesperado: ${error.stack || error.message}`);
+        }
+        res.status(ok ? 200 : 503)
+            .type('html')
+            .send(`<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnóstico MySQL - B-unick</title>
+<style>body{margin:0;background:#1c1621;color:#f2e6fa;font:14px/1.6 ui-monospace,monospace;padding:24px}
+h1{font:500 22px/1.3 system-ui,sans-serif;margin:0 0 16px}pre{white-space:pre-wrap;word-break:break-word;background:#2a2130;padding:20px;border-radius:12px;border:1px solid #3c3148}
+small{color:#b89bd9}</style></head><body>
+<h1>Diagnóstico de conexión a MySQL</h1>
+<pre>${escaparHtml(lineas.join('\n'))}</pre>
+<small>Modo diagnóstico activo (BUNYK_DIAG=1). Recarga para repetir el diagnóstico.</small>
+</body></html>`);
+    });
+
+    app.listen(port, '0.0.0.0', () => {
+        console.log(`MODO DIAGNÓSTICO escuchando en 0.0.0.0:${port}`);
+    });
+} else {
 // initialize the database connection pool
 let pool;
 
@@ -134,3 +173,4 @@ let pool;
         process.exit(1);
     }
 })();
+}
