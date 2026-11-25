@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router'
 import { useAuth } from '../../context/AuthContext'
@@ -317,29 +317,40 @@ export const Perfil = () => {
   // (2 columnas en celular, entre 2 y 4 en escritorio). El ancho se mide del
   // propio contenedor para saber cuántas columnas caben y con qué ancho
   // exacto (--col-w), de modo que las miniaturas se ven igual que en el feed.
-  const galeriaRef = useRef(null)
   const [anchoGaleria, setAnchoGaleria] = useState(0)
   const [anchoVentana, setAnchoVentana] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth : 0
   )
 
-  useLayoutEffect(() => {
-    const el = galeriaRef.current
+  // El nodo de la galería solo existe cuando ya hay videos (mientras carga se
+  // muestra "Cargando..."), así que medirlo en un efecto con [tabActiva]
+  // dejaba anchoGaleria en 0 y las columnas caían al mínimo de 70px. Con un
+  // callback ref medimos en cuanto el nodo se monta; el ResizeObserver
+  // mantiene el valor al cambiar el contenedor o la ventana.
+  const observerGaleriaRef = useRef(null)
+  const medirGaleria = useCallback((el) => {
+    if (observerGaleriaRef.current) {
+      observerGaleriaRef.current.disconnect()
+      observerGaleriaRef.current = null
+    }
     if (!el) return
     const medir = () => {
       const ancho = el.clientWidth
       setAnchoGaleria((prev) => (Math.abs(prev - ancho) > 1 ? ancho : prev))
-      setAnchoVentana(window.innerWidth)
     }
     medir()
-    const obs = new ResizeObserver(medir)
-    obs.observe(el)
-    window.addEventListener('resize', medir)
-    return () => {
-      obs.disconnect()
-      window.removeEventListener('resize', medir)
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(medir)
+      observer.observe(el)
+      observerGaleriaRef.current = observer
     }
-  }, [tabActiva])
+  }, [])
+
+  useEffect(() => {
+    const medir = () => setAnchoVentana(window.innerWidth)
+    window.addEventListener('resize', medir)
+    return () => window.removeEventListener('resize', medir)
+  }, [])
 
   const nColumnasGaleria = useMemo(
     () => columnasMasonry(anchoGaleria, anchoVentana),
@@ -354,9 +365,9 @@ export const Perfil = () => {
   // Ancho exacto de cada columna (px): las miniaturas se ven igual que en el
   // feed de inicio y la fila queda centrada sin huecos sobrantes.
   const estiloColumnasGaleria = useMemo(
-    () => ({
-      '--col-w': `${anchoColumnaMasonry(nColumnasGaleria, anchoGaleria, anchoVentana)}px`
-    }),
+    () => (anchoGaleria > 0
+      ? { '--col-w': `${anchoColumnaMasonry(nColumnasGaleria, anchoGaleria, anchoVentana)}px` }
+      : {}),
     [nColumnasGaleria, anchoGaleria, anchoVentana]
   )
 
@@ -938,7 +949,7 @@ export const Perfil = () => {
       return <EstadoVacio clave={tabActiva} esMio={esMio} />
     }
     return (
-      <div className="perfil-tab-videos" ref={galeriaRef}>
+      <div className="perfil-tab-videos" ref={medirGaleria}>
         <div className="maquillajes-masonry maquillajes-masonry--fijo" style={estiloColumnasGaleria}>
           {columnasGaleria.map((columna, ci) => (
             <div className="maquillajes-columna" key={ci}>
