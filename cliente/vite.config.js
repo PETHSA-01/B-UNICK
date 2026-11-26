@@ -46,8 +46,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
         navigateFallback: '/index.html',
         // Los enlaces de verificación llegan como navegación directa desde el
-        // correo: siempre deben pedir el HTML/JS vigente a la red.
-        navigateFallbackDenylist: [/^\/verificar-correo/],
+        // correo. Ninguna ruta /api ni /verificar-correo debe ser respondida
+        // por el fallback del service worker: siempre van a la red.
+        navigateFallbackDenylist: [/^\/api\//, /^\/verificar-correo/],
         cleanupOutdatedCaches: true
       },
       devOptions: {

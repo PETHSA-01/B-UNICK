@@ -1,4 +1,4 @@
-import { Component, useState } from 'react'
+import { Component, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import api from '../../api/axios'
 import '../../estilos/RegistroEstilos/verificacion.css'
@@ -178,6 +178,73 @@ export const CuentaConfirmada = () => {
         aviso={aviso}
         reenviar={reenviar}
       />
+    </TarjetaResultado>
+  )
+}
+
+/**
+ * Fallback para enlaces que llegan a /api/verificar-correo cuando un service
+ * worker antiguo sirve el index.html en vez de dejar pasar la petición al
+ * backend. Valida el token por XHR (modo JSON) y hace la navegación final al
+ * resultado en /verificar-correo.
+ */
+export const VerificarCorreoDesdeApi = () => {
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token')
+  const [estado, setEstado] = useState({
+    cargando: true,
+    titulo: 'Verificando tu correo…',
+    mensaje: 'Estamos confirmando tu enlace. No cierres esta página.'
+  })
+
+  useEffect(() => {
+    let cancelado = false
+
+    const verificar = async () => {
+      try {
+        const respuesta = await api.get('/verificar-correo', {
+          params: { token, json: '1' },
+          headers: { Accept: 'application/json' }
+        })
+        if (cancelado) return
+
+        const destino = respuesta.data?.redirect
+        if (destino) {
+          window.location.replace(destino)
+          return
+        }
+        setEstado({
+          cargando: false,
+          titulo: 'No pudimos verificar el correo',
+          mensaje: 'El servidor no devolvió una respuesta válida. Intenta de nuevo.'
+        })
+      } catch (error) {
+        console.error('No se pudo verificar el correo desde el fallback:', error)
+        if (!cancelado) {
+          setEstado({
+            cargando: false,
+            titulo: 'No pudimos verificar el correo',
+            mensaje: 'Revisa tu conexión e inténtalo de nuevo.'
+          })
+        }
+      }
+    }
+
+    verificar()
+    return () => { cancelado = true }
+  }, [token])
+
+  return (
+    <TarjetaResultado
+      estado={estado.cargando ? 'exito' : 'error'}
+      titulo={estado.titulo}
+      mensaje={estado.mensaje}
+    >
+      {!estado.cargando && (
+        <div className="verificacion-acciones">
+          <Link className="verificacion-accion" to="/">Volver al inicio</Link>
+        </div>
+      )}
     </TarjetaResultado>
   )
 }

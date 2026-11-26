@@ -235,23 +235,32 @@ router.get('/verificar-correo', async (req, res) => {
     // URL base del frontend para redirección (desde .env o valor por defecto)
     const frontendUrl = process.env.FRONTEND_URL;
 
+    // Modo JSON para el fallback del SPA: cuando un service worker viejo sirve
+    // index.html para esta URL, React llama al backend por XHR con json=1.
+    const responder = (query, exito = false) => {
+        const url = `${frontendUrl}/verificar-correo?${query}`;
+        if (req.query.json === '1') {
+            return res.status(200).json({ success: exito, redirect: url });
+        }
+        return res.redirect(url);
+    };
+
     // Validación: token es requerido en la URL
     if (!token) {
-        // Redirigir al frontend con error de token faltante
-        return res.redirect(`${frontendUrl}/verificar-correo?error=token_missing`);
+        return responder('error=token_missing');
     }
 
     try {
         // 1) Verificar y decodificar el JWT (valida firma y expiración automáticamente)
         const decoded = verificarToken(token, 'email');
-        
+
         // Validar que el token sea del tipo correcto (verificación de correo)
         if (decoded.tipo !== 'verificacion_correo') {
-            return res.redirect(`${frontendUrl}/verificar-correo?error=invalid_token_type`);
+            return responder('error=invalid_token_type');
         }
 
         // Extraer datos del payload del token
-        const { userId, email } = decoded;
+        const { userId } = decoded;
 
         // 2) Consultar en BD: token existe, pertenece al usuario, es de verificación, no usado, no expirado
         const [tokenRows] = await pool.execute(
@@ -261,7 +270,7 @@ router.get('/verificar-correo', async (req, res) => {
 
         // Si no existe token válido en BD, redirigir con error
         if (tokenRows.length === 0) {
-            return res.redirect(`${frontendUrl}/verificar-correo?error=token_invalid_or_expired`);
+            return responder('error=token_invalid_or_expired');
         }
 
         // 3) Actualizar usuario: marcar correo como verificado (correo_verificado = 1)
@@ -277,21 +286,19 @@ router.get('/verificar-correo', async (req, res) => {
         );
 
         // 5) Redirigir al frontend con éxito
-        res.redirect(`${frontendUrl}/verificar-correo?success=true`);
+        return responder('success=true', true);
 
     } catch (error) {
         // Manejo específico de errores de JWT
         if (error.name === 'TokenExpiredError') {
-            // Token expirado (verificarToken lanza este error si exp < now)
-            return res.redirect(`${frontendUrl}/verificar-correo?error=token_expired`);
+            return responder('error=token_expired');
         }
         if (error.name === 'JsonWebTokenError') {
-            // Token inválido (firma incorrecta, malformado, etc.)
-            return res.redirect(`${frontendUrl}/verificar-correo?error=token_invalid`);
+            return responder('error=token_invalid');
         }
         // Error inesperado del servidor
         console.error('Error verificando correo:', error.message);
-        return res.redirect(`${frontendUrl}/verificar-correo?error=server_error`);
+        return responder('error=server_error');
     }
 });
 

@@ -5,7 +5,7 @@ import { AuthProvider } from './context/AuthContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import { TemaProvider } from './context/TemaContext'
 import { AppLayout } from './layout/AppLayout'
-import { CuentaConfirmada, VerificacionBoundary } from './Componentes/Registro/CuentaConfirmada.jsx'
+import { CuentaConfirmada, VerificarCorreoDesdeApi, VerificacionBoundary } from './Componentes/Registro/CuentaConfirmada.jsx'
 import { Inicio } from './Componentes/Inicio/Inicio.jsx'
 import { InfoInicio } from './Componentes/Inicio/InfoInicio.jsx'
 import { Conversaciones } from './Componentes/Conversaciones/Conversaciones.jsx'
@@ -31,6 +31,12 @@ createRoot(document.getElementById('root')).render(
               <CuentaConfirmada/>
             </VerificacionBoundary>
           }/>
+          {/* Fallback: service workers antiguos pueden servir el SPA para /api/... */}
+          <Route path='/api/verificar-correo' element={
+            <VerificacionBoundary>
+              <VerificarCorreoDesdeApi/>
+            </VerificacionBoundary>
+          }/>
 
           {/* Resto de páginas envueltas en AppLayout con barra lateral (RQFN35) */}
           <Route element={<AppLayout />}>
@@ -49,6 +55,7 @@ createRoot(document.getElementById('root')).render(
             <Route path='/perfil' element={<Perfil />} />
             <Route path='/usuarios/:id' element={<Perfil />} />
           </Route>
+          <Route path='*' element={<Navigate to='/' replace />} />
         </Routes>
         </AuthModalProvider>
       </AuthProvider>
