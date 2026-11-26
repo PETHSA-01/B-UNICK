@@ -1,16 +1,19 @@
-import React from 'react'
 import "../../estilos/InicioDeSesionEstilos/iniciosesion.css"
 import { Dialogo } from '../elementos_pequeños/Dialogo'
+import { useAuthModal } from '../../context/AuthModalContext'
 
 /**
  * Componente PreregistroConfirmado - Muestra confirmación de preregistro exitoso
  * Se renderiza a nivel de Registro (no dentro de la cadena de formularios)
- * Se muestra hasta que el usuario haga click en "Continuar a inicio de sesión" o en la X
+ * Se muestra hasta que el usuario haga click en "Terminar Registro" o en la X,
+ * momento en el que se abre directamente el modal de inicio de sesión.
  */
-export const PreregistroConfirmado = ({ closeAll }) => {
-  // Función para navegar al login
+export const PreregistroConfirmado = () => {
+  const { openModal } = useAuthModal()
+
+  // Pasa del checkpoint al modal de login (el login de B-unick es un modal).
   const irALogin = () => {
-    window.location.href = '/'
+    openModal('login')
   }
 
   return (
