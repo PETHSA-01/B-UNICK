@@ -1,5 +1,6 @@
 import { Component, useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
+import { useAuthModal } from '../../context/AuthModalContext'
 import api from '../../api/axios'
 import '../../estilos/RegistroEstilos/verificacion.css'
 
@@ -103,11 +104,14 @@ export class VerificacionBoundary extends Component {
 }
 
 /**
- * Resultado de la verificación de correo. Vive fuera de AppLayout y usa clases
- * propias para no depender de los estilos compartidos de los modales de auth.
+ * Resultado de la verificación de correo. Se muestra sobre el inicio (dentro
+ * de AppLayout) y usa clases propias para no depender de los estilos compartidos
+ * de los modales de auth.
  */
 export const CuentaConfirmada = () => {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const { openModal } = useAuthModal()
   const estadoVerificacion = searchParams.get('success')
   const yaVerificado = estadoVerificacion === 'already_verified'
   const exito = estadoVerificacion === 'true' || yaVerificado
@@ -115,6 +119,13 @@ export const CuentaConfirmada = () => {
   const [correo, setCorreo] = useState('')
   const [reenviando, setReenviando] = useState(false)
   const [aviso, setAviso] = useState('')
+
+  // El login de B-unick es un modal, no una ruta: vuelve al inicio y lo abre
+  // encima del feed (mismo flujo que "Terminar Registro").
+  const irALogin = () => {
+    navigate('/')
+    openModal('login')
+  }
 
   const reenviar = async (evento) => {
     evento.preventDefault()
@@ -145,7 +156,13 @@ export const CuentaConfirmada = () => {
           : 'Tu correo ha sido confirmado exitosamente. Ya puedes iniciar sesión.'}
       >
         <div className="verificacion-acciones">
-          <Link className="verificacion-accion" to="/">Iniciar sesión</Link>
+          <button
+            className="verificacion-accion"
+            type="button"
+            onClick={irALogin}
+          >
+            Iniciar sesión
+          </button>
         </div>
       </TarjetaResultado>
     )
