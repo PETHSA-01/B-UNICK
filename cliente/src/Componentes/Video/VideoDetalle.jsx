@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useAuth } from '../../context/AuthContext'
 import { useAuthModal } from '../../context/AuthModalContext'
 import api from '../../api/axios'
@@ -349,7 +349,12 @@ const Avatar = ({ tamaño = 36, foto, nombre, usuarioId }) => (
 
 export const VideoDetalle = () => {
   const { id } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
+  // Entrar por URL directa no deja una página nuestra en el historial: en ese
+  // caso el cierre va al inicio. Si llegamos desde el feed, el Perfil o las
+  // notificaciones, basta con retroceder para volver exactamente al origen.
+  const [entradaDirecta] = useState(() => location.key === 'default')
   const { isAuthenticated } = useAuth()
   const { openModal } = useAuthModal()
   const notificationsRef = useRef(null)
@@ -497,6 +502,13 @@ export const VideoDetalle = () => {
   const [ordenFeed, setOrdenFeed] = useState(() => leerOrdenFeed())
   const navegandoRef = useRef(false)
 
+  // Cerrar el detalle (✕, swipe o borrar el video) devuelve al usuario a la
+  // página desde la que abrió el video; las entradas directas van al inicio.
+  const volverAlOrigen = useCallback(() => {
+    if (entradaDirecta) navigate('/', { replace: true })
+    else navigate(-1)
+  }, [entradaDirecta, navigate])
+
   useEffect(() => {
     if (ordenFeed) return
     let activo = true
@@ -522,7 +534,9 @@ export const VideoDetalle = () => {
     const destino = ordenFeed[indice + delta]
     if (!destino || destino === video.id) return
     navegandoRef.current = true
-    navigate(`/video/${destino}`)
+    // El recorrido entre videos no debe apilar historial: al cerrar queremos
+    // volver a la página de origen, no al video anterior.
+    navigate(`/video/${destino}`, { replace: true })
   }, [video, ordenFeed, navigate])
 
   const irAlSiguiente = useCallback(() => irA(1), [irA])
@@ -866,7 +880,7 @@ export const VideoDetalle = () => {
       if (res.data?.success) {
         notificationsRef.current?.removeNotification('video-eliminar')
         avisar('Video eliminado.')
-        navigate('/')
+        volverAlOrigen()
         return
       }
     } catch (err) {
@@ -1485,7 +1499,7 @@ export const VideoDetalle = () => {
 
   const cerrarConSwipe = () => {
     if (hoja) return
-    navigate('/')
+    volverAlOrigen()
   }
 
   const actualizarProgreso = (e) => {
@@ -1610,8 +1624,15 @@ export const VideoDetalle = () => {
           <button type="button" className="video-vacio-btn" onClick={cargarVideo}>
             Reintentar
           </button>
-          <Link className="video-vacio-volver" to="/">
-            Volver a Maquillajes
+          <Link
+            className="video-vacio-volver"
+            to="/"
+            onClick={(e) => {
+              e.preventDefault()
+              volverAlOrigen()
+            }}
+          >
+            Volver
           </Link>
         </div>
       </div>
@@ -1623,7 +1644,7 @@ export const VideoDetalle = () => {
     contenido = (
       <div className="video-cine">
         <section className="video-cine-izq">
-          <button type="button" className="video-cerrar" onClick={() => navigate('/')} aria-label="Volver a Maquillajes" title="Volver a Maquillajes">
+          <button type="button" className="video-cerrar" onClick={volverAlOrigen} aria-label="Volver a la página anterior" title="Volver">
             <IconoCerrar />
           </button>
           <div className="video-cine-reproductor">
@@ -2037,7 +2058,7 @@ export const VideoDetalle = () => {
           )}
 
           <div className="video-movil-barra-superior">
-            <button type="button" className="video-movil-cerrar" onClick={() => navigate('/')} aria-label="Volver a Maquillajes" title="Volver a Maquillajes">
+            <button type="button" className="video-movil-cerrar" onClick={volverAlOrigen} aria-label="Volver a la página anterior" title="Volver">
               <IconoCerrar />
             </button>
             <button

@@ -14,6 +14,25 @@ import '../../estilos/MaquillajesEstilos/maquillajes.css'
 const TITULO_TOAST = 'Becky te ha mandado un mensaje'
 const LIMITE_TAB = 30
 
+// Recordar la pestaña activa permite volver del detalle de un video al mismo
+// apartado del Perfil (Publicaciones, Vistas, Guardados o Chats).
+const CLAVE_TAB_PERFIL = 'b-unick:perfil-tab'
+const claveTabPerfil = (id) => `${CLAVE_TAB_PERFIL}:${id || 'yo'}`
+const leerTabPerfil = (clave) => {
+  try {
+    return sessionStorage.getItem(clave) || 'publicaciones'
+  } catch {
+    return 'publicaciones'
+  }
+}
+const guardarTabPerfil = (clave, tab) => {
+  try {
+    sessionStorage.setItem(clave, tab)
+  } catch {
+    // Sin persistencia la pestaña sigue funcionando durante esta visita.
+  }
+}
+
 const iniciales = (nombre = '') =>
   nombre
     .trim()
@@ -286,9 +305,15 @@ export const Perfil = () => {
   const [cerrandoSesion, setCerrandoSesion] = useState(false)
 
   const [menuAbierto, setMenuAbierto] = useState(false)
-  const [tabActiva, setTabActiva] = useState('publicaciones')
+  const claveTab = claveTabPerfil(id)
+  const [tabActiva, setTabActiva] = useState(() => leerTabPerfil(claveTab))
   const menuRef = useRef(null)
   const tabsRef = useRef({})
+
+  const elegirTab = useCallback((clave) => {
+    guardarTabPerfil(claveTab, clave)
+    setTabActiva(clave)
+  }, [claveTab])
 
   const moverPestana = (e) => {
     const indice = pestanasVisibles.findIndex((p) => p.clave === tabActiva)
@@ -300,7 +325,7 @@ export const Perfil = () => {
     else return
     e.preventDefault()
     const siguiente = pestanasVisibles[nuevo].clave
-    setTabActiva(siguiente)
+    elegirTab(siguiente)
     tabsRef.current[siguiente]?.focus()
   }
 
@@ -515,16 +540,17 @@ export const Perfil = () => {
     setConvTabMeta({})
     setConvError({})
     setConvCargando({})
-  }, [id])
+    setTabActiva(leerTabPerfil(claveTab))
+  }, [id, claveTab])
 
   // Los historiales de videos vistos solo existen en el perfil propio: si
   // la pestaña activa es 'vistas' pero el perfil es ajeno, se vuelve a la
   // primera pestaña visible (Publicaciones).
   useEffect(() => {
     if (!esMio && tabActiva === 'vistas') {
-      setTabActiva('publicaciones')
+      elegirTab('publicaciones')
     }
-  }, [esMio, tabActiva])
+  }, [esMio, tabActiva, elegirTab])
 
   useEffect(() => {
     const cerrarMenu = (e) => {
@@ -1095,7 +1121,7 @@ export const Perfil = () => {
           ref={(el) => {
             tabsRef.current[clave] = el
           }}
-          onClick={() => setTabActiva(clave)}
+          onClick={() => elegirTab(clave)}
         >
           <Icono />
           <span className="perfil-tab-nombre">{nombre}</span>
