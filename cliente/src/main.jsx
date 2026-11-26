@@ -15,7 +15,7 @@ import { Wiki } from './Componentes/WIKI/Wiki.jsx'
 import { RedirigirMaquillajes } from './Componentes/Maquillajes/RedirigirMaquillajes.jsx'
 import { VideoDetalle } from './Componentes/Video/VideoDetalle.jsx'
 import { Perfil } from './Componentes/Perfil/Perfil.jsx'
-import { ReescribirContraseña } from './Componentes/InicioDeSesion/ReescribirContraseña.jsx'
+import { RestablecerPagina } from './Componentes/InicioDeSesion/RestablecerPagina.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -50,7 +50,7 @@ createRoot(document.getElementById('root')).render(
             <Route path='/wiki/:culturaId' element={<Wiki />} />
             <Route path='/wiki/:culturaId/:subculturaId' element={<Wiki />} />
             <Route path='/maquillajes' element={<RedirigirMaquillajes />} />
-            <Route path='/restablecer' element={<ReescribirContraseña/>}/>
+            <Route path='/restablecer' element={<RestablecerPagina/>}/>
             <Route path='/notificaciones' element={<Navigate to='/' replace />} />
             <Route path='/perfil' element={<Perfil />} />
             <Route path='/usuarios/:id' element={<Perfil />} />

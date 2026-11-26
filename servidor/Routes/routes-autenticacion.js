@@ -250,6 +250,24 @@ router.get('/verificar-correo', async (req, res) => {
         return responder('error=token_missing');
     }
 
+    // Un enlace ya usado puede llega expirado: en ese caso el JWT falla antes
+    // de consultar la BD. Revisamos igualmente si la cuenta ya está confirmada
+    // para no ofrecer "¿Necesitas otro enlace?" cuando no hace falta.
+    const responderSiYaVerificado = async () => {
+        const [previo] = await pool.execute(
+            `SELECT u.correo_verificado
+               FROM tokens t
+               JOIN usuarios u ON u.id = t.usuario_id
+              WHERE t.token = ? AND t.tipo = 'verificacion_correo' AND t.usado = 1
+              LIMIT 1`,
+            [token]
+        );
+        if (previo.length > 0 && previo[0].correo_verificado === 1) {
+            return responder('success=already_verified', true);
+        }
+        return null;
+    };
+
     try {
         // 1) Verificar y decodificar el JWT (valida firma y expiración automáticamente)
         const decoded = verificarToken(token, 'email');
@@ -268,8 +286,23 @@ router.get('/verificar-correo', async (req, res) => {
             [token, userId]
         );
 
-        // Si no existe token válido en BD, redirigir con error
+        // Si no existe token válido en BD, distingue el enlace ya usado (la
+        // cuenta ya está verificada) de uno realmente inválido o expirado.
+        // Así el frontend no ofrece "¿Necesitas otro enlace?" cuando el correo
+        // ya fue confirmado.
         if (tokenRows.length === 0) {
+            const [tokenPrevio] = await pool.execute(
+                `SELECT t.usado, u.correo_verificado
+                   FROM tokens t
+                   JOIN usuarios u ON u.id = t.usuario_id
+                  WHERE t.token = ? AND t.usuario_id = ? AND t.tipo = 'verificacion_correo'
+                  LIMIT 1`,
+                [token, userId]
+            );
+            if (tokenPrevio.length > 0 && tokenPrevio[0].usado === 1 &&
+                tokenPrevio[0].correo_verificado === 1) {
+                return responder('success=already_verified', true);
+            }
             return responder('error=token_invalid_or_expired');
         }
 
@@ -291,7 +324,7 @@ router.get('/verificar-correo', async (req, res) => {
     } catch (error) {
         // Manejo específico de errores de JWT
         if (error.name === 'TokenExpiredError') {
-            return responder('error=token_expired');
+            return await responderSiYaVerificado() || responder('error=token_expired');
         }
         if (error.name === 'JsonWebTokenError') {
             return responder('error=token_invalid');

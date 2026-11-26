@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react'
+import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router'
 import "../../estilos/InicioDeSesionEstilos/iniciosesion.css"
 import { Dialogo } from '../elementos_pequeños/Dialogo'
@@ -90,10 +91,6 @@ export const ReescribirContraseña = ({ onClose }) => {
         showGif: false,
       })
 
-      if (visible) {
-        close()
-      }
-
       // Redirigir al inicio de sesión para que el usuario entre con su nueva contraseña
       setTimeout(() => {
         navigate('/')
@@ -113,6 +110,7 @@ export const ReescribirContraseña = ({ onClose }) => {
   const close = () => {
     setVisible(false)
     if (onClose) onClose()
+    else navigate('/')
   }
 
   if (!visible) return null
@@ -176,8 +174,8 @@ export const ReescribirContraseña = ({ onClose }) => {
         </div>
       </div>
 
-      {/*<!-- Componente reutilizable de notificaciones --*/}
-      <Notificaciones ref={notificationsRef} />
+      {/* Portalizado para que el aviso quede por encima del overlay del modal. */}
+      {createPortal(<Notificaciones ref={notificationsRef} />, document.body)}
     </>
   )
 }

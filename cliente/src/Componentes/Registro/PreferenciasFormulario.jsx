@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../../context/AuthContext'
 import '../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import { Dialogo } from '../elementos_pequeños/Dialogo'
@@ -214,12 +215,15 @@ export const PreferenciasFormulario = ({ onClose, onCompletado }) => {
         </div>
       </div>
 
-      <Notificaciones
-        ref={notificationsRef}
-        cookieConsent={cookieConsent}
-        onCookieAccept={setCookieConsent}
-        onCookieReject={setCookieConsent}
-      />
+      {createPortal(
+        <Notificaciones
+          ref={notificationsRef}
+          cookieConsent={cookieConsent}
+          onCookieAccept={setCookieConsent}
+          onCookieReject={setCookieConsent}
+        />,
+        document.body
+      )}
     </>
   )
 }

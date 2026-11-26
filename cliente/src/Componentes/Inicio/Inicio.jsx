@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
 import { PreferenciasFormulario } from '../Registro/PreferenciasFormulario'
@@ -60,7 +61,9 @@ export const Inicio = () => {
         />
       )}
 
-      <Notificaciones ref={notificationsRef} />
+      {/* Portalizado como en login/registro: así los avisos de autenticación
+          quedan por encima del feed en vez de quedar atrapados en su contexto. */}
+      {createPortal(<Notificaciones ref={notificationsRef} />, document.body)}
     </>
   )
 }

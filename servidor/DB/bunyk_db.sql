@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `conversaciones` (
   KEY `fk_conv_usuario` (`usuario_id`),
   KEY `idx_conv_tema` (`tema`),
   KEY `fk_conv_subcultura` (`subcultura_id`),
-  CONSTRAINT `fk_conv_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `fk_conv_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_conv_subcultura` FOREIGN KEY (`subcultura_id`) REFERENCES `subculturas_estilos` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS `videos` (
   KEY `idx_video_semejanza` (`porcentaje_semejanza`),
   KEY `idx_video_fecha` (`fecha_publicacion`),
   KEY `idx_video_rango_edad` (`rango_edad`),
-  CONSTRAINT `fk_video_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `fk_video_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_video_cultura` FOREIGN KEY (`cultura_id`) REFERENCES `culturas_estilos` (`id`),
   CONSTRAINT `fk_video_sub` FOREIGN KEY (`subcultura_id`) REFERENCES `subculturas_estilos` (`id`),
   CONSTRAINT `fk_video_caracteristicas` FOREIGN KEY (`caracteristicasfisicas`) REFERENCES `caracteristicas_fisicas` (`id`)
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `tokens` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`),
   KEY `fk_token_usuario` (`usuario_id`),
-  CONSTRAINT `fk_token_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `fk_token_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
@@ -182,10 +182,10 @@ CREATE TABLE IF NOT EXISTS `comentarios` (
   KEY `fk_com_video` (`video_id`),
   KEY `fk_com_conv` (`conversacion_id`),
   KEY `fk_com_padre` (`comentario_padre_id`),
-  CONSTRAINT `fk_com_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `fk_com_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`),
-  CONSTRAINT `fk_com_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`),
-  CONSTRAINT `fk_com_padre` FOREIGN KEY (`comentario_padre_id`) REFERENCES `comentarios` (`id`)
+  CONSTRAINT `fk_com_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_com_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_com_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_com_padre` FOREIGN KEY (`comentario_padre_id`) REFERENCES `comentarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `usuario_preferencias` (
@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS `usuario_preferencias` (
   KEY `fk_pref_usuario` (`usuario_id`),
   KEY `fk_pref_cultura` (`cultura_id`),
   KEY `fk_pref_subestilo` (`subcultura_id`),
-  CONSTRAINT `fk_pref_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `fk_pref_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_pref_cultura` FOREIGN KEY (`cultura_id`) REFERENCES `culturas_estilos` (`id`),
   CONSTRAINT `fk_pref_subestilo` FOREIGN KEY (`subcultura_id`) REFERENCES `subculturas_estilos` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -208,8 +208,8 @@ CREATE TABLE IF NOT EXISTS `seguidores` (
   `fecha_inicio` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`seguidor_id`,`seguido_id`),
   KEY `fk_sig_seguido` (`seguido_id`),
-  CONSTRAINT `fk_sig_seguidor` FOREIGN KEY (`seguidor_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `fk_sig_seguido` FOREIGN KEY (`seguido_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `fk_sig_seguidor` FOREIGN KEY (`seguidor_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_sig_seguido` FOREIGN KEY (`seguido_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `likes_video` (
@@ -218,8 +218,8 @@ CREATE TABLE IF NOT EXISTS `likes_video` (
   `fecha` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`usuario_id`,`video_id`),
   KEY `fk_lv_video` (`video_id`),
-  CONSTRAINT `fk_lv_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `fk_lv_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
+  CONSTRAINT `fk_lv_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_lv_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `likes_comentario` (
@@ -228,8 +228,8 @@ CREATE TABLE IF NOT EXISTS `likes_comentario` (
   `fecha` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`usuario_id`,`comentario_id`),
   KEY `fk_lc_comentario` (`comentario_id`),
-  CONSTRAINT `fk_lc_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `fk_lc_comentario` FOREIGN KEY (`comentario_id`) REFERENCES `comentarios` (`id`)
+  CONSTRAINT `fk_lc_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_lc_comentario` FOREIGN KEY (`comentario_id`) REFERENCES `comentarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `likes_conversacion` (
@@ -238,8 +238,8 @@ CREATE TABLE IF NOT EXISTS `likes_conversacion` (
   `fecha` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`usuario_id`,`conversacion_id`),
   KEY `fk_lconv_conv` (`conversacion_id`),
-  CONSTRAINT `fk_lconv_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `fk_lconv_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`)
+  CONSTRAINT `fk_lconv_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_lconv_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `notificaciones` (
@@ -257,10 +257,10 @@ CREATE TABLE IF NOT EXISTS `notificaciones` (
   KEY `fk_notif_video` (`video_id`),
   KEY `fk_notif_conv` (`conversacion_id`),
   KEY `fk_notif_actor` (`usuario_actor_id`),
-  CONSTRAINT `fk_notif_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `fk_notif_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`),
-  CONSTRAINT `fk_notif_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`),
-  CONSTRAINT `fk_notif_actor` FOREIGN KEY (`usuario_actor_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `fk_notif_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_notif_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_notif_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_notif_actor` FOREIGN KEY (`usuario_actor_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `pasos_maquillaje` (
@@ -271,7 +271,7 @@ CREATE TABLE IF NOT EXISTS `pasos_maquillaje` (
   `orden` tinyint(4) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `fk_paso_video` (`video_id`),
-  CONSTRAINT `fk_paso_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
+  CONSTRAINT `fk_paso_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `imagenes_video` (
@@ -281,7 +281,7 @@ CREATE TABLE IF NOT EXISTS `imagenes_video` (
   `orden` tinyint(4) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `fk_imgvid_video` (`video_id`),
-  CONSTRAINT `fk_imgvid_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
+  CONSTRAINT `fk_imgvid_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `etiquetas_video` (
@@ -292,7 +292,7 @@ CREATE TABLE IF NOT EXISTS `etiquetas_video` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_etiqueta_video` (`video_id`, `etiqueta`),
   KEY `fk_etiqueta_video` (`video_id`),
-  CONSTRAINT `fk_etiqueta_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
+  CONSTRAINT `fk_etiqueta_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `imagenes_conversacion` (
@@ -302,7 +302,7 @@ CREATE TABLE IF NOT EXISTS `imagenes_conversacion` (
   `orden` tinyint(4) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `fk_imgconv_conv` (`conversacion_id`),
-  CONSTRAINT `fk_imgconv_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`)
+  CONSTRAINT `fk_imgconv_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `votos_video` (
@@ -314,8 +314,8 @@ CREATE TABLE IF NOT EXISTS `votos_video` (
   PRIMARY KEY (`id`),
   KEY `fk_voto_video` (`video_id`),
   KEY `fk_voto_usuario` (`usuario_id`),
-  CONSTRAINT `fk_voto_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`),
-  CONSTRAINT `fk_voto_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `fk_voto_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_voto_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `voto_razones` (
@@ -325,7 +325,7 @@ CREATE TABLE IF NOT EXISTS `voto_razones` (
   PRIMARY KEY (`voto_id`,`razon_id`),
   KEY `fk_vr_razon` (`razon_id`),
   KEY `fk_vr_estilo` (`estilo_alternativo_id`),
-  CONSTRAINT `fk_vr_voto` FOREIGN KEY (`voto_id`) REFERENCES `votos_video` (`id`),
+  CONSTRAINT `fk_vr_voto` FOREIGN KEY (`voto_id`) REFERENCES `votos_video` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_vr_razon` FOREIGN KEY (`razon_id`) REFERENCES `razones_voto_contra` (`id`),
   CONSTRAINT `fk_vr_estilo` FOREIGN KEY (`estilo_alternativo_id`) REFERENCES `subculturas_estilos` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -336,8 +336,8 @@ CREATE TABLE IF NOT EXISTS `videos_guardados` (
   `fecha_guardado` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`usuario_id`,`video_id`),
   KEY `fk_vg_video` (`video_id`),
-  CONSTRAINT `fk_vg_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `fk_vg_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
+  CONSTRAINT `fk_vg_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_vg_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `videos_vistos` (
@@ -347,8 +347,8 @@ CREATE TABLE IF NOT EXISTS `videos_vistos` (
   PRIMARY KEY (`usuario_id`,`video_id`),
   KEY `fk_vv_video` (`video_id`),
   KEY `idx_vv_fecha` (`fecha_visto`),
-  CONSTRAINT `fk_vv_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `fk_vv_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
+  CONSTRAINT `fk_vv_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_vv_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `videos_compartidos` (
@@ -357,8 +357,8 @@ CREATE TABLE IF NOT EXISTS `videos_compartidos` (
   `fecha_compartido` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`usuario_id`,`video_id`),
   KEY `fk_vc_video` (`video_id`),
-  CONSTRAINT `fk_vc_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
-  CONSTRAINT `fk_vc_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`)
+  CONSTRAINT `fk_vc_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_vc_video` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `motivos_denuncia` (
@@ -376,8 +376,8 @@ CREATE TABLE IF NOT EXISTS `denuncias_conversacion` (
   PRIMARY KEY (`id`),
   KEY `fk_den_conv` (`conversacion_id`),
   KEY `fk_den_usuario` (`usuario_id`),
-  CONSTRAINT `fk_den_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`),
-  CONSTRAINT `fk_den_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+  CONSTRAINT `fk_den_conv` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_den_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `denuncia_motivos` (
@@ -385,7 +385,7 @@ CREATE TABLE IF NOT EXISTS `denuncia_motivos` (
   `motivo_id` int(11) NOT NULL,
   PRIMARY KEY (`denuncia_id`,`motivo_id`),
   KEY `fk_dm_motivo` (`motivo_id`),
-  CONSTRAINT `fk_dm_denuncia` FOREIGN KEY (`denuncia_id`) REFERENCES `denuncias_conversacion` (`id`),
+  CONSTRAINT `fk_dm_denuncia` FOREIGN KEY (`denuncia_id`) REFERENCES `denuncias_conversacion` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_dm_motivo` FOREIGN KEY (`motivo_id`) REFERENCES `motivos_denuncia` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

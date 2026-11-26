@@ -7,7 +7,7 @@ const MENSAJES_ERROR = {
   token_missing: 'Enlace de verificación inválido. Falta el token.',
   token_expired: 'El enlace ha expirado (válido por 24 horas). Solicita uno nuevo.',
   token_invalid: 'El enlace es inválido o ya fue utilizado.',
-  token_invalid_or_expired: 'El enlace ya se usó o expiró. Solicita uno nuevo para continuar.',
+  token_invalid_or_expired: 'El enlace expiró o no es válido. Solicita uno nuevo para continuar.',
   invalid_token_type: 'Tipo de token incorrecto.',
   server_error: 'Error del servidor. Intenta más tarde.'
 }
@@ -108,7 +108,9 @@ export class VerificacionBoundary extends Component {
  */
 export const CuentaConfirmada = () => {
   const [searchParams] = useSearchParams()
-  const exito = searchParams.get('success') === 'true'
+  const estadoVerificacion = searchParams.get('success')
+  const yaVerificado = estadoVerificacion === 'already_verified'
+  const exito = estadoVerificacion === 'true' || yaVerificado
   const codigoError = searchParams.get('error')
   const [correo, setCorreo] = useState('')
   const [reenviando, setReenviando] = useState(false)
@@ -137,8 +139,10 @@ export const CuentaConfirmada = () => {
     return (
       <TarjetaResultado
         estado="exito"
-        titulo="¡Cuenta verificada!"
-        mensaje="Tu correo ha sido confirmado exitosamente. Ya puedes iniciar sesión."
+        titulo={yaVerificado ? 'Correo ya verificado' : '¡Cuenta verificada!'}
+        mensaje={yaVerificado
+          ? 'Tu correo ya estaba confirmado. Puedes iniciar sesión sin solicitar otro enlace.'
+          : 'Tu correo ha sido confirmado exitosamente. Ya puedes iniciar sesión.'}
       >
         <div className="verificacion-acciones">
           <Link className="verificacion-accion" to="/">Iniciar sesión</Link>
