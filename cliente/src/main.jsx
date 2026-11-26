@@ -5,7 +5,7 @@ import { AuthProvider } from './context/AuthContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import { TemaProvider } from './context/TemaContext'
 import { AppLayout } from './layout/AppLayout'
-import { CuentaConfirmada } from './Componentes/Registro/CuentaConfirmada.jsx'
+import { CuentaConfirmada, VerificacionBoundary } from './Componentes/Registro/CuentaConfirmada.jsx'
 import { Inicio } from './Componentes/Inicio/Inicio.jsx'
 import { InfoInicio } from './Componentes/Inicio/InfoInicio.jsx'
 import { Conversaciones } from './Componentes/Conversaciones/Conversaciones.jsx'
@@ -24,8 +24,13 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <AuthModalProvider>
           <Routes>
-          {/* Video individual: sin barra lateral (RQFN35) */}
+          {/* Video individual y resultado de verificación: sin barra lateral */}
           <Route path='/video/:id' element={<VideoDetalle/>}/>
+          <Route path='/verificar-correo' element={
+            <VerificacionBoundary>
+              <CuentaConfirmada/>
+            </VerificacionBoundary>
+          }/>
 
           {/* Resto de páginas envueltas en AppLayout con barra lateral (RQFN35) */}
           <Route element={<AppLayout />}>
@@ -39,7 +44,6 @@ createRoot(document.getElementById('root')).render(
             <Route path='/wiki/:culturaId' element={<Wiki />} />
             <Route path='/wiki/:culturaId/:subculturaId' element={<Wiki />} />
             <Route path='/maquillajes' element={<RedirigirMaquillajes />} />
-            <Route path='/verificar-correo' element={<CuentaConfirmada/>}/>
             <Route path='/restablecer' element={<ReescribirContraseña/>}/>
             <Route path='/notificaciones' element={<Navigate to='/' replace />} />
             <Route path='/perfil' element={<Perfil />} />

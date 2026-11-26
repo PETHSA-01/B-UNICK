@@ -45,6 +45,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
         navigateFallback: '/index.html',
+        // Los enlaces de verificación llegan como navegación directa desde el
+        // correo: siempre deben pedir el HTML/JS vigente a la red.
+        navigateFallbackDenylist: [/^\/verificar-correo/],
         cleanupOutdatedCaches: true
       },
       devOptions: {
