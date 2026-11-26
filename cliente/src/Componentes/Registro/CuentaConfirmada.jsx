@@ -13,7 +13,7 @@ const MENSAJES_ERROR = {
 }
 
 const TarjetaResultado = ({ estado, titulo, mensaje, children }) => (
-  <main className="verificacion-pagina">
+  <div className="verificacion-pagina">
     <section
       className="verificacion-tarjeta"
       role={estado === 'exito' ? 'status' : 'alert'}
@@ -38,7 +38,7 @@ const TarjetaResultado = ({ estado, titulo, mensaje, children }) => (
       <p id="verificacion-mensaje" className="verificacion-mensaje">{mensaje}</p>
       {children}
     </section>
-  </main>
+  </div>
 )
 
 const AccionesError = ({ correo, setCorreo, reenviando, aviso, reenviar }) => (

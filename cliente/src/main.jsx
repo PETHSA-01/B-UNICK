@@ -5,7 +5,7 @@ import { AuthProvider } from './context/AuthContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import { TemaProvider } from './context/TemaContext'
 import { AppLayout } from './layout/AppLayout'
-import { CuentaConfirmada, VerificarCorreoDesdeApi, VerificacionBoundary } from './Componentes/Registro/CuentaConfirmada.jsx'
+import { VerificacionPagina, VerificacionApiPagina } from './Componentes/Registro/VerificacionPagina.jsx'
 import { Inicio } from './Componentes/Inicio/Inicio.jsx'
 import { InfoInicio } from './Componentes/Inicio/InfoInicio.jsx'
 import { Conversaciones } from './Componentes/Conversaciones/Conversaciones.jsx'
@@ -24,23 +24,16 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <AuthModalProvider>
           <Routes>
-          {/* Video individual y resultado de verificación: sin barra lateral */}
+          {/* Video individual: sin barra lateral (RQFN35) */}
           <Route path='/video/:id' element={<VideoDetalle/>}/>
-          <Route path='/verificar-correo' element={
-            <VerificacionBoundary>
-              <CuentaConfirmada/>
-            </VerificacionBoundary>
-          }/>
-          {/* Fallback: service workers antiguos pueden servir el SPA para /api/... */}
-          <Route path='/api/verificar-correo' element={
-            <VerificacionBoundary>
-              <VerificarCorreoDesdeApi/>
-            </VerificacionBoundary>
-          }/>
 
           {/* Resto de páginas envueltas en AppLayout con barra lateral (RQFN35) */}
           <Route element={<AppLayout />}>
             <Route path='/' element={<Inicio/>} />
+            {/* Resultado de verificación: feed de fondo + tarjeta encima, igual que /restablecer */}
+            <Route path='/verificar-correo' element={<VerificacionPagina/>}/>
+            {/* Fallback: service workers antiguos pueden servir el SPA para /api/... */}
+            <Route path='/api/verificar-correo' element={<VerificacionApiPagina/>}/>
             <Route path='/informacion' element={<InfoInicio/>} />
             <Route path='/conversaciones/nueva' element={<Conversaciones/>} />
             <Route path='/conversaciones/:id' element={<ConversacionDetalle/>} />
