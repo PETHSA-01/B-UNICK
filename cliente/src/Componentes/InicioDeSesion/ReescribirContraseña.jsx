@@ -1,9 +1,11 @@
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router'
 import "../../estilos/InicioDeSesionEstilos/iniciosesion.css"
 import { Dialogo } from '../elementos_pequeños/Dialogo'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
+import { useAuth } from '../../context/AuthContext'
+import { useAuthModal } from '../../context/AuthModalContext'
 import api from '../../api/axios'
 
 export const ReescribirContraseña = ({ onClose }) => {
@@ -13,8 +15,40 @@ export const ReescribirContraseña = ({ onClose }) => {
   const [cargando, setCargando] = useState(false)
   const [mostrarContrasena, setMostrarContrasena] = useState(false)
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false)
+  const tokenUrl = new URLSearchParams(window.location.search).get('token')
+  const [cuenta, setCuenta] = useState(null)
+  const [cuentaError, setCuentaError] = useState(
+    () => tokenUrl ? '' : 'Este enlace no es válido. Solicita uno nuevo.'
+  )
   const notificationsRef = useRef(null)
   const navigate = useNavigate()
+  const { logout } = useAuth()
+  const { openModal } = useAuthModal()
+
+  // Consultamos al servidor a qué cuenta pertenece el enlace antes de pedir la
+  // contraseña nueva. El endpoint valida el JWT y que el token siga sin usar.
+  useEffect(() => {
+    if (!tokenUrl) return undefined
+    let cancelado = false
+
+    const validarCuenta = async () => {
+      try {
+        const respuesta = await api.get('/recuperar-contrasena/validar', { params: { token: tokenUrl } })
+        if (cancelado) return
+        if (respuesta.status === 200 && respuesta.data?.success) {
+          setCuenta(respuesta.data.usuario)
+        } else {
+          setCuentaError(respuesta.data?.error || 'Este enlace no es válido. Solicita uno nuevo.')
+        }
+      } catch (error) {
+        if (cancelado) return
+        setCuentaError(error.response?.data?.error || 'No se pudo comprobar el enlace. Solicita uno nuevo.')
+      }
+    }
+
+    validarCuenta()
+    return () => { cancelado = true }
+  }, [tokenUrl])
 
   const validarPassword = (password) => {
     const errores = [];
@@ -65,24 +99,22 @@ export const ReescribirContraseña = ({ onClose }) => {
     }
 
     if (cargando) return
+    if (!tokenUrl || cuentaError) {
+      notificationsRef.current?.addNotification({
+        title: 'Becky te ha mandado un mensaje',
+        message: 'Cariño, este enlace no es válido. Solicita uno nuevo.',
+        type: 'error',
+        showGif: false,
+      })
+      return
+    }
     setCargando(true)
 
     try {
-      // El token viaja en la URL: /restablecer?token=xxxxx
-      const params = new URLSearchParams(window.location.search)
-      const token = params.get('token')
-
-      if (!token) {
-        notificationsRef.current?.addNotification({
-          title: 'Becky te ha mandado un mensaje',
-          message: 'Cariño, este enlace no es válido. Solicita uno nuevo.',
-          type: 'error',
-          showGif: false,
-        })
-        return
-      }
-
-      const response = await api.post('/recuperar-contrasena', { token, nuevaContrasena: contrasena })
+      const response = await api.post('/recuperar-contrasena', {
+        token: tokenUrl,
+        nuevaContrasena: contrasena
+      })
 
       notificationsRef.current?.addNotification({
         title: 'Becky te ha mandado un mensaje',
@@ -91,10 +123,13 @@ export const ReescribirContraseña = ({ onClose }) => {
         showGif: false,
       })
 
-      // Redirigir al inicio de sesión para que el usuario entre con su nueva contraseña
+      // El login es un modal sobre el inicio: cerramos cualquier sesión que
+      // quedara abierta, volvemos a "/" y lo abrimos encima del feed.
+      await logout()
       setTimeout(() => {
         navigate('/')
-      }, 1500)
+        requestAnimationFrame(() => openModal('login'))
+      }, 1200)
     } catch (error) {
       notificationsRef.current?.addNotification({
         title: 'Becky te ha mandado un mensaje',
@@ -135,6 +170,15 @@ export const ReescribirContraseña = ({ onClose }) => {
                 </p>
             </div>
 
+            {cuenta && (
+              <p className="recuperar-cuenta" role="status">
+                Cambiarás la contraseña de <strong>{cuenta.nombreUsuario}</strong> ({cuenta.correo})
+              </p>
+            )}
+            {cuentaError && (
+              <p className="recuperar-cuenta recuperar-cuenta--error" role="alert">{cuentaError}</p>
+            )}
+
             <div className="input-wrapper">
               <input
                 type={mostrarContrasena ? 'text' : 'password'}
@@ -167,7 +211,7 @@ export const ReescribirContraseña = ({ onClose }) => {
               </button>
             </div>
 
-            <button type="submit" className="btn-submit" disabled={cargando}>{cargando ? 'Guardando...' : 'Iniciar Sesión'}</button>
+            <button type="submit" className="btn-submit" disabled={cargando}>{cargando ? 'Guardando...' : 'Cambiar contraseña'}</button>
 
           </form>
 

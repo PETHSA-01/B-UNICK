@@ -742,6 +742,75 @@ router.post('/olvido-contrasena', limitadorCorreo, async (req, res) => {
     }
 });
 
+// Valida el enlace de restablecimiento (JWT de la familia email + token en BD
+// sin usar y vigente). Lo comparten la consulta de la cuenta y el cambio de
+// contraseña para que ambos acepten exactamente los mismos enlaces.
+async function validarEnlaceRestablecimiento(pool, token) {
+    let decoded;
+    try {
+        decoded = verificarToken(token, 'email');
+    } catch (tokenError) {
+        if (tokenError.name === 'TokenExpiredError') {
+            return { error: 'El enlace ha expirado. Solicita uno nuevo.', status: 401 };
+        }
+        return { error: 'El enlace no es válido. Solicita uno nuevo.', status: 401 };
+    }
+
+    if (decoded.tipo !== 'restablecer') {
+        return { error: 'El enlace no es válido. Solicita uno nuevo.', status: 401 };
+    }
+
+    const [tokenRows] = await pool.execute(
+        `SELECT id FROM tokens WHERE token = ? AND usuario_id = ? AND tipo = 'restablecer' AND usado = 0 AND fecha_expiracion > NOW()`,
+        [token, decoded.userId]
+    );
+
+    if (tokenRows.length === 0) {
+        return { error: 'El enlace ha expirado o ya fue utilizado. Solicita uno nuevo.', status: 401 };
+    }
+
+    return { decoded };
+}
+
+// GET /recuperar-contrasena/validar - Cuenta asociada al enlace. Se consulta
+// antes de pedir la contraseña nueva para mostrar al usuario a quién afecta;
+// con un enlace inválido, expirado o ya usado no se revela ningún dato.
+router.get('/recuperar-contrasena/validar', limitadorLogin, async (req, res) => {
+    const token = req.query.token;
+    const pool = req.pool;
+
+    if (!token || typeof token !== 'string') {
+        return res.status(400).json({ error: 'Falta el token de restablecimiento' });
+    }
+
+    try {
+        const { decoded, error: errorEnlace, status: statusEnlace } =
+            await validarEnlaceRestablecimiento(pool, token);
+        if (errorEnlace) {
+            return res.status(statusEnlace).json({ error: errorEnlace });
+        }
+
+        const [usuarios] = await pool.execute(
+            'SELECT correo, nombre_usuario FROM usuarios WHERE id = ? LIMIT 1',
+            [decoded.userId]
+        );
+        if (usuarios.length === 0) {
+            return res.status(401).json({ error: 'El enlace no es válido. Solicita uno nuevo.' });
+        }
+
+        res.json({
+            success: true,
+            usuario: {
+                correo: usuarios[0].correo,
+                nombreUsuario: usuarios[0].nombre_usuario
+            }
+        });
+    } catch (error) {
+        console.error('Error en recuperar-contrasena/validar:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 // POST /recuperar-contrasena - Valida token de restablecimiento y actualiza la contraseña
 router.post('/recuperar-contrasena', limitadorLogin, async (req, res) => {
     const { token, nuevaContrasena } = req.body;
@@ -755,27 +824,10 @@ router.post('/recuperar-contrasena', limitadorLogin, async (req, res) => {
     }
 
     try {
-        let decoded;
-        try {
-            decoded = verificarToken(token, 'email');
-        } catch (tokenError) {
-            if (tokenError.name === 'TokenExpiredError') {
-                return res.status(401).json({ error: 'El enlace ha expirado. Solicita uno nuevo.' });
-            }
-            return res.status(401).json({ error: 'El enlace no es válido. Solicita uno nuevo.' });
-        }
-
-        if (decoded.tipo !== 'restablecer') {
-            return res.status(401).json({ error: 'El enlace no es válido. Solicita uno nuevo.' });
-        }
-
-        const [tokenRows] = await pool.execute(
-            `SELECT * FROM tokens WHERE token = ? AND usuario_id = ? AND tipo = 'restablecer' AND usado = 0 AND fecha_expiracion > NOW()`,
-            [token, decoded.userId]
-        );
-
-        if (tokenRows.length === 0) {
-            return res.status(401).json({ error: 'El enlace ha expirado o ya fue utilizado. Solicita uno nuevo.' });
+        const { decoded, error: errorEnlace, status: statusEnlace } =
+            await validarEnlaceRestablecimiento(pool, token);
+        if (errorEnlace) {
+            return res.status(statusEnlace).json({ error: errorEnlace });
         }
 
         const passwordHash = await bcrypt.hash(nuevaContrasena, 10);

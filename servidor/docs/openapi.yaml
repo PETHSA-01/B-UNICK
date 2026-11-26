@@ -320,6 +320,40 @@ paths:
               schema: { $ref: '#/components/schemas/Error' }
 
   /recuperar-contrasena:
+    get:
+      tags: [Autenticación]
+      summary: Cuenta asociada al enlace de restablecimiento
+      description: Valida el token del correo y devuelve el correo y nombre de usuario de esa cuenta. Con un enlace inválido, expirado o ya usado no revela datos.
+      security: []
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Enlace válido; cuenta detectada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  usuario:
+                    type: object
+                    properties:
+                      correo: { type: string, format: email }
+                      nombreUsuario: { type: string }
+        '400':
+          description: Token ausente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Enlace inválido, expirado o ya usado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
     post:
       tags: [Autenticación]
       summary: Restablece la contraseña usando el token del correo

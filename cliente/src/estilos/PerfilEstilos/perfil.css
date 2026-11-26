@@ -994,6 +994,16 @@
     max-width: 36ch;
 }
 
+.config-apartado-info .config-cuenta {
+    margin-top: 10px;
+    overflow-wrap: anywhere;
+}
+
+.config-cuenta strong {
+    font-weight: 500;
+    color: var(--color-h1);
+}
+
 .config-apartado-control {
     display: flex;
     flex-direction: column;

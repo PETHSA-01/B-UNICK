@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router'
 import { useAuth } from '../../context/AuthContext'
+import { useAuthModal } from '../../context/AuthModalContext'
 import { useTema } from '../../context/TemaContext'
 import api from '../../api/axios'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
@@ -256,6 +257,7 @@ export const Perfil = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { user, isAuthenticated, loading, refreshUser, logout } = useAuth()
+  const { openModal } = useAuthModal()
   const { tema, alternarTema } = useTema()
 
   const notificationsRef = useRef(null)
@@ -808,7 +810,15 @@ export const Perfil = () => {
       setPassActual('')
       setPassNueva('')
       setPassConfirmar('')
-      avisar('Contraseña actualizada correctamente.', 'success')
+      setConfigAbierta(false)
+      avisar('Contraseña actualizada. Inicia sesión con tu nueva contraseña.', 'success')
+      // La contraseña cambió: cerramos la sesión y mostramos el login sobre el
+      // inicio para que la usuaria vuelva a entrar con la nueva.
+      await logout()
+      setTimeout(() => {
+        navigate('/')
+        requestAnimationFrame(() => openModal('login'))
+      }, 1200)
     } catch (e) {
       avisar(e.response?.data?.error || 'No se pudo cambiar la contraseña.')
     } finally {
@@ -1262,6 +1272,9 @@ export const Perfil = () => {
                   <p>
                     Elige una contraseña nueva para tu cuenta. Al cambiarla, cerramos tus otras
                     sesiones activas.
+                  </p>
+                  <p className="config-cuenta" role="status">
+                    Cambiarás la contraseña de <strong>{perfil?.username}</strong> ({perfil?.email})
                   </p>
                 </div>
                 <div className="config-apartado-control">
