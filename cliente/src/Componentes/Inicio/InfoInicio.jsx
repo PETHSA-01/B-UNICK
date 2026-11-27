@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import datosWiki from '../WIKI/datos/wiki.json'
+import { formatearNumero } from '../../utils/formateo'
 import '../../estilos/InicioEstilos/info-inicio.css'
 
 const TAGLINES = {
@@ -81,7 +82,7 @@ export const InfoInicio = () => {
                 <h3 className="info-card-nombre">{cultura.nombre}</h3>
                 <p className="info-card-tagline">{TAGLINES[cultura.id]}</p>
                 <span className="info-card-meta">
-                  {cultura.subestilos?.length ?? 0}{' '}
+                  {formatearNumero(cultura.subestilos?.length)}{' '}
                   {cultura.subestilos?.length === 1 ? 'subestilo' : 'subestilos'}
                 </span>
               </Link>

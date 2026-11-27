@@ -10,6 +10,7 @@ import api from '../../api/axios'
 import { useAuth } from '../../context/AuthContext'
 import { useAuthModal } from '../../context/AuthModalContext'
 import { ConversacionNueva } from './ConversacionNueva'
+import { formatearNumero } from '../../utils/formateo'
 import '../../estilos/ConversacionesEstilos/conversaciones.css'
 
 const LIMITE = 30
@@ -149,7 +150,7 @@ export function ConversacionCard({ conversacion, onLike }) {
         >
           <IconoFlechaArriba />
         </button>
-        <span className="conv-card-likes">{conversacion.likes}</span>
+        <span className="conv-card-likes">{formatearNumero(conversacion.likes)}</span>
       </div>
 
       <div className="conv-card-contenido">
@@ -190,7 +191,7 @@ export function ConversacionCard({ conversacion, onLike }) {
 
         <div className="conv-card-pie">
           <span className="conv-card-metrica">
-            <IconoComentar /> {conversacion.cantidadComentarios}
+            <IconoComentar /> {formatearNumero(conversacion.cantidadComentarios)}
           </span>
           {(avatares.length > 0 || extra > 0) && (
             <span className="conv-card-intervinientes" aria-hidden="true">
@@ -500,7 +501,7 @@ export function Conversaciones() {
     const visibles = conversaciones.length
     const pluralC = total === 1 ? 'conversación' : 'conversaciones'
     const pluralV = visibles === 1 ? 'conversación' : 'conversaciones'
-    return `Mostrando ${visibles} ${pluralV} de ${total} ${pluralC}`
+    return `Mostrando ${formatearNumero(visibles)} ${pluralV} de ${formatearNumero(total)} ${pluralC}`
   }, [cargando, error, conversaciones.length, total])
 
   const hayFiltros =
@@ -776,7 +777,7 @@ export function Conversaciones() {
         <p className="conv-fin">
           {conversaciones.length === 1
             ? 'Solo hay 1 conversación.'
-            : `Eso es todo por ahora (${conversaciones.length} conversaciones).`}
+            : `Eso es todo por ahora (${formatearNumero(conversaciones.length)} conversaciones).`}
         </p>
       )}
 

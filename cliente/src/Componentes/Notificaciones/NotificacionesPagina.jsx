@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../../context/AuthContext'
 import { useAuthModal } from '../../context/AuthModalContext'
 import api from '../../api/axios'
+import { formatearNumero } from '../../utils/formateo'
 import '../../estilos/NotificacionesEstilos/notificaciones.css'
 
 function iniciales(nombre) {
@@ -14,6 +15,17 @@ function iniciales(nombre) {
     .map((p) => p.charAt(0).toUpperCase())
     .join('')
 }
+
+// Las cifras llegan dentro del texto del backend (p. ej. "1500 likes"). Se
+// abrevia solo el número, conservando la palabra que lo acompaña.
+const abreviarCifra = (texto) =>
+  texto.replace(/^\d+(?:[.,]\d+)?/, (numero) => {
+    const grupoMiles = /^\d{1,3}(?:[.,]\d{3})+$/.test(numero)
+    const limpio = grupoMiles
+      ? numero.replace(/[.,]/g, '')
+      : numero.replace(',', '.')
+    return formatearNumero(limpio)
+  })
 
 // ---------------------------------------------------------------------
 // El mensaje llega como texto plano del backend. Para presentarlo con la
@@ -43,7 +55,7 @@ function renderizarMensaje(notif) {
   let clave = 0
   while ((m = re.exec(cuerpo))) {
     if (m.index > ultimo) partes.push(cuerpo.slice(ultimo, m.index))
-    partes.push(<strong key={clave++} className="notif-item-cifra">{m[0]}</strong>)
+    partes.push(<strong key={clave++} className="notif-item-cifra">{abreviarCifra(m[0])}</strong>)
     ultimo = m.index + m[0].length
   }
   if (ultimo < cuerpo.length) partes.push(cuerpo.slice(ultimo))

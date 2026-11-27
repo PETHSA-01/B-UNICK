@@ -8,6 +8,7 @@ import api from '../../api/axios'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
 import { VideoCard } from '../Maquillajes/Maquillajes'
 import { anchoColumnaMasonry, columnasMasonry, repartirEnColumnas } from '../Maquillajes/masonry'
+import { formatearNumero } from '../../utils/formateo'
 import '../../estilos/InicioDeSesionEstilos/iniciosesion.css'
 import '../../estilos/PerfilEstilos/perfil.css'
 import '../../estilos/MaquillajesEstilos/maquillajes.css'
@@ -209,7 +210,7 @@ const ConversacionCard = ({ conv }) => {
               {conv.subcultura?.nombre ? ` · ${conv.subcultura.nombre}` : ''}
             </span>
             <span className="perfil-conv-metricas">
-              {conv.cantidadComentarios ?? 0} comentarios · {conv.likes ?? 0} likes · {conv.vistas ?? 0} vistas
+              {formatearNumero(conv.cantidadComentarios)} comentarios · {formatearNumero(conv.likes)} likes · {formatearNumero(conv.vistas)} vistas
             </span>
           </span>
         </span>
@@ -949,7 +950,7 @@ export const Perfil = () => {
             <p className="maquillajes-fin">
               {meta.total === 1
                 ? 'Solo hay 1 conversación.'
-                : `Eso es todo por ahora (${meta.total} conversaciones).`}
+                : `Eso es todo por ahora (${formatearNumero(meta.total)} conversaciones).`}
             </p>
           )}
         </div>
@@ -1001,7 +1002,9 @@ export const Perfil = () => {
         )}
         {!tabCargando[tabActiva] && meta && meta.hasMas === false && (
           <p className="maquillajes-fin">
-            {meta.total === 1 ? 'Solo hay 1 video.' : `Eso es todo por ahora (${meta.total} videos).`}
+            {meta.total === 1
+              ? 'Solo hay 1 video.'
+              : `Eso es todo por ahora (${formatearNumero(meta.total)} videos).`}
           </p>
         )}
       </div>
@@ -1078,12 +1081,12 @@ export const Perfil = () => {
         <div className="perfil-stats">
           <div className="perfil-stat" title="Me gusta recibidos">
             <span className="perfil-stat-icon"><IconoEstrella /></span>
-            <span className="perfil-stat-num">{perfil.likesRecibidos ?? 0}</span>
+            <span className="perfil-stat-num">{formatearNumero(perfil.likesRecibidos)}</span>
             <span className="perfil-stat-label">Likes</span>
           </div>
           <div className="perfil-stat" title="Publicaciones">
             <span className="perfil-stat-icon"><IconoPublicacion /></span>
-            <span className="perfil-stat-num">{perfil.videos ?? 0}</span>
+            <span className="perfil-stat-num">{formatearNumero(perfil.videos)}</span>
             <span className="perfil-stat-label">Publicaciones</span>
           </div>
           <button
@@ -1093,7 +1096,7 @@ export const Perfil = () => {
             onClick={() => abrirLista('seguidores')}
           >
             <span className="perfil-stat-icon"><IconoUnaPersona /></span>
-            <span className="perfil-stat-num">{perfil.seguidores ?? 0}</span>
+            <span className="perfil-stat-num">{formatearNumero(perfil.seguidores)}</span>
             <span className="perfil-stat-label">Seguidores</span>
           </button>
           <button
@@ -1103,7 +1106,7 @@ export const Perfil = () => {
             onClick={() => abrirLista('siguiendo')}
           >
             <span className="perfil-stat-icon"><IconoDosPersonas /></span>
-            <span className="perfil-stat-num">{perfil.siguiendo ?? 0}</span>
+            <span className="perfil-stat-num">{formatearNumero(perfil.siguiendo)}</span>
             <span className="perfil-stat-label">Seguidos</span>
           </button>
         </div>
@@ -1133,7 +1136,18 @@ export const Perfil = () => {
           }}
           onClick={() => elegirTab(clave)}
         >
-          <Icono />
+          <span className="perfil-tab-icono">
+            <Icono />
+            {clave === 'vistas' && tabActiva === 'vistas' && videosTabMeta.vistas && (
+              <span
+                className="perfil-tab-badge"
+                aria-label={`${videosTabMeta.vistas.total} videos vistos`}
+                title={`${videosTabMeta.vistas.total} videos vistos`}
+              >
+                {formatearNumero(videosTabMeta.vistas.total)}
+              </span>
+            )}
+          </span>
           <span className="perfil-tab-nombre">{nombre}</span>
         </button>
       ))}

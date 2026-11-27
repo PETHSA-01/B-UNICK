@@ -331,6 +331,21 @@
     height: 24px;
 }
 
+.perfil-tab-icono {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.perfil-tab-badge {
+    color: var(--color-h1);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 .perfil-tab-nombre {
     font-size: 13px;
     color: inherit;

@@ -12,6 +12,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useAuthModal } from '../../context/AuthModalContext'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
 import { AlertaBecky } from '../elementos_pequeños/AlertaBecky'
+import { formatearNumero } from '../../utils/formateo'
 import '../../estilos/ConversacionesEstilos/conversaciones-detalle.css'
 
 const TITULO_TOAST = 'Becky te ha mandado un mensaje'
@@ -389,7 +390,7 @@ export function ConversacionDetalle() {
             aria-pressed={conversacion.estadoPropio.like}
           >
             <IconoCorazon filled={conversacion.estadoPropio.like} />
-            <span>{conversacion.likes}</span>
+            <span>{formatearNumero(conversacion.likes)}</span>
           </button>
           <button
             type="button"
@@ -407,7 +408,7 @@ export function ConversacionDetalle() {
 
       {/* Comentarios */}
       <section className="conv-det-comentarios" aria-label="Comentarios">
-        <h2 className="conv-det-seccion-titulo">Comentarios ({conversacion.cantidadComentarios})</h2>
+        <h2 className="conv-det-seccion-titulo">Comentarios ({formatearNumero(conversacion.cantidadComentarios)})</h2>
 
         <form
           className="conv-det-comentar"
@@ -445,7 +446,7 @@ export function ConversacionDetalle() {
                       onClick={() => toggleLikeComentario(c)}
                       aria-pressed={c.likeDado}
                     >
-                      <IconoCorazon filled={c.likeDado} /> {c.cantidadLikes}
+                      <IconoCorazon filled={c.likeDado} /> {formatearNumero(c.cantidadLikes)}
                     </button>
                     <button
                       type="button"
@@ -495,7 +496,7 @@ export function ConversacionDetalle() {
                                 onClick={() => toggleLikeComentario(r)}
                                 aria-pressed={r.likeDado}
                               >
-                                <IconoCorazon filled={r.likeDado} /> {r.cantidadLikes}
+                                <IconoCorazon filled={r.likeDado} /> {formatearNumero(r.cantidadLikes)}
                               </button>
                             </div>
                           </div>

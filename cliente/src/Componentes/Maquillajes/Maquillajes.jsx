@@ -19,6 +19,7 @@ import {
   columnasMasonry,
   repartirEnColumnas
 } from './masonry'
+import { formatearNumero } from '../../utils/formateo'
 import '../../estilos/MaquillajesEstilos/maquillajes.css'
 
 const LIMITE = 30
@@ -399,7 +400,7 @@ export function VideoCard({ video, activo, aspect }) {
           <img className="maquillajes-card-avatar" src={video.creador.fotoPerfil} alt="" loading="lazy" />
           <span className="maquillajes-card-nombre">{video.creador.username}</span>
         </Link>
-        <span className="maquillajes-card-likes" title={`${video.likes} likes`}>
+        <span className="maquillajes-card-likes" title={`${formatearNumero(video.likes)} likes`}>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -410,7 +411,7 @@ export function VideoCard({ video, activo, aspect }) {
           >
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" />
           </svg>
-          {video.likes}
+          {formatearNumero(video.likes)}
         </span>
       </div>
     </article>
@@ -918,7 +919,7 @@ export const Maquillajes = () => {
           >
             <IconoFiltros />
             {filtrosAplicados > 0 && (
-              <span className="maquillajes-filtros-contador">{filtrosAplicados}</span>
+              <span className="maquillajes-filtros-contador">{formatearNumero(filtrosAplicados)}</span>
             )}
           </button>
           <div className="maquillajes-tabs-grupo" role="tablist" aria-label="Apartados de maquillajes">
@@ -1067,7 +1068,7 @@ export const Maquillajes = () => {
                 <section key={grupo.clave} className="maquillajes-apartado" aria-label={grupo.titulo}>
                   <h2 className="maquillajes-apartado-titulo">{grupo.titulo}</h2>
                   <p className="maquillajes-apartado-count">
-                    {grupo.videos.length === 1 ? '1 video' : `${grupo.videos.length} videos`}
+                    {grupo.videos.length === 1 ? '1 video' : `${formatearNumero(grupo.videos.length)} videos`}
                   </p>
                   <div className="maquillajes-masonry maquillajes-masonry--fijo" style={estiloColumnas}>
                     {grupo.columnas.map((columna, ci) => (
@@ -1108,7 +1109,7 @@ export const Maquillajes = () => {
           {cargando && videos.length > 0 && <p className="maquillajes-fin">Cargando más…</p>}
           {!cargando && !error && videos.length > 0 && !haMas && (
             <p className="maquillajes-fin">
-              {total === 1 ? 'Solo hay 1 video.' : `Eso es todo por ahora (${total} videos).`}
+              {total === 1 ? 'Solo hay 1 video.' : `Eso es todo por ahora (${formatearNumero(total)} videos).`}
             </p>
           )}
         </div>

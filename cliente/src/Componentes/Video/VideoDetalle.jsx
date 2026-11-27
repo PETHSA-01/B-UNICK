@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useAuthModal } from '../../context/AuthModalContext'
 import api from '../../api/axios'
 import { Notificaciones } from '../elementos_pequeños/Notificaciones'
+import { formatearNumero } from '../../utils/formateo'
 import '../../estilos/VideoEstilos/video.css'
 
 const TITULO_TOAST = 'Becky te ha mandado un mensaje'
@@ -40,11 +41,6 @@ const formatearFecha = (fecha) => {
   const d = new Date(fecha)
   if (Number.isNaN(d.getTime())) return ''
   return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
-const formatearNumero = (n) => {
-  const num = Number(n) || 0
-  return num.toLocaleString('es-MX')
 }
 
 const fechaRelativa = (fecha) => {
@@ -1338,7 +1334,7 @@ export const VideoDetalle = () => {
               />
             </span>
             <span className="video-estadisticas-fila-valor">
-              {r.votosFavor} a favor · {r.votosContra} en contra
+              {formatearNumero(r.votosFavor)} a favor · {formatearNumero(r.votosContra)} en contra
             </span>
           </div>
         </div>
@@ -1371,7 +1367,7 @@ export const VideoDetalle = () => {
                   />
                 </span>
                 <span className="video-estadisticas-fila-valor">
-                  {ra.votos}
+                  {formatearNumero(ra.votos)}
                   {ra.porcentaje !== 0 ? ` · ${ra.porcentaje}%` : ''}
                 </span>
               </li>
@@ -2065,12 +2061,12 @@ export const VideoDetalle = () => {
               type="button"
               className="video-movil-detalles"
               onClick={(e) => { e.stopPropagation(); setHoja('detalles'); setPestanaDetalles(pestanaDetallesInicial); }}
-              aria-label={`Ver pasos y galería, ${galeriaCount} fotos`}
+              aria-label={`Ver pasos y galería, ${formatearNumero(galeriaCount)} fotos`}
               aria-haspopup="dialog"
             >
               <IconoPasosGaleria />
               {galeriaCount > 0 && (
-                <span className="video-movil-detalles-badge" aria-hidden="true">{galeriaCount}</span>
+                <span className="video-movil-detalles-badge" aria-hidden="true">{formatearNumero(galeriaCount)}</span>
               )}
             </button>
           </div>
@@ -2222,7 +2218,7 @@ export const VideoDetalle = () => {
                 )}
                 {pestanaDetalles === 'galeria' && tieneGaleria && (
                   <>
-                    <p className="video-detalles-galeria-contador">{galeriaCount} fotos de referencia</p>
+                    <p className="video-detalles-galeria-contador">{formatearNumero(galeriaCount)} fotos de referencia</p>
                     {Pgaleria({ modoHoja: true })}
                   </>
                 )}

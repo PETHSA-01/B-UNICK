@@ -1,5 +1,6 @@
 import { useParams, useNavigate, Navigate } from 'react-router'
 import datosWiki from './datos/wiki.json'
+import { formatearNumero } from '../../utils/formateo'
 import '../../estilos/WikiEstilos/wiki.css'
 
 const TINTA_FALLO = '#6B4E8C'
@@ -393,7 +394,7 @@ export const Wiki = () => {
                       <span className="wiki-rail-info">
                         <span className="wiki-rail-nombre">{c.nombre}</span>
                         <span className="wiki-rail-meta">
-                          {c.subestilos.length} {c.subestilos.length === 1 ? 'subestilo' : 'subestilos'}
+                          {formatearNumero(c.subestilos.length)} {c.subestilos.length === 1 ? 'subestilo' : 'subestilos'}
                         </span>
                       </span>
                     </button>
@@ -414,7 +415,7 @@ export const Wiki = () => {
 
     const secciones = [
       { num: '01', id: 'seccion1', titulo: cultura.seccion1.titulo },
-      { num: '02', id: 'subestilos', titulo: `Compendio de Subestilos (${total})` },
+      { num: '02', id: 'subestilos', titulo: `Compendio de Subestilos (${formatearNumero(total)})` },
       { num: '03', id: 'seccion3', titulo: cultura.seccion3.titulo },
       { num: '04', id: 'seccion4', titulo: cultura.seccion4.titulo },
       { num: '05', id: 'seccion5', titulo: cultura.seccion5.titulo },
@@ -450,7 +451,7 @@ export const Wiki = () => {
                   <div className="wiki-infobox-fila">
                     <dt>Subestilos</dt>
                     <dd>
-                      {total} {total === 1 ? 'subestilo' : 'subestilos'}
+                      {formatearNumero(total)} {total === 1 ? 'subestilo' : 'subestilos'}
                     </dd>
                   </div>
                 </dl>
@@ -486,7 +487,7 @@ export const Wiki = () => {
               <section className="wiki-seccion">
                 <h2 id="subestilos">
                   <Numero n="02" />
-                  Compendio de Subestilos <span className="wiki-seccion-contador">({total})</span>
+                  Compendio de Subestilos <span className="wiki-seccion-contador">({formatearNumero(total)})</span>
                 </h2>
                 <div className="wiki-grid">
                   {cultura.subestilos.map((s) => (
@@ -604,7 +605,7 @@ export const Wiki = () => {
                       <span className="wiki-rail-info">
                         <span className="wiki-rail-nombre">{c.nombre}</span>
                         <span className="wiki-rail-meta">
-                          {c.subestilos.length} {c.subestilos.length === 1 ? 'subestilo' : 'subestilos'}
+                          {formatearNumero(c.subestilos.length)} {c.subestilos.length === 1 ? 'subestilo' : 'subestilos'}
                         </span>
                       </span>
                     </button>
@@ -642,7 +643,7 @@ export const Wiki = () => {
 
             <section className="wiki-seccion">
               <h2 id="culturas">
-                Culturas <span className="wiki-seccion-contador">({datosWiki.length})</span>
+                Culturas <span className="wiki-seccion-contador">({formatearNumero(datosWiki.length)})</span>
               </h2>
               <div className="wiki-grid">
                 {datosWiki.map((c) => (
@@ -651,7 +652,7 @@ export const Wiki = () => {
                     nombre={c.nombre}
                     color={c.color}
                     imagen={c.imagen}
-                    contador={`${c.subestilos.length} ${c.subestilos.length === 1 ? 'subestilo' : 'subestilos'}`}
+                    contador={`${formatearNumero(c.subestilos.length)} ${c.subestilos.length === 1 ? 'subestilo' : 'subestilos'}`}
                     descripcion={c.descripcion}
                     onClick={() => navigate(`/wiki/${c.id}`)}
                   />
