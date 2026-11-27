@@ -635,7 +635,7 @@ router.get('/videos/:id', async (req, res) => {
             orden: Number(e.orden)
         }));
 
-        const estado = { like: false, guardado: false, voto: null };
+        const estado = { like: false, guardado: false, compartido: false, voto: null };
         video.yaSigo = false;
         if (sesion) {
             const [likeRows] = await pool.execute(
@@ -648,6 +648,11 @@ router.get('/videos/:id', async (req, res) => {
                 [sesion.id, id]
             );
             estado.guardado = guardadoRows.length > 0;
+            const [compartidoRows] = await pool.execute(
+                'SELECT 1 AS x FROM videos_compartidos WHERE usuario_id = ? AND video_id = ? LIMIT 1',
+                [sesion.id, id]
+            );
+            estado.compartido = compartidoRows.length > 0;
             const [votoRows] = await pool.execute(
                 'SELECT tipo_voto FROM votos_video WHERE usuario_id = ? AND video_id = ? LIMIT 1',
                 [sesion.id, id]
@@ -1114,10 +1119,15 @@ router.post('/videos/:id/guardar', verificarAcceso, async (req, res) => {
     }
 });
 
+// Añadir/quitar el video del apartado "Compartidos" del perfil. La misma
+// fila en videos_compartidos alimenta la galería y el contador desnormalizado
+// cantidad_compartidos, así que ambos se modifican en una sola transacción
+// (INSERT/DELETE respeta la PK usuario+video y GREATEST evita negativos).
 router.post('/videos/:id/compartir', verificarAcceso, async (req, res) => {
     const pool = req.pool;
     const userId = req.user.id;
     const { id } = req.params;
+    let conexion = null;
     try {
         if (!/^\d+$/.test(id)) {
             return res.status(400).json({ error: 'Identificador de video inválido.' });
@@ -1131,25 +1141,48 @@ router.post('/videos/:id/compartir', verificarAcceso, async (req, res) => {
         }
         const totalActual = Number(videoRows[0].cantidad_compartidos);
 
-        const [insertado] = await pool.execute(
-            'INSERT IGNORE INTO videos_compartidos (usuario_id, video_id) VALUES (?, ?)',
+        const [existeRows] = await pool.execute(
+            'SELECT 1 AS x FROM videos_compartidos WHERE usuario_id = ? AND video_id = ? LIMIT 1',
             [userId, id]
         );
-        const nuevo = insertado.affectedRows > 0;
-        if (nuevo) {
-            await pool.execute(
+        const compartido = existeRows.length > 0;
+
+        conexion = await pool.getConnection();
+        await conexion.beginTransaction();
+        if (compartido) {
+            await conexion.execute(
+                'DELETE FROM videos_compartidos WHERE usuario_id = ? AND video_id = ?',
+                [userId, id]
+            );
+            await conexion.execute(
+                'UPDATE videos SET cantidad_compartidos = GREATEST(cantidad_compartidos - 1, 0) WHERE id = ?',
+                [id]
+            );
+        } else {
+            await conexion.execute(
+                'INSERT IGNORE INTO videos_compartidos (usuario_id, video_id) VALUES (?, ?)',
+                [userId, id]
+            );
+            await conexion.execute(
                 'UPDATE videos SET cantidad_compartidos = cantidad_compartidos + 1 WHERE id = ?',
                 [id]
             );
         }
+        await conexion.commit();
+
         res.json({
             success: true,
-            nuevo,
-            cantidadCompartidos: nuevo ? totalActual + 1 : totalActual
+            compartido: !compartido,
+            cantidadCompartidos: compartido ? Math.max(totalActual - 1, 0) : totalActual + 1
         });
     } catch (error) {
+        if (conexion) {
+            try { await conexion.rollback(); } catch (_) { /* la transacción ya terminó */ }
+        }
         console.error('Error en POST /videos/:id/compartir:', error.message);
         res.status(500).json({ error: 'Error interno del servidor.' });
+    } finally {
+        if (conexion) conexion.release();
     }
 });
 
@@ -1722,7 +1755,11 @@ router.put('/videos/:id', verificarAcceso, async (req, res) => {
                 // sin parámetros; la alineación de ? no cambia).
                 const sqlCampos = [...campos];
                 if (resetVotos) {
-                    sqlCampos.push('votos_favor = 0', 'votos_contra = 0', 'porcentaje_semejanza = NULL');
+                    // `porcentaje_semejanza` es DECIMAL NOT NULL: ponerlo en NULL
+                    // provocaba ER_BAD_NULL_ERROR (500) al cambiar de categoría.
+                    // 0.00 es el DEFAULT de la columna y, con 0 votos,
+                    // `calcularSemejanza` ya devuelve null al frontend.
+                    sqlCampos.push('votos_favor = 0', 'votos_contra = 0', 'porcentaje_semejanza = 0.00');
                 }
                 valores.push(id);
                 await conexion.execute(`UPDATE videos SET ${sqlCampos.join(', ')} WHERE id = ?`, valores);

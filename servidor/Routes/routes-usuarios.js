@@ -618,6 +618,25 @@ async function listarVideosPerfil(pool, where, params, req) {
     return { videos, total, pagina, limite, hasMore: offset + videos.length < total };
 }
 
+// Galería "Compartidos": misma forma que /perfil/guardados, pero ordenada
+// por la fecha en que se pulsó el botón de compartir (videos_compartidos).
+// El JOIN es 1:1 gracias a la PK (usuario_id, video_id).
+async function listarVideosCompartidos(pool, userId, req) {
+    const { limite, pagina, offset } = obtenerPaginacion(req);
+    const [totalRows] = await pool.execute(
+        'SELECT COUNT(*) AS total FROM videos_compartidos WHERE usuario_id = ?',
+        [userId]
+    );
+    const total = Number(totalRows[0].total);
+    const [rows] = await pool.execute(
+        `SELECT ${COLUMNAS_VIDEO} ${JOINS_VIDEO} JOIN videos_compartidos vc ON vc.video_id = v.id
+         WHERE vc.usuario_id = ? ORDER BY vc.fecha_compartido DESC, v.id DESC LIMIT ${limite} OFFSET ${offset}`,
+        [userId]
+    );
+    const videos = rows.map((fila) => armarVideo(fila));
+    return { videos, total, pagina, limite, hasMore: offset + videos.length < total };
+}
+
 router.get('/perfil/videos', verificarAcceso, async (req, res) => {
     const userId = req.user.id;
     const pool = req.pool;
@@ -735,6 +754,38 @@ router.get('/perfil/vistos', verificarAcceso, async (req, res) => {
         res.json({ success: true, videos, total, pagina, limite, hasMore: offset + videos.length < total });
     } catch (error) {
         console.error('Error en /perfil/vistos:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Videos que el usuario añadió a su apartado "Compartidos" (propio y ajeno).
+router.get('/perfil/compartidos', verificarAcceso, async (req, res) => {
+    const pool = req.pool;
+    try {
+        const data = await listarVideosCompartidos(pool, req.user.id, req);
+        res.json({ success: true, ...data });
+    } catch (error) {
+        console.error('Error en /perfil/compartidos:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+router.get('/usuarios/:id/compartidos', verificarAcceso, async (req, res) => {
+    const { id } = req.params;
+    const pool = req.pool;
+    if (!/^\d+$/.test(id)) {
+        return res.status(400).json({ error: 'Identificador inválido' });
+    }
+    const targetId = parseInt(id, 10);
+    try {
+        const user = await buscarPerfilAjeno(pool, targetId);
+        if (!user || user.correo_verificado === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        const data = await listarVideosCompartidos(pool, targetId, req);
+        res.json({ success: true, ...data });
+    } catch (error) {
+        console.error('Error en /usuarios/:id/compartidos:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });

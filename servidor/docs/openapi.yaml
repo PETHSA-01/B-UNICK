@@ -686,10 +686,24 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/PaginaVideos' }
 
+  /perfil/compartidos:
+    get:
+      tags: [Perfil]
+      summary: Videos añadidos al apartado "Compartidos" del perfil propio
+      parameters:
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página de compartidos propios
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaVideos' }
+
   /perfil/vistos:
     get:
       tags: [Perfil]
-      summary: Historial de videos vistos (últimos 14 días)
+      summary: Historial de videos vistos (último mes)
       parameters:
         - $ref: '#/components/parameters/Pagina'
         - $ref: '#/components/parameters/Limite'
@@ -825,6 +839,26 @@ paths:
       responses:
         '200':
           description: Página de publicaciones ajenas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaVideos' }
+        '404':
+          description: Usuario inexistente o correo sin verificar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /usuarios/{id}/compartidos:
+    get:
+      tags: [Perfil]
+      summary: Videos que otro usuario añadió a su apartado "Compartidos"
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Limite'
+      responses:
+        '200':
+          description: Página de compartidos ajenos
           content:
             application/json:
               schema: { $ref: '#/components/schemas/PaginaVideos' }
@@ -1192,7 +1226,8 @@ paths:
   /videos/{id}/compartir:
     post:
       tags: [Videos]
-      summary: Registra un compartido (una vez por usuario y video)
+      summary: Añade o quita el video del apartado "Compartidos" del perfil
+      description: Toggle transaccional sobre videos_compartidos; también actualiza el contador desnormalizado del video.
       parameters:
         - $ref: '#/components/parameters/VideoId'
       responses:
@@ -1204,7 +1239,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  nuevo: { type: boolean, description: true si fue el primer compartido de este usuario }
+                  compartido: { type: boolean, description: true si el video quedó añadido tras este clic }
                   cantidadCompartidos: { type: integer }
 
   /videos/{id}/visto:
@@ -1932,6 +1967,7 @@ components:
               properties:
                 like: { type: boolean }
                 guardado: { type: boolean }
+                compartido: { type: boolean, description: true si el usuario añadió el video a sus compartidos }
 
     FeedVideos:
       type: object

@@ -45,10 +45,11 @@ const iniciales = (nombre = '') =>
     .join('')
 
 // ¿La pestaña muestra la galería real de videos? Guardados y Vistas solo
-// son reales en el perfil propio (los ajenos no exponen sus guardados ni
-// su historial de videos vistos).
+// son reales en el perfil propio; Compartidos es pública (propio y ajeno).
 const esTabDeVideos = (clave, esMio) =>
-  clave === 'publicaciones' || ((clave === 'guardados' || clave === 'vistas') && esMio)
+  clave === 'publicaciones' ||
+  clave === 'compartidos' ||
+  ((clave === 'guardados' || clave === 'vistas') && esMio)
 
 const IconoBase = ({ children }) => (
   <svg
@@ -114,6 +115,15 @@ const IconoVistas = () => (
   </IconoBase>
 )
 
+const IconoCompartidos = () => (
+  <IconoBase>
+    <path d="m17 2 4 4-4 4" />
+    <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+    <path d="m7 22-4-4 4-4" />
+    <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+  </IconoBase>
+)
+
 const IconoChat = () => (
   <IconoBase>
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -124,6 +134,7 @@ const IconoChat = () => (
 const PESTANAS = [
   { clave: 'publicaciones', nombre: 'Publicaciones', Icono: IconoPublicacion },
   { clave: 'guardados', nombre: 'Guardados', Icono: IconoGuardado },
+  { clave: 'compartidos', nombre: 'Compartidos', Icono: IconoCompartidos },
   { clave: 'vistas', nombre: 'Vistas', Icono: IconoVistas },
   { clave: 'chats', nombre: 'Chats', Icono: IconoChat }
 ]
@@ -147,6 +158,15 @@ const TEXTOS_VACIOS = {
           ruta: '/'
         }
       : { titulo: 'Nada aquí' },
+  compartidos: (esMio) =>
+    esMio
+      ? {
+          titulo: 'Aún no has compartido nada',
+          texto: 'Toca compartir en una publicación y aparecerá aquí.',
+          etiqueta: 'Explorar publicaciones',
+          ruta: '/'
+        }
+      : { titulo: 'Sin compartidos', texto: 'Este usuario todavía no ha compartido ninguna publicación.' },
   vistas: (esMio) =>
     esMio
       ? {
@@ -332,9 +352,9 @@ export const Perfil = () => {
     tabsRef.current[siguiente]?.focus()
   }
 
-  // Galería real de videos (Publicaciones / Guardados): usa el mismo
-  // VideoCard del inicio (masonry + scroll infinito de 30 en 30).
-  const videosTabRef = useRef({ publicaciones: [], guardados: [], vistas: [] })
+  // Galería real de videos (Publicaciones / Guardados / Compartidos / Vistas):
+  // usa el mismo VideoCard del inicio (masonry + scroll infinito de 30 en 30).
+  const videosTabRef = useRef({ publicaciones: [], guardados: [], compartidos: [], vistas: [] })
   const [videosTabMeta, setVideosTabMeta] = useState({})
   const [tabCargando, setTabCargando] = useState({})
   const [tabError, setTabError] = useState({})
@@ -408,11 +428,15 @@ export const Perfil = () => {
       const endpoint =
         clave === 'guardados'
           ? '/perfil/guardados'
-          : clave === 'vistas'
-            ? '/perfil/vistos'
-            : id
-              ? `/usuarios/${id}/videos`
-              : '/perfil/videos'
+          : clave === 'compartidos'
+            ? id
+              ? `/usuarios/${id}/compartidos`
+              : '/perfil/compartidos'
+            : clave === 'vistas'
+              ? '/perfil/vistos'
+              : id
+                ? `/usuarios/${id}/videos`
+                : '/perfil/videos'
       const res = await api.get(endpoint, { params: { pagina, limite: LIMITE_TAB } })
       if (tabSeqRef.current[clave] !== sec) return
       const lista = res.data?.videos || []
@@ -535,7 +559,7 @@ export const Perfil = () => {
   // Al cambiar de perfil (propio ↔ ajeno) se descarta la caché de galerías
   // para no mezclar los videos del usuario anterior.
   useEffect(() => {
-    videosTabRef.current = { publicaciones: [], guardados: [], vistas: [] }
+    videosTabRef.current = { publicaciones: [], guardados: [], compartidos: [], vistas: [] }
     setVideosTabMeta({})
     setTabError({})
     setTabCargando({})

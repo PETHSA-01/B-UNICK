@@ -15,6 +15,10 @@ import '../../estilos/ConversacionesEstilos/conversaciones.css'
 
 const LIMITE = 30
 
+// Máximo de caracteres del extracto mostrado en la miniatura de la tarjeta.
+// El texto completo sigue disponible en el detalle de la conversación.
+const MAX_CARACTERES_PREVIEW = 200
+
 // Temas de las pestañas (RQFN126). El backend las sirve desde su whitelist;
 // este fallback se usa si el catálogo no carga.
 const TEMAS_FALLBACK = ['Todos', 'Tips', 'Dudas', 'Tutorial', 'Opiniones', 'Eventos', 'Show', 'Look', 'General']
@@ -116,12 +120,14 @@ function IconoFlechaArriba() {
 
 // Tarjeta de conversación estilo foro/Reddit (rediseño 2026-10-01):
 // columna de votos de 56px + contenido con metadatos, chips, título,
-// extracto de 300 caracteres con miniatura de portada y pie con avatares
+// extracto de 200 caracteres con miniatura de portada y pie con avatares
 // de los últimos participantes y tiempo de la última respuesta.
 export function ConversacionCard({ conversacion, onLike }) {
   const preview = useMemo(() => {
     const t = (conversacion.texto || '').replace(/\s+/g, ' ').trim()
-    return t.length > 300 ? `${t.slice(0, 300).trimEnd()}…` : t
+    return t.length > MAX_CARACTERES_PREVIEW
+      ? `${t.slice(0, MAX_CARACTERES_PREVIEW).trimEnd()}…`
+      : t
   }, [conversacion.texto])
 
   const galeria = conversacion.galeria || []

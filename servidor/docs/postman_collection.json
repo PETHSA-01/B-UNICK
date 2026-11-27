@@ -648,7 +648,37 @@
           "response": []
         },
         {
-          "name": "Historial de videos vistos (últimos 14 días)",
+          "name": "Videos compartidos por el usuario propio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/compartidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "compartidos"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de videos vistos (último mes)",
           "request": {
             "method": "GET",
             "header": [],
@@ -796,6 +826,37 @@
                 "usuarios",
                 "{{idId}}",
                 "videos"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limite",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Videos compartidos por otro usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{idId}}/compartidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{idId}}",
+                "compartidos"
               ],
               "query": [
                 {
@@ -1128,7 +1189,7 @@
           "response": []
         },
         {
-          "name": "Registra un compartido (una vez por usuario y video)",
+          "name": "Añade o quita el video del apartado Compartidos",
           "request": {
             "method": "POST",
             "header": [],

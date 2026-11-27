@@ -175,11 +175,10 @@ const IconoGuardado = () => (
 
 const IconoCompartir = () => (
   <IconoBase>
-    <circle cx="18" cy="5" r="3" />
-    <circle cx="6" cy="12" r="3" />
-    <circle cx="18" cy="19" r="3" />
-    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+    <path d="m17 2 4 4-4 4" />
+    <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+    <path d="m7 22-4-4 4-4" />
+    <path d="M21 13v1a4 4 0 0 1-4 4H3" />
   </IconoBase>
 )
 
@@ -618,23 +617,33 @@ export const VideoDetalle = () => {
     }
   }
 
+  // El botón de compartidos es un toggle: añade o quita el video del
+  // apartado "Compartidos" del perfil. El contador y el estado propio se
+  // actualizan de forma optimista y se reconcilian con la respuesta.
   const compartir = async () => {
-    if (!requiereSesion()) return
-    const url = `${window.location.origin}${window.location.pathname}`
-    try {
-      await navigator.clipboard.writeText(url)
-      avisar('Enlace copiado al portapapeles. Compártelo con quien quieras.')
-    } catch {
-      avisar('No se pudo copiar el enlace automáticamente.', 'error')
-    }
+    if (!requiereSesion() || !video) return
+    const compartido = Boolean(video.estadoPropio?.compartido)
+    const cantidadActual = Number(video.compartidos) || 0
+    setVideo((v) => (v ? {
+      ...v,
+      compartidos: compartido ? Math.max(cantidadActual - 1, 0) : cantidadActual + 1,
+      estadoPropio: { ...v.estadoPropio, compartido: !compartido }
+    } : v))
     try {
       const res = await api.post(`/videos/${id}/compartir`)
-      if (res.data?.nuevo && res.data.cantidadCompartidos != null) {
-        setVideo((v) => (v ? { ...v, compartidos: res.data.cantidadCompartidos } : v))
-      }
-    } catch {
-      // El enlace ya se copió; si el registro de compartir falla, no se
-      // bloquea nada (el contador simplemente no cambia en este clic).
+      setVideo((v) => (v ? {
+        ...v,
+        compartidos: res.data?.cantidadCompartidos ?? v.compartidos,
+        estadoPropio: { ...v.estadoPropio, compartido: Boolean(res.data?.compartido) }
+      } : v))
+      avisar(res.data?.compartido ? 'Añadido a tus compartidos.' : 'Quitado de tus compartidos.')
+    } catch (err) {
+      setVideo((v) => (v ? {
+        ...v,
+        compartidos: cantidadActual,
+        estadoPropio: { ...v.estadoPropio, compartido }
+      } : v))
+      avisar(err.response?.data?.error || 'No se pudo actualizar tus compartidos.', 'error')
     }
   }
 
@@ -1924,7 +1933,14 @@ export const VideoDetalle = () => {
               <IconoGuardado />
               <span>{formatearNumero(video.guardados)}</span>
             </button>
-            <button type="button" className="video-stat" onClick={compartir} aria-label={`Compartir, ${formatearNumero(video.compartidos)}`} title="Compartir">
+            <button
+              type="button"
+              className={`video-stat${video.estadoPropio.compartido ? ' video-stat--activa' : ''}`}
+              onClick={compartir}
+              aria-pressed={video.estadoPropio.compartido}
+              aria-label={`${video.estadoPropio.compartido ? 'Quitar de compartidos' : 'Añadir a compartidos'}, ${formatearNumero(video.compartidos)}`}
+              title={video.estadoPropio.compartido ? 'Quitar de compartidos' : 'Añadir a compartidos'}
+            >
               <IconoCompartir />
               <span>{formatearNumero(video.compartidos)}</span>
             </button>
@@ -1980,7 +1996,7 @@ export const VideoDetalle = () => {
         etiqueta: 'Compartido',
         icono: 'compartir',
         dato: formatearNumero(video.compartidos),
-        activo: false
+        activo: video.estadoPropio.compartido
       },
       {
         tipo: 'comentario',
@@ -2079,6 +2095,7 @@ export const VideoDetalle = () => {
                 className={`video-movil-accion${a.activo ? ' video-movil-accion--activa' : ''}`}
                 onClick={() => ejecutarAccionMovil(a.tipo)}
                 aria-label={`${a.etiqueta}, ${a.dato}`}
+                aria-pressed={a.tipo === 'like' || a.tipo === 'guardado' || a.tipo === 'compartir' ? a.activo : undefined}
               >
                 <span className="video-movil-accion-icono">{iconoAccion(a.icono)}</span>
                 <span className="video-movil-accion-dato">{a.dato}</span>
